@@ -94,7 +94,9 @@ export function classify(text: string): Classification {
 
   for (const [cat, rules] of Object.entries(RULES) as [CategoryCode, Rule[]][]) {
     let s = 0;
-    for (const [stem, w] of rules) {
+    // Одинаковые основы в ru- и kz-списках (асфальт, тротуар…) считаем один раз
+    const unique = [...new Map(rules.map(([stem, w]) => [stem, w])).entries()];
+    for (const [stem, w] of unique) {
       const hit = stem.startsWith("=")
         ? words.includes(stem.slice(1))
         : stem.includes(" ")

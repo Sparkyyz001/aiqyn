@@ -104,3 +104,9 @@ test("Гео: гаверсинус и точка в полигоне", () => {
   assert.ok(pointInPolygon({ lat: 43.5, lng: 51.5 }, sq));
   assert.ok(!pointInPolygon({ lat: 44.5, lng: 51.5 }, sq));
 });
+
+test("Классификатор: общие ru/kz основы не удваивают вес", () => {
+  const c = classify("Яма во дворе после раскопок, асфальт не восстановили");
+  assert.equal(c.category, "excavation");
+  assert.equal(c.scores.road_pit, 5);
+});

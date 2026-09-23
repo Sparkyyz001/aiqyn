@@ -12,11 +12,16 @@ export type UploadedPhoto = PhotoInput & { preview: string };
 
 async function readExif(file: File): Promise<{ lat: number | null; lng: number | null; taken_at: string | null }> {
   try {
-    const data = await exifr.parse(file, { gps: true, pick: ["DateTimeOriginal", "CreateDate", "latitude", "longitude"] });
-    const dt: Date | undefined = data?.DateTimeOriginal ?? data?.CreateDate;
+    // GPS читаем отдельным вызовом: с опцией pick exifr отбрасывает сырые GPS-теги,
+    // из которых вычисляются latitude/longitude
+    const [gps, meta] = await Promise.all([
+      exifr.gps(file).catch(() => null),
+      exifr.parse(file, ["DateTimeOriginal", "CreateDate"]).catch(() => null),
+    ]);
+    const dt: Date | undefined = meta?.DateTimeOriginal ?? meta?.CreateDate;
     return {
-      lat: typeof data?.latitude === "number" ? data.latitude : null,
-      lng: typeof data?.longitude === "number" ? data.longitude : null,
+      lat: typeof gps?.latitude === "number" ? gps.latitude : null,
+      lng: typeof gps?.longitude === "number" ? gps.longitude : null,
       taken_at: dt instanceof Date && !isNaN(dt.getTime()) ? dt.toISOString() : null,
     };
   } catch {

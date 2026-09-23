@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,9 @@ const DEMO = [
 export function LoginForm({ t, next, mode }: { t: Dict; next: string; mode: "signin" | "signup" }) {
   const [state, action, pending] = useActionState(mode === "signup" ? signUp : signIn, undefined);
   const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state?.to) window.location.assign(state.to);
+  }, [state]);
 
   const fillDemo = (email: string) => {
     const f = formRef.current;
@@ -56,7 +59,7 @@ export function LoginForm({ t, next, mode }: { t: Dict; next: string; mode: "sig
           {state?.error && (
             <p className="text-sm text-destructive">{state.error === "invalid" ? t.auth.error : state.error}</p>
           )}
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending || !!state?.to}>
             {pending ? t.common.loading : mode === "signup" ? t.auth.signup : t.auth.submit}
           </Button>
           <p className="text-center text-sm text-muted-foreground">

@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { homeFor, type Role } from "@/lib/auth";
 
-export type AuthState = { error?: string } | undefined;
+// to — куда перейти после входа; переход делает браузер (полная загрузка, чтобы шапка
+// и кабинеты гарантированно отрисовались уже с новой сессией)
+export type AuthState = { error?: string; to?: string } | undefined;
 
 export async function signIn(_: AuthState, form: FormData): Promise<AuthState> {
   const supabase = await createClient();
@@ -16,10 +18,10 @@ export async function signIn(_: AuthState, form: FormData): Promise<AuthState> {
   if (error || !data.user) return { error: "invalid" };
 
   const next = String(form.get("next") ?? "");
-  if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
+  if (next.startsWith("/") && !next.startsWith("//")) return { to: next };
 
   const { data: p } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
-  redirect(homeFor((p?.role ?? "citizen") as Role));
+  return { to: homeFor((p?.role ?? "citizen") as Role) };
 }
 
 export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
@@ -30,7 +32,7 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
     options: { data: { full_name: String(form.get("full_name") ?? "").trim() } },
   });
   if (error) return { error: error.message };
-  redirect("/me");
+  return { to: "/me" };
 }
 
 export async function signOut() {
