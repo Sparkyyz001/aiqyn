@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, signUp, signInWithGoogle } from "@/lib/actions/session";
@@ -36,12 +35,16 @@ export function LoginForm({ t, next, mode, google, oauthError }: { t: Dict; next
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{mode === "signup" ? t.auth.signupTitle : t.auth.title}</CardTitle>
-        <CardDescription>{t.tagline}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{mode === "signup" ? t.auth.signupTitle : t.auth.title}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {mode === "signup" ? t.auth.haveAccount : t.auth.noAccount}{" "}
+          <Link className="font-medium text-[#b8472f] underline-offset-4 dark:text-lt-coral hover:underline" href={mode === "signup" ? "/login" : "/login?mode=signup"}>
+            {mode === "signup" ? t.auth.submit : t.auth.signup}
+          </Link>
+        </p>
+      </div>
         {oauthError && <p className="text-sm text-destructive">{t.auth.oauthError}</p>}
         {google && (
           <>
@@ -49,6 +52,7 @@ export function LoginForm({ t, next, mode, google, oauthError }: { t: Dict; next
               type="button"
               variant="outline"
               size="lg"
+              className="h-11"
               disabled={gPending}
               onClick={() =>
                 gStart(async () => {
@@ -72,33 +76,27 @@ export function LoginForm({ t, next, mode, google, oauthError }: { t: Dict; next
           {mode === "signup" && (
             <div className="grid gap-2">
               <Label htmlFor="full_name">{t.auth.fullName}</Label>
-              <Input id="full_name" name="full_name" required autoComplete="name" />
+              <Input id="full_name" name="full_name" required autoComplete="name" className="h-11" />
             </div>
           )}
           <div className="grid gap-2">
             <Label htmlFor="email">{t.auth.email}</Label>
-            <Input id="email" name="email" type="email" required autoComplete="email" />
+            <Input id="email" name="email" type="email" required autoComplete="email" placeholder="example@mail.kz" className="h-11" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">{t.auth.password}</Label>
-            <Input id="password" name="password" type="password" required minLength={6} placeholder={mode === "signup" ? t.auth.minPass : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} />
+            <Input id="password" name="password" type="password" required minLength={6} placeholder={mode === "signup" ? t.auth.minPass : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} className="h-11" />
           </div>
           {state?.error && (
             <p className="text-sm text-destructive">{state.error === "invalid" ? t.auth.error : state.error === "exists" ? t.auth.exists : state.error === "short" ? t.auth.short : state.error}</p>
           )}
-          <Button type="submit" disabled={pending || !!state?.to}>
+          <Button type="submit" size="lg" className="h-11 bg-lt-coral font-semibold text-lt-teal transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#ffa493]" disabled={pending || !!state?.to}>
             {pending ? t.common.loading : mode === "signup" ? t.auth.signup : t.auth.submit}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            {mode === "signup" ? t.auth.haveAccount : t.auth.noAccount}{" "}
-            <Link className="text-primary underline-offset-4 hover:underline" href={mode === "signup" ? "/login" : "/login?mode=signup"}>
-              {mode === "signup" ? t.auth.submit : t.auth.signup}
-            </Link>
-          </p>
         </form>
 
         {mode === "signin" && (
-          <details className="rounded-md border bg-muted/40 p-3">
+          <details className="rounded-xl border bg-muted/40 p-3">
             <summary className="cursor-pointer text-sm font-medium">{t.auth.demoToggle}</summary>
             <p className="mt-2 mb-2 text-xs text-muted-foreground">{t.auth.demoHint}</p>
             <div className="flex flex-col gap-1">
@@ -114,7 +112,6 @@ export function LoginForm({ t, next, mode, google, oauthError }: { t: Dict; next
             </div>
           </details>
         )}
-      </CardContent>
-    </Card>
+    </div>
   );
 }

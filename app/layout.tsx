@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, PT_Serif } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +12,7 @@ import "./globals.css";
 // cyrillic-ext нужен для казахских букв ә ғ қ ң ө ұ ү һ і
 const sans = Inter({ variable: "--font-sans", subsets: ["latin", "cyrillic", "cyrillic-ext"] });
 const mono = JetBrains_Mono({ variable: "--font-geist-mono", subsets: ["latin", "cyrillic"] });
+const serif = PT_Serif({ variable: "--font-serif", subsets: ["latin", "cyrillic", "cyrillic-ext"], weight: ["400"], style: ["normal", "italic"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
@@ -31,7 +32,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = await getLang();
   return (
-    <html lang={lang === "kz" ? "kk" : "ru"} suppressHydrationWarning className={`${sans.variable} ${mono.variable} h-full antialiased`}>
+    <html lang={lang === "kz" ? "kk" : "ru"} suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>

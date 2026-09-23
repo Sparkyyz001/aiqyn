@@ -8,6 +8,7 @@ import { getDict } from "@/lib/i18n/server";
 import { signOut } from "@/lib/actions/session";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { HeaderShell } from "@/components/header-shell";
 
 export async function SiteHeader() {
   const [{ lang, t }, profile] = await Promise.all([getDict(), getProfile()]);
@@ -25,7 +26,7 @@ export async function SiteHeader() {
   const links = profile ? [...publicLinks, cabinet[profile.role]] : publicLinks;
 
   return (
-    <header className="sticky top-0 z-[1100] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <HeaderShell>
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="grid size-7 place-items-center rounded-md bg-primary text-[13px] font-bold text-primary-foreground">A</span>
@@ -108,6 +109,6 @@ export async function SiteHeader() {
           </Sheet>
         </div>
       </div>
-    </header>
+    </HeaderShell>
   );
 }
