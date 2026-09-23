@@ -1,0 +1,18 @@
+{
+  "note": "Категории обращений. sla_days — рабочие дни (АППК РК ст. 76: 15 рабочих дней). severity_base — базовая важность 0..100, первое слагаемое формулы приоритета (lib/priority.ts). default_service — код из services.json; исключения — в lib/routing.ts.",
+  "items": [
+    { "code": "road_pit",     "name_ru": "Яма / разрушение дороги",     "name_kz": "Жолдағы шұңқыр / жол бұзылуы", "icon": "construction",  "default_service": "roads",    "sla_days": 15, "severity_base": 55 },
+    { "code": "excavation",   "name_ru": "Не восстановлено после раскопок", "name_kz": "Қазбадан кейін қалпына келтірілмеген", "icon": "shovel", "default_service": "kzhsa", "sla_days": 15, "severity_base": 55 },
+    { "code": "water_outage", "name_ru": "Нет воды / плохая вода",       "name_kz": "Су жоқ / су сапасы нашар",     "icon": "droplets",      "default_service": "kzhsa",    "sla_days": 15, "severity_base": 75 },
+    { "code": "sewage",       "name_ru": "Канализация, прорыв",          "name_kz": "Кәріз, апат",                  "icon": "waves",         "default_service": "kzhsa",    "sla_days": 15, "severity_base": 70 },
+    { "code": "heating",      "name_ru": "Отопление",                    "name_kz": "Жылыту",                       "icon": "thermometer",   "default_service": "kzhsa",    "sla_days": 15, "severity_base": 70 },
+    { "code": "power_outage", "name_ru": "Нет электричества",            "name_kz": "Электр қуаты жоқ",             "icon": "zap-off",       "default_service": "aues",     "sla_days": 15, "severity_base": 75 },
+    { "code": "lighting",     "name_ru": "Не горит уличный свет",        "name_kz": "Көше жарығы жанбайды",         "icon": "lamp",          "default_service": "aues",     "sla_days": 15, "severity_base": 45 },
+    { "code": "garbage",      "name_ru": "Мусор, контейнеры",            "name_kz": "Қоқыс, контейнерлер",          "icon": "trash-2",       "default_service": "sanitary", "sla_days": 15, "severity_base": 50 },
+    { "code": "smell",        "name_ru": "Запах, выбросы",               "name_kz": "Иіс, шығарындылар",            "icon": "wind",          "default_service": "eco",      "sla_days": 15, "severity_base": 60 },
+    { "code": "yard",         "name_ru": "Благоустройство двора",        "name_kz": "Аула абаттандыру",             "icon": "trees",         "default_service": "housing",  "sla_days": 15, "severity_base": 40 },
+    { "code": "transport",    "name_ru": "Общественный транспорт",       "name_kz": "Қоғамдық көлік",               "icon": "bus",           "default_service": "roads",    "sla_days": 15, "severity_base": 35 },
+    { "code": "beach",        "name_ru": "Пляж, побережье",              "name_kz": "Жағажай, жағалау",             "icon": "umbrella",      "default_service": "akimat",   "sla_days": 15, "severity_base": 30 },
+    { "code": "other",        "name_ru": "Другое",                       "name_kz": "Басқа",                        "icon": "circle-help",   "default_service": "akimat",   "sla_days": 15, "severity_base": 30 }
+  ]
+}
