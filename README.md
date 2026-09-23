@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AIQYN — прозрачность городских проблем Актау
 
-## Getting Started
+**Демо:** https://aiqyn-aktau.vercel.app
+Хакатон «Smart City Aktau», Mangystau Hub.
 
-First, run the development server:
+> В Актау проблема не в том, что жалобу некуда подать. Проблема в том, что после подачи ничего не видно
+> и никто не отвечает по срокам. AIQYN превращает жалобу из сообщения в чате в отслеживаемое обязательство
+> с юридическим сроком и доказательной базой.
+
+AIQYN не заменяет контакт-центр 109, «Smart Aktau» и eOtinish. Это публичный слой поверх них:
+карта, SLA-таймер по закону, склейка дубликатов, фото «до/после» с проверкой геометки,
+подтверждение выполнения самими жителями и готовый пакет для eOtinish, когда срок сорван.
+
+## Тестовые аккаунты
+
+Пароль у всех: **`aiqyn2026`**. На странице входа есть кнопки быстрого входа.
+
+| Роль | Email | Что смотреть |
+|---|---|---|
+| Житель | `citizen@aiqyn.kz` | подача обращения, «Мои обращения», голосование «сделано / не сделано» |
+| Житель 2 | `citizen2@aiqyn.kz` | «Я тоже это вижу», голос за чужое обращение |
+| Служба КЖСА | `kzhsa@aiqyn.kz` | очередь по приоритету, принять → в работу → закрыть с фото «после» |
+| Служба дорог | `roads@aiqyn.kz` | очередь отдела пассажирского транспорта и автодорог |
+| Служба АУЭС | `aues@aiqyn.kz` | электросети и освещение |
+| Служба ТБО | `sanitary@aiqyn.kz` | вывоз мусора |
+| Акимат | `akimat@aiqyn.kz` | дашборд, хронические точки, качество служб, деньги и жалобы, прогноз дорог, запах, свет |
+| Оператор 109 | `operator@aiqyn.kz` | заведение из звонков и постов Instagram, аварии |
+
+## Сквозной сценарий (как на питче)
+
+1. Житель: **Сообщить о проблеме** → точка на карте, фото, пара слов. Система сама определяет категорию,
+   службу (например, «яма после раскопок» → КЖСА, а не дорожники), микрорайон и соцобъекты рядом.
+2. Если рядом уже есть такая проблема — экран «Подтверждаю» вместо дубля.
+3. Стартует публичный таймер: **15 рабочих дней** по АППК РК, ст. 76, с учётом праздников РК.
+4. Служба принимает, берёт в работу, закрывает **только с фото «после»** — сверяются геометка (≤100 м) и время съёмки.
+5. Заявка не закрывается сама: житель голосует. «Не сделано» → **переоткрытие**, счётчик виден всем.
+6. Срок сорван → **Эскалировать в eOtinish**: текст жалобы, хронология, фото, число подтвердивших, PDF.
+   Отправку в госсистему не имитируем — подаёт житель.
+7. Акимат видит на дашборде, где горит, кто срывает сроки и где жалобы повторяются годами.
+
+## Ключевые механики (где смотреть код)
+
+| Механика | Файл |
+|---|---|
+| SLA в рабочих днях, праздники РК, переносы (ТК ст. 84) | `lib/sla.ts` |
+| Формула приоритета из 7 слагаемых с разбивкой в карточке | `lib/priority.ts` |
+| Классификатор ru+kz по словарю основ, с уверенностью и объяснением | `lib/classify.ts` |
+| Маршрутизация: таблица правил поверх службы категории | `lib/routing.ts` |
+| Дедупликация: 120 м, та же категория, 30 дней, не закрыто | `lib/dedupe.ts` |
+| Голосование жителей: вес по репутации, автор ×2, окно 72 ч | `lib/verification.ts` |
+| Хронические точки: DBSCAN 80 м / 3 обращения, chronic_score | `lib/clustering.ts` |
+| Детектор ответов без конкретики: маркеры + TF-IDF + нет даты/суммы/исполнителя/документа | `lib/boilerplate.ts` |
+| Источник запаха: обратная трассировка по реальному ветру Open-Meteo | `lib/wind.ts` |
+| Индекс риска дорог: жалобы, класс, длина, переходы через 0 °C | `lib/road-risk.ts` |
+| Режим аварии: зона, автопривязка обращений, массовое закрытие через жителей | `lib/actions/incidents.ts` |
+| Пакет eOtinish и PDF | `lib/escalation.ts`, `lib/pdf/escalation-doc.tsx` |
+
+Тесты механик: `npm test`.
+
+## Стек
+
+Next.js 16 (App Router, Server Actions) · React 19 · TypeScript · Tailwind 4 + shadcn/ui ·
+Supabase (Postgres 17, Auth, Storage, Realtime, RLS на всех таблицах) · Leaflet + OpenStreetMap ·
+Recharts · @react-pdf/renderer · Vercel (fra1).
+
+## Запуск локально
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # URL и ключи Supabase
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Данные и справочники:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node scripts/fetch-osm.mjs          # география Актау из OpenStreetMap → data/
+node scripts/fetch-weather.mjs      # ветер и температура из Open-Meteo → data/
+node scripts/build-districts.mjs    # нормализация микрорайонов
+node scripts/seed-reference.mjs     # справочники, погода, дороги, тестовые аккаунты → Supabase
+npx tsx scripts/seed-press.mts      # реальные кейсы из СМИ как обращения (дата публикации, ссылка)
+node scripts/import-procurements.mjs data/procurements.csv   # контракты с goszakup.gov.kz
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Миграции БД — `supabase/migrations/`.
 
-## Learn More
+## Источники данных
 
-To learn more about Next.js, take a look at the following resources:
+Полный список с лицензиями и датами выгрузки — [`data/SOURCES.md`](data/SOURCES.md) и страница
+[/open-data](https://aiqyn-aktau.vercel.app/open-data).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **OpenStreetMap** (ODbL): 84 микрорайона с границами, 5 499 дорожных сегментов, 18 036 адресов,
+  школы, садики, больницы, остановки, порт и промзона.
+- **Open-Meteo** (CC BY 4.0): почасовой ветер за 90 дней, суточные температуры за 3 года.
+- **Реестр служб**: goszakup.gov.kz (реестр поставщиков), mrek.kz, lada.kz, 2ГИС — у каждой записи ссылка.
+- **Кейсы жителей**: lada.kz, inaktau.kz, newsroom.kz, tengrinews.kz, time.kz.
+- **Госзакупки**: goszakup.gov.kz. API OWS требует токен ЦЭФ по заявке; до его получения — ручная выгрузка
+  реестра договоров. Номера и суммы только с портала.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Демо-подложка.** Чтобы дашборд не был пустым, статистика считается по потоку
+«~830 синтетических обращений + реальные обращения из базы» (`lib/demo-baseline.ts`).
+Синтетика посажена на реальные микрорайоны и службы, у всех служб одинаковые вероятности просрочек
+и переоткрытий (различия — шум, а не оценка организаций), хронические узлы — только из реальных кейсов прессы.
+Демо-записи имеют отрицательные id и номер `DEMO-…`, в открытый API не попадают.
 
-## Deploy on Vercel
+## Открытый API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+GET /api/public/v1/reports?status=open&category=road_pit&district=mkr-3
+GET /api/public/v1/reports?format=geojson
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Только реальные обращения, без персональных данных.
