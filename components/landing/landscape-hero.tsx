@@ -7,15 +7,12 @@ type Props = {
   eyebrow: string;
   lines: string[];
   sub: string;
-  kicker: string;
-  made: string;
-  nav: [string, string][][];
   cta: string;
-  links: string;
+  ctaMap: string;
 };
 
 // Первый экран лендинга: иллюстрированный пейзаж (Pixabay, свободная лицензия), холмы, листья,
-// крупная фраза, навигация и главная кнопка на тёмно-бирюзовом переднем плане. Лёгкий параллакс за курсором.
+// крупная фраза и кнопки на тёмно-бирюзовом переднем плане. Лёгкий параллакс за курсором.
 export function LandscapeHero({ f }: { f: Props }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -93,69 +90,16 @@ export function LandscapeHero({ f }: { f: Props }) {
           <p className="vf-sub vf-intro" style={{ "--d": "760ms" } as React.CSSProperties}>{f.sub}</p>
         </div>
 
-        <div className="vf-footer vf-intro" style={{ "--d": "950ms" } as React.CSSProperties}>
-          <div className="vf-grid">
-            <div className="vf-brandcol">
-              <Link href="/" className="vf-brand">
-                <svg className="vf-logo" viewBox="0 0 44 44" aria-hidden>
-                  <rect x="3" y="3" width="38" height="38" rx="11" fill="none" stroke="#c7e99d" strokeWidth="2.6" />
-                  <path d="M22 34V13" stroke="#c7e99d" strokeWidth="2.6" strokeLinecap="round" />
-                  <path d="M22 20c-6.5 0-9.5-3.4-9.5-8.5 6 0 9.5 3 9.5 8.5Z" fill="#c7e99d" />
-                  <path d="M22 28c6.5 0 9.5-3.4 9.5-8.5-6 0-9.5 3-9.5 8.5Z" fill="#c7e99d" />
-                </svg>
-                <span>AIQYN</span>
-              </Link>
-              <div className="vf-copy">
-                <span>{f.kicker}</span>
-                <small>{f.made}</small>
-              </div>
-            </div>
-
-            <nav className="vf-nav" aria-label="AIQYN">
-              {f.nav.map((group, i) => (
-                <ul key={i} className="vf-navgroup">
-                  {group.map(([label, href]) => (
-                    <li key={href}>
-                      <Link href={href} className="vf-link">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ))}
-            </nav>
-
-            <Link href="/report/new" className="vf-cta">
-              <span>{f.cta}</span>
-              <span className="vf-arrow" aria-hidden>
-                ↗
-              </span>
-            </Link>
-          </div>
-
-          <div className="vf-bottom">
-            <div className="vf-line" aria-hidden />
-            <ul className="vf-social" aria-label={f.links}>
-              <li>
-                <a href="tel:109" aria-label="109">
-                  109
-                </a>
-              </li>
-              <li>
-                <a href="https://eotinish.kz" target="_blank" rel="noopener noreferrer" aria-label="eOtinish">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M4 5h16v11H8l-4 4Z" />
-                    <path d="M8 10h8M8 13h5" />
-                  </svg>
-                </a>
-              </li>
-              <li>
-                <a href="/api/public/v1/reports" aria-label="API">
-                  API
-                </a>
-              </li>
-            </ul>
-          </div>
+        <div className="vf-actions vf-intro" style={{ "--d": "950ms" } as React.CSSProperties}>
+          <Link href="/report/new" className="vf-cta">
+            <span>{f.cta}</span>
+            <span className="vf-arrow" aria-hidden>
+              ↗
+            </span>
+          </Link>
+          <Link href="/map" className="vf-ghost">
+            {f.ctaMap}
+          </Link>
         </div>
       </div>
     </section>
@@ -303,15 +247,15 @@ const styles = `
 @keyframes vfIntro { from { opacity: 0; transform: translateY(26px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes vfLine { from { width: 0; } to { width: 32px; } }
 
-/* контент: фраза и подвал идут потоком снизу — не могут наехать друг на друга */
+/* контент: фраза и кнопки идут потоком снизу — не могут наехать друг на друга */
 .vf-content {
   position: relative; z-index: 2;
   display: flex; flex-direction: column;
-  padding: 0 var(--pad) clamp(24px, 3vh, 38px);
+  padding: 0 var(--pad) clamp(48px, 9vh, 96px);
 }
 .vf-headline {
   max-width: 700px; pointer-events: none;
-  margin-bottom: clamp(40px, 7vh, 80px);
+  margin-bottom: 34px;
   transform: translate3d(calc(var(--mouse-x) * 8px), calc(var(--mouse-y) * 5px), 0);
   transition: transform 900ms var(--ease);
 }
@@ -333,33 +277,15 @@ const styles = `
   font-size: clamp(15px, 1.15vw, 18px); line-height: 1.5; color: rgba(246, 241, 221, 0.82);
   text-shadow: 0 1px 14px rgba(6, 73, 77, 0.45);
 }
-
-.vf-grid {
-  display: grid; align-items: end;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(470px, 2fr) minmax(155px, auto);
-  gap: clamp(35px, 5vw, 90px);
+.vf-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.vf-ghost {
+  display: inline-flex; align-items: center; justify-content: center; height: 58px; padding: 0 24px;
+  border-radius: 7px; border: 1px solid rgba(246, 241, 221, 0.35); color: var(--cream); text-decoration: none;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+  background: rgba(246, 241, 221, 0.06); backdrop-filter: blur(6px);
+  transition: background 400ms var(--ease), border-color 400ms var(--ease), transform 600ms var(--ease);
 }
-.vf-brand { display: inline-flex; align-items: center; gap: 13px; color: var(--cream); text-decoration: none; font-size: 27px; font-weight: 700; letter-spacing: -0.04em; }
-.vf-logo { width: 39px; height: 39px; transition: transform 500ms var(--ease); }
-.vf-brand:hover .vf-logo { transform: rotate(-7deg) scale(1.05); }
-.vf-copy { margin-top: 22px; display: flex; flex-direction: column; gap: 7px; }
-.vf-copy span { font-size: 15px; }
-.vf-copy small { font-size: 11px; opacity: 0.6; }
-
-.vf-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.vf-navgroup { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 17px; }
-.vf-link {
-  display: inline-flex; align-items: center; gap: 13px; white-space: nowrap;
-  color: var(--cream); font-size: 13px; text-decoration: none;
-  transition: transform 400ms var(--ease), color 300ms;
-}
-.vf-link::before {
-  content: ""; width: 2px; height: 19px; border-radius: 2px; background: rgba(118, 207, 106, 0.75);
-  transition: height 400ms var(--ease), background 300ms;
-}
-.vf-link:hover, .vf-link:focus-visible { transform: translateX(4px); color: #fff; }
-.vf-link:hover::before, .vf-link:focus-visible::before { height: 25px; background: #a6f08f; }
-
+.vf-ghost:hover, .vf-ghost:focus-visible { background: rgba(246, 241, 221, 0.14); border-color: rgba(246, 241, 221, 0.6); transform: translateY(-3px); }
 .vf-cta {
   position: relative; overflow: hidden; isolation: isolate;
   display: inline-flex; align-items: center; justify-content: center; gap: 14px;
@@ -378,20 +304,6 @@ const styles = `
 .vf-arrow { font-size: 15px; transition: transform 600ms var(--ease); }
 .vf-cta:hover .vf-arrow, .vf-cta:focus-visible .vf-arrow { transform: translate(3px, -4px); }
 
-.vf-bottom { display: flex; align-items: center; gap: 28px; margin-top: 27px; margin-left: clamp(245px, 24vw, 365px); }
-.vf-line { position: relative; flex: 1; height: 1px; background: rgba(246, 241, 221, 0.65); overflow: hidden; }
-.vf-line::after {
-  content: ""; position: absolute; top: -1px; left: -20%; width: 16%; height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(190, 255, 170, 0.95), #fff, transparent);
-  animation: lineGlide 5s ease-in-out infinite;
-}
-.vf-social { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 21px; }
-.vf-social a {
-  display: inline-flex; align-items: center; min-height: 24px;
-  color: #78d371; font-size: 15px; font-weight: 700; text-decoration: none;
-  transition: transform 400ms var(--ease), color 300ms;
-}
-.vf-social a:hover, .vf-social a:focus-visible { transform: translateY(-4px); color: #c8f5b5; }
 
 .vf-page a:focus-visible { outline: 2px solid #c8f5b5; outline-offset: 4px; }
 
@@ -409,13 +321,9 @@ const styles = `
   100% { transform: translate(-6px, 200px) rotate(calc(var(--r) + 320deg)); }
 }
 @keyframes leafOpacity { 0% { opacity: 0; } 12% { opacity: 0.9; } 82% { opacity: 0.9; } 100% { opacity: 0; } }
-@keyframes lineGlide { from { left: -20%; } to { left: 110%; } }
 
 @media (max-width: 1200px) {
-  .vf-headline { margin-bottom: clamp(64px, 11vh, 110px); }
   .vf-title { font-size: clamp(42px, 4.6vw, 60px); }
-  .vf-grid { gap: 32px; grid-template-columns: minmax(200px, 0.8fr) minmax(400px, 2fr) auto; }
-  .vf-nav { gap: 16px; }
 }
 
 @media (max-width: 940px) {
@@ -432,10 +340,6 @@ const styles = `
   .vf-title span:not(:last-child)::after { content: " "; }
   .vf-title span.vf-intro { animation: none; }
   .vf-title { animation: vfIntro 1s var(--ease) 0.32s both; }
-  .vf-grid { grid-template-columns: 1fr auto; align-items: start; }
-  .vf-nav { grid-column: 1 / -1; grid-row: 2; }
-  .vf-cta { grid-column: 2; grid-row: 1; }
-  .vf-bottom { margin-left: 0; }
 }
 
 @media (max-width: 600px) {
@@ -455,22 +359,13 @@ const styles = `
   .vf-headline { margin-bottom: 28px; }
   .vf-title { font-size: clamp(36px, 10.5vw, 48px); line-height: 1.02; }
   .vf-sub { margin-top: 16px; font-size: 16px; }
-  .vf-grid { grid-template-columns: 1fr; gap: 36px; }
-  .vf-cta { order: -1; grid-column: auto; grid-row: auto; width: 100%; font-size: 12px; }
-  .vf-nav { grid-column: auto; grid-row: auto; grid-template-columns: 1fr 1fr; row-gap: 17px; }
-  .vf-navgroup:last-child { grid-column: 1 / -1; flex-direction: row; gap: 28px; }
-  .vf-brandcol { order: 1; }
-  .vf-bottom { flex-direction: column; align-items: stretch; gap: 20px; }
-  .vf-social { justify-content: flex-end; }
+  .vf-cta, .vf-ghost { width: 100%; font-size: 12px; }
   .vf-leaf { display: none; }
-}
 }
 
 @media (max-width: 380px) {
   .vf-page { min-height: 0; }
   .vf-title { font-size: 34px; }
-  .vf-nav { grid-template-columns: 1fr; }
-  .vf-navgroup:last-child { grid-column: auto; flex-direction: column; gap: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

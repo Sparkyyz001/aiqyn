@@ -33,8 +33,6 @@ export default async function Home() {
   const k = kpis(all);
   const h = t.home;
   const recent = real.slice(0, 5);
-  // Бегущая строка: свежие открытые обращения (реальные и подложка)
-  const ticker = all.filter((r) => r.status !== "rejected").slice(0, 24);
 
   return (
     <>
@@ -42,38 +40,19 @@ export default async function Home() {
       <SpotlightTracker />
       <div className="scroll-progress" aria-hidden />
 
-      {/* 1. Первый экран — иллюстрированный пейзаж, главная фраза и навигация */}
+      {/* 1. Первый экран — иллюстрированный пейзаж, главная фраза и кнопки */}
       <LandscapeHero
         f={{
           eyebrow: h.final.eyebrow,
           lines: h.h1,
           sub: h.sub,
-          kicker: h.kicker,
-          made: h.final.made,
-          nav: h.final.nav,
           cta: h.ctaReport,
-          links: h.final.links,
+          ctaMap: h.ctaMap,
         }}
       />
 
       {/* Дальше весь лендинг — в палитре переднего плана пейзажа */}
       <div className="dark theme-lagoon bg-background text-foreground">
-        {/* Бегущая строка живых обращений */}
-        <div className="marquee overflow-hidden border-b py-4" aria-label={t.landing.recent}>
-          <ul className="marquee-track">
-            {[...ticker, ...ticker].map((r, i) => (
-              <li key={i} aria-hidden={i >= ticker.length} className="flex shrink-0 items-center gap-2.5 px-6 text-sm whitespace-nowrap text-foreground/80">
-                <span
-                  className={`size-2 rounded-full ${r.status === "resolved" ? "bg-lt-green" : r.sla_breached ? "bg-lt-coral" : "bg-[#9fd0ff]"}`}
-                  aria-hidden
-                />
-                <span className="max-w-[26rem] truncate">{lang === "kz" && r.title_kz ? r.title_kz : r.title}</span>
-                {r.district && DISTRICT[r.district] ? <span className="text-muted-foreground">· {nm(DISTRICT[r.district], lang)}</span> : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-
         {/* 2. Манифест: слова загораются по мере прокрутки */}
         <section className="mx-auto w-full max-w-7xl px-4 pt-20 pb-16 md:pt-32 md:pb-24">
           <Reveal>
@@ -101,7 +80,7 @@ export default async function Home() {
               ].map((s, i) => (
                 <Reveal key={i} delay={i * 90}>
                   <div className={`font-serif text-5xl leading-none tracking-tight md:text-7xl ${s.tone ?? ""}`}>
-                    <CountUp value={s.v} decimals={s.d ?? 0} />
+                    <CountUp value={s.v} decimals={s.d ?? 0} delay={250 + i * 180} />
                   </div>
                   <div className="mt-3 max-w-[16rem] text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{s.l}</div>
                 </Reveal>

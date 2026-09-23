@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const oauthError = sp.error === "oauth";
   const a = t.auth;
   return (
-    <div className="grid flex-1 lg:grid-cols-2">
+    <div className="grid min-h-[calc(100svh-3.5rem)] flex-1 grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1">
       {/* Левая половина — пейзаж первого экрана и что даёт платформа */}
       <aside className="relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden bg-lt-deep p-6 text-lt-cream md:p-10 lg:min-h-0 lg:justify-center lg:p-14">
         {/* eslint-disable-next-line @next/next/no-img-element */}
