@@ -1,0 +1,11 @@
+import { demoBaseline } from "../lib/demo-baseline";
+const d = demoBaseline();
+const by = (k: (x: typeof d[number]) => string) => d.reduce((m, x) => ((m[k(x)] = (m[k(x)] ?? 0) + 1), m), {} as Record<string, number>);
+console.log("всего", d.length);
+console.log("статусы", by((x) => x.status));
+console.log("категории", by((x) => x.category));
+console.log("просрочено", d.filter((x) => x.sla_breached).length, "переоткрыто", d.filter((x) => x.reopen_count > 0).length);
+console.log("без района", d.filter((x) => !x.district).length);
+const svc = by((x) => x.service);
+console.log("службы", svc);
+console.log("стабильность", JSON.stringify(demoBaseline()[5]) === JSON.stringify(d[5]));
