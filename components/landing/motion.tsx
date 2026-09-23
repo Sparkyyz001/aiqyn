@@ -1,0 +1,56 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+/** Блок плавно появляется, когда доходит до экрана (уважает prefers-reduced-motion через CSS) */
+export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Нет IntersectionObserver — показываем сразу, чтобы контент никогда не остался невидимым
+    if (typeof IntersectionObserver === "undefined") return void setInView(true);
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && (setInView(true), io.disconnect()), { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`reveal ${inView ? "in" : ""} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
+/** Число с плавным отсчётом от 0 при появлении на экране */
+export function CountUp({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setShown(value);
+    let raf = 0;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const t0 = performance.now();
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - t0) / 1200);
+        setShown(value * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [value]);
+  return (
+    <span ref={ref} className="tabular-nums">
+      {new Intl.NumberFormat("ru-RU", { maximumFractionDigits: decimals, minimumFractionDigits: decimals }).format(shown)}
+    </span>
+  );
+}
