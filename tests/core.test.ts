@@ -110,3 +110,8 @@ test("Классификатор: общие ru/kz основы не удваи�
   assert.equal(c.category, "excavation");
   assert.equal(c.scores.road_pit, 5);
 });
+
+test("Приоритет: время в очереди ограничено сроком (не удваивает просрочку)", () => {
+  const base = { severityBase: 55, confirmationWeights: 0, slaDays: 15, nearSocial: false, slaBreached: true, chronicScore: 0, reopenCount: 0 };
+  assert.equal(computePriority({ ...base, daysInQueue: 175 }).score, computePriority({ ...base, daysInQueue: 15 }).score);
+});

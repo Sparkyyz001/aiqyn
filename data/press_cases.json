@@ -1,5 +1,5 @@
 {
-  "note": "Реальные публикации местных СМИ о проблемах Актау. Используются как сид для хронических кластеров и как цитаты на слайдах. Координаты — только из OSM (data/addresses.json), если дом найден; иначе центр микрорайона.",
+  "note": "Реальные публикации местных СМИ о проблемах Актау. Используются как сид для хронических кластеров и как цитаты на слайдах. Координаты — только из OSM (data/addresses.json), если дом найден; иначе центр микрорайона. Даты публикаций сверены со страницами первоисточников.",
   "collected_at": "2026-09-23",
   "items": [
     {
@@ -10,8 +10,10 @@
       "summary": "Жители дома №111 в 3 мкр почти год не могут добиться от ГКП «КЖСА» восстановления асфальта: покрытие вскрыли повторно для аварийных работ и так и не восстановили.",
       "district": "3 мкр",
       "address": "3 мкр, дом 111",
-      "lat": 43.636106, "lng": 51.174662, "geo_source": "OSM addresses.json",
-      "published": "2026-06",
+      "lat": 43.636106,
+      "lng": 51.174662,
+      "geo_source": "OSM addresses.json",
+      "published": "2026-04-01",
       "outlet": "lada.kz",
       "url": "https://www.lada.kz/aktau_news/communal/151311-zhiteli-aktau-god-ne-mogut-dobitsia-vosstanovleniia-asfalta-posle-remonta-kzhsa.html",
       "related": [
@@ -28,11 +30,15 @@
       "summary": "Ямы, просадки, разрушенное покрытие. Восстановление предусмотрено проектом благоустройства дворов 15 мкр; работы приостановлены из-за несвоевременного выделения бюджетных средств.",
       "district": "15 мкр",
       "address": "15 мкр, дома 64, 64А, 66, 66А",
-      "lat": 43.659957, "lng": 51.139315, "geo_source": "OSM addresses.json (центр 4 домов)",
-      "published": "2026",
+      "lat": 43.659957,
+      "lng": 51.139315,
+      "geo_source": "OSM addresses.json (центр 4 домов)",
+      "published": "2026-08-21",
       "outlet": "lada.kz",
       "url": "https://www.lada.kz/aktau_news/society/157060-to-pogoda-ne-ta-to-deneg-net-zhiteli-aktau-vozmushcheny-razbitoi-dorogoi-vnutri-mikroraiona.html",
-      "related": ["https://www.inaktau.kz/news/4158273/razbitye-dorogi-15-mikrorajona-v-aktau-akimat-obasnil-pocemu-remont-priostanovili"]
+      "related": [
+        "https://www.inaktau.kz/news/4158273/razbitye-dorogi-15-mikrorajona-v-aktau-akimat-obasnil-pocemu-remont-priostanovili"
+      ]
     },
     {
       "id": "water-3mkr-146",
@@ -42,8 +48,10 @@
       "summary": "Жители ряда домов сообщили, что питьевой и технической воды нет несколько дней; в доме №146 3 мкр четыре дня вместо питьевой шла техническая. Вопрос поднимался на брифинге СЦК 17 сентября.",
       "district": "3 мкр",
       "address": "3 мкр, дом 146",
-      "lat": null, "lng": null, "geo_source": "центр микрорайона",
-      "published": null, "published_note": "брифинг СЦК 17 сентября, год уточнить по статье",
+      "lat": 43.6355686,
+      "lng": 51.1758426,
+      "geo_source": "OSM addresses.json",
+      "published": "2026-09-17",
       "outlet": "newsroom.kz",
       "url": "https://ru.newsroom.kz/87817/zhaloby-zhiteley-aktau-na-vodu-chto-otvetilo-ministerstvo",
       "related": [
@@ -59,7 +67,9 @@
       "summary": "После перехода на единого оператора (ТОО «Zero Waste Ақтау») часть жителей продолжала платить прежним компаниям; возврат — только через суд.",
       "district": null,
       "address": null,
-      "lat": null, "lng": null, "geo_source": null,
+      "lat": null,
+      "lng": null,
+      "geo_source": null,
       "published": "2026",
       "outlet": "lada.kz",
       "url": "https://www.lada.kz/aktau_news/communal/157249-kuda-ushli-dengi-zhitelei-aktau-za-vyvoz-musora-i-pochemu-ikh-ne-vozvrashchaiut.html",
@@ -73,7 +83,9 @@
       "summary": "После жалоб жителей экологи провели замеры в 30, 34, 35, 38 мкр; с учётом направления ветра возможными источниками названы хвостохранилище Кошкар-Ата и КОС-2 (по данным проверки).",
       "district": "30, 34, 35, 38 мкр",
       "address": null,
-      "lat": null, "lng": null, "geo_source": null,
+      "lat": null,
+      "lng": null,
+      "geo_source": null,
       "published": "2025-12-16",
       "outlet": "tengrinews.kz",
       "url": "https://tengrinews.kz/kazakhstan_news/jiteli-aktau-jaluyutsya-himicheskiy-zapah-ekologi-proveli-588154/",
@@ -91,11 +103,15 @@
       "summary": "Несмотря на новые школу и садик, жители жалуются на отключения света и качество дорог; по данным отдела строительства сети готовы на 90–100%, благоустройство — до конца 2026.",
       "district": "20 мкр",
       "address": null,
-      "lat": null, "lng": null, "geo_source": "центр микрорайона",
+      "lat": null,
+      "lng": null,
+      "geo_source": "центр микрорайона",
       "published": "2026",
       "outlet": "lada.kz",
       "url": "https://www.lada.kz/aktau_news/society/156778-masshtabnaia-rekonstruktsiia-aktau-chto-govoriat-vlasti.html",
-      "related": ["https://www.lada.kz/aktau_news/society/157223-aktau-nakryla-volna-otkliuchenii-elektrichestva.html"]
+      "related": [
+        "https://www.lada.kz/aktau_news/society/157223-aktau-nakryla-volna-otkliuchenii-elektrichestva.html"
+      ]
     },
     {
       "id": "bus-107",
@@ -105,7 +121,9 @@
       "summary": "В автобусах не было GPS-трекеров, совместимых с Infobus; жители ждали на морозе.",
       "district": null,
       "address": null,
-      "lat": null, "lng": null, "geo_source": null,
+      "lat": null,
+      "lng": null,
+      "geo_source": null,
       "published": "2023-12",
       "outlet": "inaktau.kz",
       "url": "https://www.inaktau.kz/news/3708841/ziteli-aktau-zaluutsa-na-nevozmoznost-otsledit-dvizenie-avtobusov-no107",
@@ -119,7 +137,9 @@
       "summary": "Состояние пляжей не соответствует курортному позиционированию города.",
       "district": null,
       "address": null,
-      "lat": null, "lng": null, "geo_source": null,
+      "lat": null,
+      "lng": null,
+      "geo_source": null,
       "published": "2026-06-03",
       "outlet": "time.kz",
       "url": "https://time.kz/articles/moment/2026/06/03/kurort-s-natyazhkoj",
