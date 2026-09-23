@@ -167,6 +167,11 @@ function build(anchor: Date): BaseReport[] {
       if (status !== "routed") accepted = new Date(created.getTime() + (0.3 + r() * 3) * 86400_000);
       if (status === "reopened") reopen = 1 + (r() < 0.3 ? 1 : 0);
     }
+    // Даты не могут быть в будущем: если «приняли» позже якоря — служба ещё не приняла
+    if (accepted && accepted > anchor) {
+      accepted = null;
+      if (status === "accepted" || status === "in_progress" || status === "awaiting_confirmation") status = "routed";
+    }
     const end = resolved ?? anchor;
     const breached = status !== "rejected" && end > due;
     const confirmations = Math.floor(r() ** 2.2 * 18) + (reopenBias > 0 ? 3 : 0);

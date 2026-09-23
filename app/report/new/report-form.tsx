@@ -47,7 +47,7 @@ export function ReportForm({
   const mapRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   // «Сканирование» последнего фото: что удалось прочитать из EXIF
-  const [scan, setScan] = useState<{ gps: "ok" | "outside" | "none"; taken: string | null } | null>(null);
+  const [scan, setScan] = useState<{ gps: "ok" | "outside" | "none" | "device"; taken: string | null } | null>(null);
   const [showMissing, setShowMissing] = useState(false);
 
   // Предпросмотр категории/службы/дублей — с небольшой задержкой после ввода
@@ -71,6 +71,7 @@ export function ReportForm({
         setPoint(p);
         setFlyTo({ ...p, zoom: 17 });
         toast.success(t.report.locOk);
+        setScan((s) => (s && s.gps !== "ok" ? { ...s, gps: "device" } : s));
       },
       () => {
         setLocating(false);
@@ -242,9 +243,9 @@ export function ReportForm({
               <div className="mb-1 font-medium">{t.report.scanTitle}</div>
               <ul className="space-y-1">
                 <li className="flex items-center gap-1.5 text-[color:var(--ok)]"><Check className="size-3.5" />{t.report.scanUploaded}</li>
-                <li className={`flex items-start gap-1.5 ${scan.gps === "ok" ? "text-[color:var(--ok)]" : "text-[color:var(--warn)]"}`}>
-                  {scan.gps === "ok" ? <Check className="mt-px size-3.5 shrink-0" /> : <CircleAlert className="mt-px size-3.5 shrink-0" />}
-                  {scan.gps === "ok" ? t.report.scanGps : scan.gps === "outside" ? t.report.scanGpsOutside : t.report.scanNoGps}
+                <li className={`flex items-start gap-1.5 ${scan.gps === "ok" || scan.gps === "device" ? "text-[color:var(--ok)]" : "text-[color:var(--warn)]"}`}>
+                  {scan.gps === "ok" || scan.gps === "device" ? <Check className="mt-px size-3.5 shrink-0" /> : <CircleAlert className="mt-px size-3.5 shrink-0" />}
+                  {scan.gps === "ok" ? t.report.scanGps : scan.gps === "device" ? t.report.locOk : scan.gps === "outside" ? t.report.scanGpsOutside : t.report.scanNoGps}
                   {locating && <Loader2 className="size-3.5 animate-spin" />}
                 </li>
                 <li className="flex items-center gap-1.5 text-muted-foreground">
