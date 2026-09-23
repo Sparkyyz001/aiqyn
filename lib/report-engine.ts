@@ -10,7 +10,7 @@ export async function recomputeReport(reportId: number) {
   const ref = await getReference();
   const { data: r } = await db
     .from("reports")
-    .select("id, category_id, lat, lng, status, created_at, sla_due_at, sla_breached_at, reopen_count, cluster_id")
+    .select("id, category_id, lat, lng, status, created_at, sla_due_at, sla_breached_at, reopen_count, cluster_id, priority_score")
     .eq("id", reportId)
     .single();
   if (!r) return;
@@ -40,6 +40,9 @@ export async function recomputeReport(reportId: number) {
     reopenCount: r.reopen_count,
   });
 
+  // Пишем только при заметном изменении: иначе каждое открытие очереди порождало бы
+  // Realtime-событие → обновление страницы → пересчёт → событие… (петля)
+  if (Math.abs(score - r.priority_score) < 0.5 && slaBreachedAt === r.sla_breached_at) return;
   await db.from("reports").update({ priority_score: score, sla_breached_at: slaBreachedAt }).eq("id", r.id);
 }
 

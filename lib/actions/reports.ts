@@ -13,6 +13,7 @@ import { decide, VOTING_WINDOW_H } from "@/lib/verification";
 import { boilerplateScore } from "@/lib/boilerplate";
 import { recomputeReport, logEvent } from "@/lib/report-engine";
 import { recomputeClustersAround } from "@/lib/clustering-db";
+import { incidentTypeFor } from "@/lib/incidents";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -187,7 +188,7 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
 }
 
 async function matchIncident(categoryCode: string, p: { lat: number; lng: number }) {
-  const type = ({ water_outage: "water", power_outage: "power", heating: "heat", lighting: "power" } as Record<string, string>)[categoryCode];
+  const type = incidentTypeFor(categoryCode);
   if (!type) return null;
   const { pointInPolygon } = await import("@/lib/geo");
   const db = createAdminClient();
