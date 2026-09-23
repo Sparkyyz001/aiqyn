@@ -4,23 +4,23 @@ import { PAIN_RAMP_DARK, PAIN_RAMP_LIGHT, painColor, type PainRow } from "@/lib/
 import { DISTRICT, nm } from "@/lib/meta";
 import type { Dict, Lang } from "@/lib/i18n/dict";
 
-/** Изменение за 30 дней: рост индекса — хуже (красный), падение — лучше (зелёный); значение всегда текстом */
+/** Изменение за 30 дней в % (баллы на 1000 жителей): рост — хуже (красный), падение — лучше (зелёный); значение всегда текстом */
 export function PainDelta({ d }: { d: number | null }) {
   if (d == null) return <span className="text-muted-foreground">—</span>;
   if (d === 0)
     return (
       <span className="inline-flex items-center gap-0.5 text-muted-foreground tabular-nums">
-        <Minus className="size-3" />0
+        <Minus className="size-3" />0%
       </span>
     );
   return d > 0 ? (
     <span className="inline-flex items-center gap-0.5 text-[color:var(--danger)] tabular-nums">
-      <ArrowUp className="size-3" />+{d}
+      <ArrowUp className="size-3" />+{d}%
     </span>
   ) : (
     <span className="inline-flex items-center gap-0.5 text-[color:var(--ok)] tabular-nums">
       <ArrowDown className="size-3" />
-      {d}
+      {d}%
     </span>
   );
 }
@@ -56,7 +56,7 @@ export function PainRanking({
   rows, delta, lang, t, limit,
 }: {
   rows: PainRow[];
-  delta: (code: string, current: number | null) => number | null;
+  delta: (code: string) => number | null;
   lang: Lang;
   t: Dict["pain"];
   limit?: number;
@@ -85,7 +85,7 @@ export function PainRanking({
               </span>
               <span className="text-right font-semibold tabular-nums">{r.index}</span>
               <span className="text-right text-xs">
-                <PainDelta d={delta(r.district, r.index)} />
+                <PainDelta d={delta(r.district)} />
               </span>
               <span className="hidden text-right tabular-nums text-muted-foreground sm:block">{r.reports90}</span>
               <span className="hidden text-right tabular-nums text-muted-foreground sm:block">{r.breached}</span>

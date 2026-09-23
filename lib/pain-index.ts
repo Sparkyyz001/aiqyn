@@ -128,26 +128,32 @@ export function painIndex(reports: BaseReport[], districts: DistrictPop[], at = 
 }
 
 /**
- * История индекса района за N дней. Восстанавливается из того же потока обращений:
+ * История района за N дней в баллах на 1000 жителей (raw). Восстанавливается из того же потока:
  * на каждую прошлую дату известно, что было открыто (создано раньше, решено позже)
- * и что закрыто в последние 30 дней. Шкала — к худшему району на ту же дату.
+ * и что закрыто в последние 30 дней.
+ *
+ * Почему raw, а не индекс 0–100: индекс относительный (100 = худший район НА ЭТУ ДАТУ).
+ * Сменился лидер — у всех остальных «прыгает» индекс, хотя у них ничего не изменилось.
+ * Поэтому динамика и стрелки считаются по абсолютной величине, а на графике она
+ * приводится к единой шкале: 100 = худший район сегодня.
  */
 export function painHistory(reports: BaseReport[], districts: DistrictPop[], code: string, days = 90, now = Date.now()) {
-  const out: { date: string; index: number | null }[] = [];
+  const out: { date: string; raw: number | null }[] = [];
   for (let i = days - 1; i >= 0; i -= 3) {
     const at = now - i * DAY;
     const row = painIndex(reports, districts, at).find((r) => r.district === code);
-    out.push({ date: new Date(at).toISOString().slice(0, 10), index: row?.index ?? null });
+    out.push({ date: new Date(at).toISOString().slice(0, 10), raw: row?.raw ?? null });
   }
   return out;
 }
 
-/** Изменение индекса за 30 дней (для стрелки в рейтинге) */
+/** Изменение за 30 дней в % по баллам на 1000 жителей (для стрелки в рейтинге) */
 export function painDelta(reports: BaseReport[], districts: DistrictPop[], now = Date.now()) {
-  const past = new Map(painIndex(reports, districts, now - 30 * DAY).map((r) => [r.district, r.index]));
-  return (code: string, current: number | null) => {
-    const p = past.get(code);
-    return current == null || p == null ? null : current - p;
+  const current = new Map(painIndex(reports, districts, now).map((r) => [r.district, r.raw]));
+  const past = new Map(painIndex(reports, districts, now - 30 * DAY).map((r) => [r.district, r.raw]));
+  return (code: string) => {
+    const c = current.get(code), p = past.get(code);
+    return c == null || p == null || p === 0 ? null : Math.round(((c - p) / p) * 100);
   };
 }
 

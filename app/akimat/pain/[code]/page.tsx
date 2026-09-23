@@ -10,7 +10,6 @@ import { CATEGORY, DISTRICT, nm, addressLabel } from "@/lib/meta";
 import { CityMap } from "@/components/map/map";
 import { PainDelta, PainSwatch } from "@/components/akimat/pain-parts";
 import { PainHistoryChart } from "@/components/akimat/pain-history-chart";
-import type { GeoPolygon } from "@/lib/geo";
 
 export async function generateMetadata({ params }: PageProps<"/akimat/pain/[code]">) {
   const { code } = await params;
@@ -28,18 +27,21 @@ export default async function PainDistrictPage({ params }: PageProps<"/akimat/pa
   // Динамика: из ежедневных снимков; если их ещё нет — восстанавливаем из потока
   const { data: hist } = await createAdminClient()
     .from("pain_index_history")
-    .select("computed_at, value")
+    .select("computed_at, breakdown")
     .eq("district_id", district.id)
     .gte("computed_at", new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10))
     .order("computed_at");
-  const history =
+  // Единая шкала для всей истории: 100 = худший район города сегодня (см. комментарий в painHistory)
+  const maxRaw = Math.max(1, ...rows.map((x) => x.raw ?? 0));
+  const rawHistory =
     hist && hist.length >= 10
-      ? hist.map((h) => ({ date: h.computed_at as string, index: h.value as number | null }))
+      ? hist.map((h) => ({ date: h.computed_at as string, raw: ((h.breakdown as { raw?: number | null } | null)?.raw ?? null) as number | null }))
       : painHistory(all, ref.districts.filter((d) => d.kind !== "zone").map((d) => ({ code: d.code, population: d.population })), code);
+  const history = rawHistory.map((h) => ({ date: h.date, index: h.raw == null ? null : Math.round((h.raw / maxRaw) * 100) }));
 
   const points = clusters.filter((c) => c.district === code);
   const p = t.pain;
-  const d30 = delta(code, row.index);
+  const d30 = delta(code);
 
   return (
     <div className="flex flex-col gap-6">
@@ -110,7 +112,8 @@ export default async function PainDistrictPage({ params }: PageProps<"/akimat/pa
       </div>
 
       <section className="rounded-lg border p-4">
-        <h2 className="mb-2 font-medium">{p.history}</h2>
+        <h2 className="font-medium">{p.history}</h2>
+        <p className="mb-2 text-xs text-muted-foreground">{p.changeHint}</p>
         <PainHistoryChart data={history} label={p.index} />
       </section>
 

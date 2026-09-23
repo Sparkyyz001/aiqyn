@@ -45,6 +45,7 @@ export default async function PainPage() {
           <h2 className="font-medium">{t.pain.top}</h2>
           <PainRanking rows={rows} delta={delta} lang={lang} t={t.pain} />
           <p className="text-xs text-muted-foreground">{fmt(t.pain.insufficientNote, { n: insufficient })}</p>
+          <p className="text-xs text-muted-foreground">{t.pain.changeHint}</p>
           <p className="text-xs text-muted-foreground">{t.pain.notActivity}</p>
         </section>
       </div>

@@ -8,10 +8,10 @@ export function PainHistoryChart({ data, label }: { data: { date: string; index:
   return (
     <div className="h-48 w-full">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+        <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis dataKey="date" tickFormatter={fmt} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} minTickGap={28} />
-          <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={40} />
+          <YAxis domain={[0, (max: number) => Math.max(100, Math.ceil(max / 25) * 25)]} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={32} />
           <Tooltip
             cursor={{ stroke: "var(--muted-foreground)", strokeDasharray: "3 3" }}
             contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--foreground)" }}
