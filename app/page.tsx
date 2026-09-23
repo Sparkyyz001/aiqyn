@@ -56,6 +56,8 @@ export default async function Home() {
             points={all.filter((r) => r.status !== "resolved" && r.status !== "rejected").map((r) => toMapPoint(r, lang))}
             className="h-[380px] w-full md:h-[460px]"
             statusLabels={t.status}
+            lang={lang}
+            popupLabels={{ created: t.outcome.created, resolved: t.status.resolved, confirmations: t.outcome.confirmations, more: t.outcome.openCard }}
             demoLabel={t.map.demo}
             openLabel={t.map.open}
           />

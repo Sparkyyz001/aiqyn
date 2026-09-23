@@ -7,7 +7,8 @@ import "leaflet.heat";
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap, Circle, Marker, useMapEvents } from "react-leaflet";
 import { useTheme } from "next-themes";
 import { AKTAU_CENTER } from "@/lib/geo";
-import { pointColor } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, pointColor } from "@/lib/meta";
+import type { Lang } from "@/lib/i18n/dict";
 import { painColor } from "@/lib/pain-index";
 import type { MapPoint } from "@/lib/data";
 
@@ -26,6 +27,8 @@ export type LeafletMapProps = {
   zoom?: number;
   className?: string;
   statusLabels?: Record<string, string>;
+  lang?: Lang;
+  popupLabels?: { created: string; resolved: string; confirmations: string; more: string };
   demoLabel?: string;
   openLabel?: string;
   // режим выбора точки
@@ -36,6 +39,8 @@ export type LeafletMapProps = {
   // Встроенные в страницу карты на телефоне: одним пальцем прокручивается страница,
   // карта — двумя пальцами (иначе страницу невозможно пролистать).
   fullTouch?: boolean;
+  // Выделить район: подсветить границу и вписать карту в его пределы
+  focus?: GeoJSON.GeoJsonObject | null;
 };
 
 // Иконка маркера выбора точки — без внешних картинок (у Leaflet по умолчанию битые пути в бандле)
@@ -61,6 +66,16 @@ function HeatLayer({ points }: { points: MapPoint[] }) {
   return null;
 }
 
+function FitTo({ shape }: { shape: GeoJSON.GeoJsonObject | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!shape) return;
+    const b = L.geoJSON(shape).getBounds();
+    if (b.isValid()) map.flyToBounds(b, { padding: [24, 24], maxZoom: 16, duration: 0.6 });
+  }, [map, shape]);
+  return null;
+}
+
 function PickHandler({ onPick }: { onPick: (p: { lat: number; lng: number }) => void }) {
   useMapEvents({ click: (e) => onPick({ lat: e.latlng.lat, lng: e.latlng.lng }) });
   return null;
@@ -76,7 +91,7 @@ function FlyTo({ to }: { to: { lat: number; lng: number; zoom?: number } | null 
 
 export default function LeafletMap({
   points = [], mode = "pins", circles = [], polygons = [], choropleth = [], center = AKTAU_CENTER, zoom = 13, className,
-  statusLabels = {}, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false,
+  statusLabels = {}, lang = "ru", popupLabels, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false, focus = null,
 }: LeafletMapProps) {
   const touchLock = !fullTouch && L.Browser.mobile;
   const { resolvedTheme } = useTheme();
@@ -139,19 +154,35 @@ export default function LeafletMap({
               fillOpacity: p.demo ? 0.55 : 0.95,
             }}
           >
-            <Popup>
-              <div className="space-y-1 text-[13px]">
+            <Popup minWidth={220} maxWidth={280}>
+              <div className="space-y-1.5 text-[13px] leading-snug">
                 <div className="font-medium">{p.t}</div>
-                <div className="text-muted-foreground">
-                  {p.no} · {statusLabels[p.s] ?? p.s}
+                <div>
+                  <span className="rounded px-1.5 py-0.5 text-xs text-white" style={{ background: pointColor(p.s, p.b) }}>{statusLabels[p.s] ?? p.s}</span>
                 </div>
-                {p.demo ? (
-                  <div className="text-xs text-muted-foreground">{demoLabel}</div>
-                ) : (
-                  <a href={`/report/${p.no}`} className="text-primary underline">
-                    {openLabel} →
+                <div className="text-xs text-muted-foreground">
+                  {nm(CATEGORY[p.c], lang)}
+                  {p.d ? ` · ${nm(DISTRICT[p.d], lang)}` : ""}
+                  {SERVICE[p.sv] ? ` · ${SERVICE[p.sv].short}` : ""}
+                </div>
+                {popupLabels && p.at && (
+                  <div className="text-xs">
+                    {popupLabels.created}: {new Date(p.at).toLocaleDateString("ru-RU", { timeZone: "Asia/Aqtau" })}
+                    {p.res && (
+                      <>
+                        {" · "}
+                        {popupLabels.resolved}: {new Date(p.res).toLocaleDateString("ru-RU", { timeZone: "Asia/Aqtau" })}
+                      </>
+                    )}
+                    {p.cf > 0 && ` · ${popupLabels.confirmations}: ${p.cf}`}
+                  </div>
+                )}
+                {p.no && (
+                  <a href={`/report/${p.no}`} className="inline-block font-medium text-primary underline">
+                    {popupLabels?.more ?? openLabel} →
                   </a>
                 )}
+                {p.demo && <div className="text-[11px] text-muted-foreground">{demoLabel}</div>}
               </div>
             </Popup>
           </CircleMarker>
@@ -175,6 +206,15 @@ export default function LeafletMap({
       {onPick && <PickHandler onPick={onPick} />}
       {picked && <Marker position={[picked.lat, picked.lng]} icon={pickIcon} />}
       <FlyTo to={flyTo} />
+      <FitTo shape={focus} />
+      {focus && (
+        <GeoJSON
+          key={JSON.stringify(focus).length + (dark ? "d" : "l")}
+          data={focus}
+          style={{ color: dark ? "#8ec3ff" : "#1b4f7a", weight: 3, fillOpacity: 0.06, dashArray: "6 4" }}
+          interactive={false}
+        />
+      )}
     </MapContainer>
   );
 }

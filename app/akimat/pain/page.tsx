@@ -37,7 +37,7 @@ export default async function PainPage() {
                 geojson: polyBy.get(r.district) as unknown as GeoJSON.GeoJsonObject,
                 index: r.index,
                 label: `${nm(DISTRICT[r.district], lang)} · ${r.index ?? t.pain.insufficient}`,
-                href: `/akimat/pain/${r.district}`,
+                href: `/district/${r.district}`,
               }))}
           />
         </section>

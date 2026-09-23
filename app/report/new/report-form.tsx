@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, Crosshair, Loader2, MapPin, ShieldAlert, ThumbsUp, X } from "lucide-react";
+import { Camera, Check, CircleAlert, Crosshair, Loader2, MapPin, ShieldAlert, ThumbsUp, X } from "lucide-react";
 import { CityMap } from "@/components/map/map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
 import { AKTAU_CENTER, inAktau } from "@/lib/geo";
 import { AMENITY, CATEGORIES, nm } from "@/lib/meta";
 import type { CategoryCode } from "@/lib/classify";
-import type { Dict, Lang } from "@/lib/i18n/dict";
+import { fmt, type Dict, type Lang } from "@/lib/i18n/dict";
 
 type Source = "app" | "operator" | "call109" | "instagram";
 
@@ -44,6 +44,11 @@ export function ReportForm({
   const [sourceUrl, setSourceUrl] = useState("");
   const [pending, start] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  // «Сканирование» последнего фото: что удалось прочитать из EXIF
+  const [scan, setScan] = useState<{ gps: "ok" | "outside" | "none"; taken: string | null } | null>(null);
+  const [showMissing, setShowMissing] = useState(false);
 
   // Предпросмотр категории/службы/дублей — с небольшой задержкой после ввода
   useEffect(() => {
@@ -55,18 +60,23 @@ export function ReportForm({
     return () => clearTimeout(id);
   }, [point, title, description, category]);
 
-  const locate = () => {
-    if (!navigator.geolocation) return;
+  const locate = (silent = false) => {
+    if (!navigator.geolocation) return void (!silent && toast.error(t.report.locFailed));
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false);
         const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        if (!inAktau(p)) return toast.error(t.report.outside);
+        if (!inAktau(p)) return void toast.error(`${t.report.outside}. ${t.report.locFailed}`);
         setPoint(p);
         setFlyTo({ ...p, zoom: 17 });
+        toast.success(t.report.locOk);
       },
-      () => setLocating(false),
+      () => {
+        setLocating(false);
+        toast.error(t.report.locFailed);
+        mapRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
@@ -83,11 +93,19 @@ export function ReportForm({
       for (const f of Array.from(files).slice(0, 5 - photos.length)) {
         const ph = await uploadPhoto(f, userId);
         setPhotos((prev) => [...prev, ph]);
-        // Если точка ещё не выбрана, а в фото есть GPS в пределах Актау — ставим точку по фото
-        if (!point && ph.lat != null && ph.lng != null && inAktau({ lat: ph.lat, lng: ph.lng })) {
-          const p = { lat: ph.lat, lng: ph.lng };
-          setPoint(p);
-          setFlyTo({ ...p, zoom: 17 });
+        const hasGps = ph.lat != null && ph.lng != null;
+        const gpsIn = hasGps && inAktau({ lat: ph.lat!, lng: ph.lng! });
+        setScan({ gps: gpsIn ? "ok" : hasGps ? "outside" : "none", taken: ph.taken_at });
+        if (gpsIn) {
+          // Геометка есть и она в Актау — точка по фото (приоритетнее ручной, если ещё не выбрана)
+          if (!point) {
+            const p = { lat: ph.lat!, lng: ph.lng! };
+            setPoint(p);
+            setFlyTo({ ...p, zoom: 17 });
+          }
+        } else if (!point) {
+          // Телефоны часто удаляют геометку при загрузке — берём местоположение устройства
+          locate(true);
         }
       }
     } catch (e) {
@@ -98,12 +116,31 @@ export function ReportForm({
     }
   };
 
+  const missing = [
+    !point && t.report.needPoint,
+    title.trim().length < 3 && t.report.needTitle,
+    source === "instagram" && !/^https:\/\/(www\.)?instagram\.com\//.test(sourceUrl) && t.report.needInstagram,
+  ].filter(Boolean) as string[];
+
   const submit = () =>
     start(async () => {
-      if (!point || !preview) return;
+      if (missing.length) {
+        setShowMissing(true);
+        if (!point) mapRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        else titleRef.current?.focus();
+        return;
+      }
+      // Предпросмотр мог ещё не прийти (задержка после ввода) — считаем сейчас
+      let pv = preview;
+      if (!pv) {
+        const r = await previewReport({ text: `${title} ${description}`, lat: point!.lat, lng: point!.lng, category });
+        if (!r.ok) return void toast.error(r.error);
+        pv = r.data;
+        setPreview(pv);
+      }
       const res = await createReport({
-        title, description, lat: point.lat, lng: point.lng,
-        category: preview.category,
+        title, description, lat: point!.lat, lng: point!.lng,
+        category: pv.category,
         photos: photos.map(({ path, lat, lng, taken_at }) => ({ path, lat, lng, taken_at })),
         source, source_url: sourceUrl || undefined,
       });
@@ -121,7 +158,7 @@ export function ReportForm({
     });
 
   const dups = !skipDup ? (preview?.duplicates ?? []) : [];
-  const canSubmit = !!point && title.trim().length >= 3 && !!preview && !pending && !uploading && (source !== "instagram" || /^https:\/\/(www\.)?instagram\.com\//.test(sourceUrl));
+  const canSubmit = !pending && !uploading;
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-2">
@@ -132,12 +169,12 @@ export function ReportForm({
             <div className="font-medium">1. {t.report.step1}</div>
             <div className="text-sm text-muted-foreground">{t.report.step1Hint}</div>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={locate} disabled={locating}>
+          <Button type="button" variant="outline" size="sm" onClick={() => locate()} disabled={locating}>
             {locating ? <Loader2 className="animate-spin" /> : <Crosshair />}
             <span>{locating ? t.report.locating : t.report.locate}</span>
           </Button>
         </div>
-        <div className="overflow-hidden rounded-lg border">
+        <div ref={mapRef} className={`overflow-hidden rounded-lg border ${showMissing && !point ? "ring-2 ring-[color:var(--danger)]" : ""}`}>
           <CityMap fullTouch className="h-[42vh] w-full lg:h-[520px]" center={AKTAU_CENTER} zoom={13} picked={point} onPick={pick} flyTo={flyTo} />
         </div>
         {point && (
@@ -170,7 +207,7 @@ export function ReportForm({
 
         <div className="grid gap-2">
           <Label htmlFor="title">{t.report.titleLabel}</Label>
-          <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.report.titlePh} maxLength={140} />
+          <Input ref={titleRef} id="title" aria-invalid={showMissing && title.trim().length < 3} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.report.titlePh} maxLength={140} />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="desc">{t.report.descLabel}</Label>
@@ -200,6 +237,22 @@ export function ReportForm({
             )}
             <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={(e) => onFiles(e.target.files)} />
           </div>
+          {scan && (
+            <div className="rounded-md border bg-muted/30 p-2.5 text-xs">
+              <div className="mb-1 font-medium">{t.report.scanTitle}</div>
+              <ul className="space-y-1">
+                <li className="flex items-center gap-1.5 text-[color:var(--ok)]"><Check className="size-3.5" />{t.report.scanUploaded}</li>
+                <li className={`flex items-start gap-1.5 ${scan.gps === "ok" ? "text-[color:var(--ok)]" : "text-[color:var(--warn)]"}`}>
+                  {scan.gps === "ok" ? <Check className="mt-px size-3.5 shrink-0" /> : <CircleAlert className="mt-px size-3.5 shrink-0" />}
+                  {scan.gps === "ok" ? t.report.scanGps : scan.gps === "outside" ? t.report.scanGpsOutside : t.report.scanNoGps}
+                  {locating && <Loader2 className="size-3.5 animate-spin" />}
+                </li>
+                <li className="flex items-center gap-1.5 text-muted-foreground">
+                  {scan.taken ? fmt(t.report.scanTime, { t: new Date(scan.taken).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : t.report.scanNoTime}
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
 
         {preview && (
@@ -282,9 +335,19 @@ export function ReportForm({
         )}
 
         {dups.length === 0 && (
-          <Button size="lg" onClick={submit} disabled={!canSubmit}>
-            {pending ? <><Loader2 className="animate-spin" /> {t.report.sending}</> : t.report.submit}
-          </Button>
+          <div className="flex flex-col gap-2">
+            {showMissing && missing.length > 0 && (
+              <div className="rounded-md border border-[color:var(--danger)]/50 bg-danger/5 p-2.5 text-sm">
+                <div className="font-medium">{t.report.toSend}</div>
+                <ul className="mt-1 list-disc pl-5">
+                  {missing.map((m) => <li key={m}>{m}</li>)}
+                </ul>
+              </div>
+            )}
+            <Button size="lg" onClick={submit} disabled={!canSubmit}>
+              {pending || uploading ? <><Loader2 className="animate-spin" /> {t.report.sending}</> : t.report.submit}
+            </Button>
+          </div>
         )}
       </div>
     </div>

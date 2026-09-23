@@ -15,6 +15,13 @@ export async function generateMetadata() {
 export default async function MapPage() {
   const [{ lang, t }, { all }, pain] = await Promise.all([getDict(), flow(), painData()]);
   const polyBy = new Map(pain.ref.districts.map((d) => [d.code, d.polygon]));
+  // Сводка по районам для панели при выборе микрорайона
+  const districtInfo = Object.fromEntries(
+    pain.rows.map((r) => [r.district, {
+      index: r.index, open: r.open, breached: r.breached, reports90: r.reports90, insufficient: r.insufficient,
+      geojson: (polyBy.get(r.district) ?? null) as unknown as GeoJSON.GeoJsonObject | null,
+    }])
+  );
   const choropleth = pain.rows
     .filter((r) => polyBy.get(r.district))
     .map((r) => ({
@@ -34,9 +41,10 @@ export default async function MapPage() {
         points={all.map((r) => toMapPoint(r, lang))}
         clusters={clusters}
         choropleth={choropleth}
+        districtInfo={districtInfo}
         incidents={incidents ?? []}
         lang={lang}
-        t={{ map: t.map, status: t.status, nav: t.nav, pain: t.pain }}
+        t={{ map: t.map, status: t.status, nav: t.nav, pain: t.pain, outcome: t.outcome }}
       />
     </>
   );

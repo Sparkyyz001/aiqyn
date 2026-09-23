@@ -59,6 +59,7 @@ export async function flow(): Promise<{ all: FlowReport[]; real: FlowReport[] }>
 export type MapPoint = {
   id: number; no: string; c: string; s: string; lat: number; lng: number;
   t: string; d: string | null; b: boolean; demo: boolean; at: string;
+  sv: string; res: string | null; cf: number;
 };
 /** Заголовок в нужной локали: у демо-записей есть казахский вариант, тексты жителей показываем как написаны */
 export const titleOf = (r: { title: string; title_kz: string | null }, lang: "ru" | "kz") => (lang === "kz" && r.title_kz ? r.title_kz : r.title);
@@ -66,4 +67,5 @@ export const titleOf = (r: { title: string; title_kz: string | null }, lang: "ru
 export const toMapPoint = (r: FlowReport, lang: "ru" | "kz" = "ru"): MapPoint => ({
   id: r.id, no: r.public_no, c: r.category, s: r.status, lat: r.lat, lng: r.lng,
   t: titleOf(r, lang), d: r.district, b: r.sla_breached, demo: r.demo, at: r.created_at,
+  sv: r.service, res: r.resolved_at, cf: r.confirmations,
 });

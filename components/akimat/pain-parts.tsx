@@ -75,7 +75,7 @@ export function PainRanking({
         {list.map((r, i) => (
           <li key={r.district}>
             <Link
-              href={`/akimat/pain/${r.district}`}
+              href={`/district/${r.district}`}
               className="grid grid-cols-[1fr_3rem_4rem] items-center gap-2 px-4 py-2 text-sm hover:bg-accent/50 sm:grid-cols-[1fr_3.5rem_5rem_6rem_5rem]"
             >
               <span className="flex min-w-0 items-center gap-2">

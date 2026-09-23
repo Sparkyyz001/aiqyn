@@ -9,23 +9,27 @@ import { Label } from "@/components/ui/label";
 import { CATEGORIES, CATEGORY, DISTRICTS, nm, OPEN_STATUSES, pointColor } from "@/lib/meta";
 import type { MapPoint } from "@/lib/data";
 import type { MapChoropleth } from "@/components/map/leaflet-map";
-import { PainLegend } from "@/components/akimat/pain-parts";
+import { PainLegend, PainSwatch } from "@/components/akimat/pain-parts";
+import Link from "next/link";
+import { fmt } from "@/lib/i18n/dict";
 import type { Dict, Lang } from "@/lib/i18n/dict";
 
 type ClusterRow = { category: string; lat: number; lng: number; radius_m: number; count: number; chronic_score: number; label: string | null };
+type DistrictInfo = { index: number | null; open: number; breached: number; reports90: number; insufficient: boolean; geojson: GeoJSON.GeoJsonObject | null };
 type IncidentRow = { id: number; title: string; polygon: GeoJSON.GeoJsonObject; eta_at: string | null; type: string };
 
 const ALL = "__all";
 
 export function MapExplorer({
-  points, clusters, incidents, choropleth, lang, t,
+  points, clusters, incidents, choropleth, districtInfo, lang, t,
 }: {
   points: MapPoint[];
   clusters: ClusterRow[];
   incidents: IncidentRow[];
   choropleth: MapChoropleth[];
+  districtInfo: Record<string, DistrictInfo>;
   lang: Lang;
-  t: Pick<Dict, "map" | "status" | "nav" | "pain">;
+  t: Pick<Dict, "map" | "status" | "nav" | "pain" | "outcome">;
 }) {
   const [mode, setMode] = useState<"pins" | "heat" | "pain">("pins");
   const [cat, setCat] = useState(ALL);
@@ -103,6 +107,28 @@ export function MapExplorer({
           </div>
         </div>
 
+        {district !== ALL && districtInfo[district] && (
+          <div className="rounded-lg border bg-card p-3 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium">{nm(DISTRICTS.find((d) => d.code === district), lang)}</span>
+              {districtInfo[district].insufficient ? (
+                <span className="text-xs text-muted-foreground">{t.pain.insufficient}</span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs">
+                  <PainSwatch index={districtInfo[district].index} />
+                  {t.pain.short}: <b className="tabular-nums">{districtInfo[district].index}</b>
+                </span>
+              )}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+              <span>{fmt(t.pain.openN, { n: districtInfo[district].open })}</span>
+              <span className={districtInfo[district].breached ? "text-[color:var(--danger)]" : ""}>{fmt(t.pain.breachedN, { n: districtInfo[district].breached })}</span>
+              <span>{t.pain.reports}: {districtInfo[district].reports90}</span>
+            </div>
+            <Link href={`/district/${district}`} className="mt-2 inline-block text-sm font-medium text-primary hover:underline">{t.outcome.openCard} →</Link>
+          </div>
+        )}
+
         <div className="flex flex-col gap-3">
           <label className="flex items-center justify-between gap-2 text-sm">
             {t.map.openOnly}
@@ -145,8 +171,11 @@ export function MapExplorer({
           points={mode === "pain" ? [] : filtered}
           mode={mode === "heat" ? "heat" : "pins"}
           choropleth={mode === "pain" ? choropleth : []}
+          focus={district !== ALL ? districtInfo[district]?.geojson ?? null : null}
           className="h-full min-h-[60vh] w-full lg:min-h-[calc(100vh-3.5rem)]"
           statusLabels={t.status}
+          lang={lang}
+          popupLabels={{ created: t.outcome.created, resolved: t.status.resolved, confirmations: t.outcome.confirmations, more: t.outcome.openCard }}
           demoLabel={t.map.demo}
           openLabel={t.map.open}
           circles={mode === "pain" ? [] : clusters

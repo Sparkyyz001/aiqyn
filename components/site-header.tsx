@@ -15,7 +15,6 @@ export async function SiteHeader() {
   const publicLinks = [
     { href: "/map", label: t.nav.map },
     { href: "/incidents", label: t.nav.incidents },
-    { href: "/open-data", label: t.nav.openData },
   ];
   const cabinet: Record<Role, { href: string; label: string }> = {
     citizen: { href: "/me", label: t.nav.me },

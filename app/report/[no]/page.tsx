@@ -15,6 +15,10 @@ import { StatusBadge } from "@/components/status-badge";
 import { LiveRefresh } from "@/components/live-refresh";
 import { CityMap } from "@/components/map/map";
 import { ReportActions } from "./report-actions";
+import { DemoCard } from "./demo-card";
+import { demoBaseline } from "@/lib/demo-baseline";
+import { Outcome } from "@/components/reports/outcome";
+import { PainContribution } from "@/components/reports/pain-contribution";
 
 export async function generateMetadata({ params }: PageProps<"/report/[no]">) {
   const { no } = await params;
@@ -26,6 +30,13 @@ const fmt = (s: string) =>
 
 export default async function ReportPage({ params }: PageProps<"/report/[no]">) {
   const { no } = await params;
+  // Демо-записи подложки: отдельная карточка только для чтения
+  if (no.startsWith("DEMO-")) {
+    const demo = demoBaseline().find((x) => x.public_no === no);
+    if (!demo) notFound();
+    const { lang, t } = await getDict();
+    return <DemoCard r={demo} lang={lang} t={t} />;
+  }
   const db = createAdminClient();
   const { data: head } = await db.from("reports").select("id, status").eq("public_no", no).maybeSingle();
   if (!head) notFound();
@@ -154,6 +165,16 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         <div className="flex min-w-0 flex-col gap-6">
           {r.description && <p className="whitespace-pre-wrap text-pretty">{r.description}</p>}
 
+          <Outcome
+            status={r.status}
+            createdAt={r.created_at}
+            resolvedAt={r.resolved_at}
+            slaDueAt={r.sla_due_at}
+            resolution={(replies ?? []).length ? (replies ?? [])[(replies ?? []).length - 1].text : null}
+            serviceName={svc ? nm(svc, lang) : null}
+            t={t.outcome}
+          />
+
           {(before.length > 0 || after.length > 0) && (
             <section>
               <h2 className="mb-2 font-medium">{t.card.photos}</h2>
@@ -264,6 +285,8 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
               <div className="text-xs text-muted-foreground">{t.card.reopened}, {t.card.times}</div>
             </div>
           </div>
+
+          <PainContribution reportId={r.id} district={district?.code ?? null} t={t.pain} />
 
           {svc && (
             <div className="rounded-lg border p-3 text-sm">

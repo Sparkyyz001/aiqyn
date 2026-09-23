@@ -31,7 +31,7 @@ export default async function AirPage() {
   const hits = overlaps(cells, objects).slice(0, 8);
   const heat = cells
     .filter((c) => c.votes > 0.15)
-    .map((c, i) => ({ id: -i - 1, no: "", c: "smell", s: "routed", lat: c.lat, lng: c.lng, t: "", d: null, b: c.votes > 0.6, demo: true, at: "" }));
+    .map((c, i) => ({ id: -i - 1, no: "", c: "smell", s: "routed", lat: c.lat, lng: c.lng, t: "", d: null, b: c.votes > 0.6, demo: true, at: "", sv: "", res: null, cf: 0 }));
 
   return (
     <div className="flex flex-col gap-6">
