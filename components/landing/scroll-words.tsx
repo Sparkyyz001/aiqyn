@@ -19,8 +19,8 @@ export function ScrollWords({ text, className = "" }: { text: string; className?
     const update = () => {
       const r = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      // 0 — верх блока у нижней трети экрана, 1 — середина блока у верхней трети
-      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.35)));
+      // 0 — верх блока входит снизу экрана, 1 — середина блока дошла до центра экрана
+      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height * 0.5 + vh * 0.35)));
       const lit = p * spans.length;
       spans.forEach((s, i) => (s.style.opacity = String(0.16 + 0.84 * Math.min(1, Math.max(0, lit - i)))));
     };

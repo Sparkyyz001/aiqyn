@@ -43,7 +43,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1">
-          <Button asChild size="sm" className="hidden sm:inline-flex">
+          <Button asChild size="sm" className="btn-shine hidden sm:inline-flex">
             <Link href="/report/new">
               <Plus /> {t.nav.report}
             </Link>

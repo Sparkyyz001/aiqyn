@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { LandscapeHero } from "@/components/landing/landscape-hero";
 import { ScrollWords } from "@/components/landing/scroll-words";
 import { Accent } from "@/components/landing/accent";
+import { SpotlightTracker } from "@/components/landing/spotlight";
 import { CountUp, Reveal } from "@/components/landing/motion";
 import { getDict } from "@/lib/i18n/server";
 import { flow, toMapPoint } from "@/lib/data";
@@ -21,7 +22,7 @@ const ROLE_ART = ["8% 88%", "48% 30%", "96% 62%"];
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
     <p className="flex items-center gap-3 text-xs font-semibold tracking-[0.18em] text-lt-green uppercase">
-      <span className="h-px w-8 bg-lt-green" aria-hidden />
+      <span className="kicker-line h-px w-8 bg-lt-green" aria-hidden />
       {children}
     </p>
   );
@@ -32,10 +33,14 @@ export default async function Home() {
   const k = kpis(all);
   const h = t.home;
   const recent = real.slice(0, 5);
+  // Бегущая строка: свежие открытые обращения (реальные и подложка)
+  const ticker = all.filter((r) => r.status !== "rejected").slice(0, 24);
 
   return (
     <>
       <LiveRefresh />
+      <SpotlightTracker />
+      <div className="scroll-progress" aria-hidden />
 
       {/* 1. Первый экран — иллюстрированный пейзаж, главная фраза и навигация */}
       <LandscapeHero
@@ -53,9 +58,27 @@ export default async function Home() {
 
       {/* Дальше весь лендинг — в палитре переднего плана пейзажа */}
       <div className="dark theme-lagoon bg-background text-foreground">
+        {/* Бегущая строка живых обращений */}
+        <div className="marquee overflow-hidden border-b py-4" aria-label={t.landing.recent}>
+          <ul className="marquee-track">
+            {[...ticker, ...ticker].map((r, i) => (
+              <li key={i} aria-hidden={i >= ticker.length} className="flex shrink-0 items-center gap-2.5 px-6 text-sm whitespace-nowrap text-foreground/80">
+                <span
+                  className={`size-2 rounded-full ${r.status === "resolved" ? "bg-lt-green" : r.sla_breached ? "bg-lt-coral" : "bg-[#9fd0ff]"}`}
+                  aria-hidden
+                />
+                <span className="max-w-[26rem] truncate">{lang === "kz" && r.title_kz ? r.title_kz : r.title}</span>
+                {r.district && DISTRICT[r.district] ? <span className="text-muted-foreground">· {nm(DISTRICT[r.district], lang)}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {/* 2. Манифест: слова загораются по мере прокрутки */}
         <section className="mx-auto w-full max-w-7xl px-4 pt-20 pb-16 md:pt-32 md:pb-24">
-          <Kicker>{h.statementKicker}</Kicker>
+          <Reveal>
+            <Kicker>{h.statementKicker}</Kicker>
+          </Reveal>
           <ScrollWords text={h.statement} className="mt-8 max-w-5xl text-3xl leading-[1.15] font-semibold tracking-tight text-balance md:text-5xl lg:text-6xl" />
         </section>
 
@@ -103,7 +126,7 @@ export default async function Home() {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex h-full flex-col rounded-3xl border bg-foreground/[0.03] p-7 transition-[transform,border-color,background-color] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 hover:border-lt-coral/40 hover:bg-foreground/[0.06]"
+                  className="spot group flex h-full flex-col rounded-3xl border bg-foreground/[0.03] p-7 transition-[transform,border-color,background-color] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 hover:border-lt-coral/40 hover:bg-foreground/[0.06]"
                 >
                   <div className="font-serif text-4xl leading-tight text-lt-coral">{big}</div>
                   <p className="mt-4 flex-1 text-pretty">{text}</p>
@@ -124,13 +147,14 @@ export default async function Home() {
               <h2 className="mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-balance md:text-5xl">
                 <Accent text={h.howTitle} />
               </h2>
-              <ol className="mt-10 grid overflow-hidden rounded-2xl border md:grid-cols-4">
+              <ol className="relative mt-10 grid overflow-hidden rounded-2xl border md:grid-cols-4">
+                <span className="step-line absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-lt-green via-lt-cream to-lt-coral" aria-hidden />
                 {h.how.map(([title, text], i) => {
                   const Icon = STEP_ICONS[i];
                   return (
-                    <li key={i} className="border-b p-6 transition-colors duration-300 last:border-b-0 hover:bg-foreground/[0.04] md:border-r md:border-b-0 md:last:border-r-0">
+                    <li key={i} className="spot border-b p-6 transition-colors duration-300 last:border-b-0 hover:bg-foreground/[0.04] md:border-r md:border-b-0 md:last:border-r-0">
                       <div className="flex items-start justify-between">
-                        <span className="grid size-11 place-items-center rounded-xl bg-lt-cream text-lt-teal">
+                        <span className="step-icon grid size-11 place-items-center rounded-xl bg-lt-cream text-lt-teal" style={{ "--i": i } as React.CSSProperties}>
                           <Icon className="size-5" />
                         </span>
                         <span className="text-3xl font-semibold text-foreground/15 tabular-nums">0{i + 1}</span>
@@ -158,7 +182,7 @@ export default async function Home() {
               const Icon = ROLE_ICONS[i];
               return (
                 <Reveal key={i} delay={i * 110} className="h-full">
-                  <Link href={href} className="group relative isolate flex h-full min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl border p-7">
+                  <Link href={href} className="spot group relative isolate flex h-full min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl border p-7">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <div className="absolute inset-0 -z-10 overflow-hidden">
                       <img
@@ -239,7 +263,7 @@ export default async function Home() {
             </h2>
             <p className="mt-5 max-w-xl text-muted-foreground text-pretty">{h.ctaSub}</p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 rounded-full px-6 font-semibold transition-transform duration-300 hover:-translate-y-0.5">
+              <Button asChild size="lg" className="btn-shine h-12 rounded-full px-6 font-semibold transition-transform duration-300 hover:-translate-y-0.5">
                 <Link href="/report/new">
                   <Plus /> {h.ctaReport}
                 </Link>

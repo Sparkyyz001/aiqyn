@@ -1,11 +1,16 @@
-/** Заголовок, последнее слово которого набрано курсивом с засечками — акцент в стиле лендинга */
+/** Заголовок, который всплывает по словам; последнее слово — курсивом с засечками */
 export function Accent({ text }: { text: string }) {
-  const i = text.trimEnd().lastIndexOf(" ");
-  if (i < 0) return <>{text}</>;
+  const words = text.trim().split(/\s+/);
   return (
     <>
-      {text.slice(0, i + 1)}
-      <em className="font-serif font-normal tracking-normal">{text.slice(i + 1)}</em>
+      {words.map((w, i) => (
+        <span key={i}>
+          <span className={`w ${i === words.length - 1 && words.length > 1 ? "font-serif font-normal tracking-normal italic" : ""}`} style={{ "--i": i } as React.CSSProperties}>
+            {w}
+          </span>
+          {i < words.length - 1 ? " " : ""}
+        </span>
+      ))}
     </>
   );
 }

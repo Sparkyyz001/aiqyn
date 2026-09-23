@@ -82,16 +82,18 @@ export function LandscapeHero({ f }: { f: Props }) {
 
       <div className="vf-content">
         <div className="vf-headline">
-          <p className="vf-eyebrow">{f.eyebrow}</p>
+          <p className="vf-eyebrow vf-intro" style={{ "--d": "150ms" } as React.CSSProperties}>{f.eyebrow}</p>
           <h1 id="vf-title" className="vf-title">
             {f.lines.map((l, i) => (
-              <span key={i}>{l}</span>
+              <span key={i} className="vf-intro" style={{ "--d": `${320 + i * 130}ms` } as React.CSSProperties}>
+                {l}
+              </span>
             ))}
           </h1>
-          <p className="vf-sub">{f.sub}</p>
+          <p className="vf-sub vf-intro" style={{ "--d": "760ms" } as React.CSSProperties}>{f.sub}</p>
         </div>
 
-        <div className="vf-footer">
+        <div className="vf-footer vf-intro" style={{ "--d": "950ms" } as React.CSSProperties}>
           <div className="vf-grid">
             <div className="vf-brandcol">
               <Link href="/" className="vf-brand">
@@ -295,6 +297,12 @@ const styles = `
   background: radial-gradient(ellipse 70% 60% at 18% 62%, rgba(6, 60, 64, 0.7) 0%, rgba(6, 60, 64, 0.38) 45%, rgba(6, 60, 64, 0) 75%);
 }
 
+/* вход первого экрана: строки поднимаются по очереди */
+.vf-intro { animation: vfIntro 1s var(--ease) both; animation-delay: var(--d, 0ms); }
+.vf-eyebrow::before { animation: vfLine 0.9s var(--ease) 0.3s both; }
+@keyframes vfIntro { from { opacity: 0; transform: translateY(26px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes vfLine { from { width: 0; } to { width: 32px; } }
+
 /* контент: фраза и подвал идут потоком снизу — не могут наехать друг на друга */
 .vf-content {
   position: relative; z-index: 2;
@@ -422,6 +430,8 @@ const styles = `
   .vf-title { display: block; text-wrap: balance; }
   .vf-title span { display: inline; white-space: normal; }
   .vf-title span:not(:last-child)::after { content: " "; }
+  .vf-title span.vf-intro { animation: none; }
+  .vf-title { animation: vfIntro 1s var(--ease) 0.32s both; }
   .vf-grid { grid-template-columns: 1fr auto; align-items: start; }
   .vf-nav { grid-column: 1 / -1; grid-row: 2; }
   .vf-cta { grid-column: 2; grid-row: 1; }
