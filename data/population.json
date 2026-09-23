@@ -1,0 +1,549 @@
+{
+ "method": "Население города распределено по микрорайонам пропорционально жилой площади (контур здания OSM × этажность). Оценка, не официальная статистика.",
+ "city_population": 303752,
+ "city_population_source": "https://www.lada.kz/society/society/146714-chislennost-naseleniia-aktau-prevysila-300-tysiach-chelovek.html",
+ "osm_license": "ODbL 1.0",
+ "computed_at": "2026-09-23T17:38:25.632Z",
+ "share_inside_known_districts": 73,
+ "items": [
+  {
+   "code": "mkr-17",
+   "name_ru": "17 мкр",
+   "residential_buildings": 162,
+   "floor_m2": 1441168,
+   "population_est": 16376
+  },
+  {
+   "code": "baskudyk",
+   "name_ru": "Баскудык",
+   "residential_buildings": 4984,
+   "floor_m2": 1182989,
+   "population_est": 13442
+  },
+  {
+   "code": "mkr-16",
+   "name_ru": "16 мкр",
+   "residential_buildings": 108,
+   "floor_m2": 1109230,
+   "population_est": 12604
+  },
+  {
+   "code": "atameken",
+   "name_ru": "Атамекен",
+   "residential_buildings": 5190,
+   "floor_m2": 858129,
+   "population_est": 9751
+  },
+  {
+   "code": "mkr-19",
+   "name_ru": "19 мкр",
+   "residential_buildings": 64,
+   "floor_m2": 775925,
+   "population_est": 8817
+  },
+  {
+   "code": "mkr-14",
+   "name_ru": "14 мкр",
+   "residential_buildings": 162,
+   "floor_m2": 659502,
+   "population_est": 7494
+  },
+  {
+   "code": "mkr-29a",
+   "name_ru": "29А мкр",
+   "residential_buildings": 322,
+   "floor_m2": 622843,
+   "population_est": 7077
+  },
+  {
+   "code": "omirzak",
+   "name_ru": "Омирзак",
+   "residential_buildings": 1260,
+   "floor_m2": 560062,
+   "population_est": 6364
+  },
+  {
+   "code": "mkr-15",
+   "name_ru": "15 мкр",
+   "residential_buildings": 151,
+   "floor_m2": 460851,
+   "population_est": 5237
+  },
+  {
+   "code": "mkr-20",
+   "name_ru": "20 мкр",
+   "residential_buildings": 44,
+   "floor_m2": 459596,
+   "population_est": 5222
+  },
+  {
+   "code": "mkr-33",
+   "name_ru": "33 мкр",
+   "residential_buildings": 32,
+   "floor_m2": 445159,
+   "population_est": 5058
+  },
+  {
+   "code": "mkr-27",
+   "name_ru": "27 мкр",
+   "residential_buildings": 128,
+   "floor_m2": 429420,
+   "population_est": 4879
+  },
+  {
+   "code": "mkr-12",
+   "name_ru": "12 мкр",
+   "residential_buildings": 118,
+   "floor_m2": 422127,
+   "population_est": 4797
+  },
+  {
+   "code": "mkr-28",
+   "name_ru": "28 мкр",
+   "residential_buildings": 88,
+   "floor_m2": 391446,
+   "population_est": 4448
+  },
+  {
+   "code": "mkr-13",
+   "name_ru": "13 мкр",
+   "residential_buildings": 107,
+   "floor_m2": 388488,
+   "population_est": 4414
+  },
+  {
+   "code": "mkr-11",
+   "name_ru": "11 мкр",
+   "residential_buildings": 80,
+   "floor_m2": 364188,
+   "population_est": 4138
+  },
+  {
+   "code": "mkr-1",
+   "name_ru": "1 мкр",
+   "residential_buildings": 140,
+   "floor_m2": 344829,
+   "population_est": 3918
+  },
+  {
+   "code": "mkr-23",
+   "name_ru": "23 мкр",
+   "residential_buildings": 116,
+   "floor_m2": 340203,
+   "population_est": 3866
+  },
+  {
+   "code": "mkr-4",
+   "name_ru": "4 мкр",
+   "residential_buildings": 88,
+   "floor_m2": 333623,
+   "population_est": 3791
+  },
+  {
+   "code": "mkr-32a",
+   "name_ru": "32А мкр",
+   "residential_buildings": 30,
+   "floor_m2": 330374,
+   "population_est": 3754
+  },
+  {
+   "code": "mkr-18",
+   "name_ru": "18 мкр",
+   "residential_buildings": 27,
+   "floor_m2": 323785,
+   "population_est": 3679
+  },
+  {
+   "code": "mkr-21",
+   "name_ru": "21 мкр",
+   "residential_buildings": 170,
+   "floor_m2": 288774,
+   "population_est": 3281
+  },
+  {
+   "code": "mkr-3",
+   "name_ru": "3 мкр",
+   "residential_buildings": 141,
+   "floor_m2": 280975,
+   "population_est": 3193
+  },
+  {
+   "code": "mkr-26",
+   "name_ru": "26 мкр",
+   "residential_buildings": 51,
+   "floor_m2": 269515,
+   "population_est": 3062
+  },
+  {
+   "code": "mkr-30",
+   "name_ru": "30 мкр",
+   "residential_buildings": 206,
+   "floor_m2": 263602,
+   "population_est": 2995
+  },
+  {
+   "code": "mkr-18a",
+   "name_ru": "18А мкр",
+   "residential_buildings": 12,
+   "floor_m2": 260439,
+   "population_est": 2959
+  },
+  {
+   "code": "sherkala",
+   "name_ru": "Шеркала",
+   "residential_buildings": 1104,
+   "floor_m2": 247621,
+   "population_est": 2814
+  },
+  {
+   "code": "mkr-31b",
+   "name_ru": "31Б мкр",
+   "residential_buildings": 38,
+   "floor_m2": 243464,
+   "population_est": 2766
+  },
+  {
+   "code": "mkr-22",
+   "name_ru": "22 мкр",
+   "residential_buildings": 78,
+   "floor_m2": 241982,
+   "population_est": 2750
+  },
+  {
+   "code": "mkr-35",
+   "name_ru": "35 мкр",
+   "residential_buildings": 45,
+   "floor_m2": 235893,
+   "population_est": 2680
+  },
+  {
+   "code": "mkr-29",
+   "name_ru": "29 мкр",
+   "residential_buildings": 79,
+   "floor_m2": 233006,
+   "population_est": 2648
+  },
+  {
+   "code": "besshoky",
+   "name_ru": "Бесшокы",
+   "residential_buildings": 1170,
+   "floor_m2": 228739,
+   "population_est": 2599
+  },
+  {
+   "code": "mkr-5",
+   "name_ru": "5 мкр",
+   "residential_buildings": 59,
+   "floor_m2": 226857,
+   "population_est": 2578
+  },
+  {
+   "code": "mkr-2",
+   "name_ru": "2 мкр",
+   "residential_buildings": 82,
+   "floor_m2": 217430,
+   "population_est": 2471
+  },
+  {
+   "code": "mkr-32v",
+   "name_ru": "32В мкр",
+   "residential_buildings": 43,
+   "floor_m2": 213527,
+   "population_est": 2426
+  },
+  {
+   "code": "mkr-3b",
+   "name_ru": "3Б мкр",
+   "residential_buildings": 71,
+   "floor_m2": 208806,
+   "population_est": 2373
+  },
+  {
+   "code": "mkr-8",
+   "name_ru": "8 мкр",
+   "residential_buildings": 54,
+   "floor_m2": 207091,
+   "population_est": 2353
+  },
+  {
+   "code": "mkr-7",
+   "name_ru": "7 мкр",
+   "residential_buildings": 53,
+   "floor_m2": 198902,
+   "population_est": 2260
+  },
+  {
+   "code": "mkr-31a",
+   "name_ru": "31А мкр",
+   "residential_buildings": 32,
+   "floor_m2": 198212,
+   "population_est": 2252
+  },
+  {
+   "code": "shygys-2",
+   "name_ru": "Шыгыс-2 мкр",
+   "residential_buildings": 333,
+   "floor_m2": 197787,
+   "population_est": 2247
+  },
+  {
+   "code": "mkr-6",
+   "name_ru": "6 мкр",
+   "residential_buildings": 57,
+   "floor_m2": 187221,
+   "population_est": 2127
+  },
+  {
+   "code": "mkr-38",
+   "name_ru": "38 мкр",
+   "residential_buildings": 11,
+   "floor_m2": 175224,
+   "population_est": 1991
+  },
+  {
+   "code": "mkr-24",
+   "name_ru": "24 мкр",
+   "residential_buildings": 127,
+   "floor_m2": 173317,
+   "population_est": 1969
+  },
+  {
+   "code": "mkr-9",
+   "name_ru": "9 мкр",
+   "residential_buildings": 35,
+   "floor_m2": 149718,
+   "population_est": 1701
+  },
+  {
+   "code": "mkr-32b",
+   "name_ru": "32Б мкр",
+   "residential_buildings": 29,
+   "floor_m2": 145469,
+   "population_est": 1653
+  },
+  {
+   "code": "mkr-34",
+   "name_ru": "34 мкр",
+   "residential_buildings": 19,
+   "floor_m2": 134406,
+   "population_est": 1527
+  },
+  {
+   "code": "mkr-28a",
+   "name_ru": "28А мкр",
+   "residential_buildings": 49,
+   "floor_m2": 130690,
+   "population_est": 1485
+  },
+  {
+   "code": "shygys-3",
+   "name_ru": "Шыгыс-3 мкр",
+   "residential_buildings": 254,
+   "floor_m2": 127256,
+   "population_est": 1446
+  },
+  {
+   "code": "alau",
+   "name_ru": "Алау",
+   "residential_buildings": 764,
+   "floor_m2": 126929,
+   "population_est": 1442
+  },
+  {
+   "code": "mkr-31",
+   "name_ru": "31 мкр",
+   "residential_buildings": 18,
+   "floor_m2": 124021,
+   "population_est": 1409
+  },
+  {
+   "code": "mkr-39",
+   "name_ru": "39 мкр",
+   "residential_buildings": 7,
+   "floor_m2": 121329,
+   "population_est": 1379
+  },
+  {
+   "code": "mkr-3a",
+   "name_ru": "3А мкр",
+   "residential_buildings": 38,
+   "floor_m2": 114962,
+   "population_est": 1306
+  },
+  {
+   "code": "mkr-25",
+   "name_ru": "25 мкр",
+   "residential_buildings": 23,
+   "floor_m2": 102565,
+   "population_est": 1165
+  },
+  {
+   "code": "shygys-1",
+   "name_ru": "Шыгыс-1 мкр",
+   "residential_buildings": 265,
+   "floor_m2": 95597,
+   "population_est": 1086
+  },
+  {
+   "code": "mkr-4a",
+   "name_ru": "4А мкр",
+   "residential_buildings": 55,
+   "floor_m2": 91761,
+   "population_est": 1043
+  },
+  {
+   "code": "mkr-6a",
+   "name_ru": "6А мкр",
+   "residential_buildings": 38,
+   "floor_m2": 87966,
+   "population_est": 1000
+  },
+  {
+   "code": "mkr-7a",
+   "name_ru": "7А мкр",
+   "residential_buildings": 24,
+   "floor_m2": 74250,
+   "population_est": 844
+  },
+  {
+   "code": "mkr-10",
+   "name_ru": "10 мкр",
+   "residential_buildings": 16,
+   "floor_m2": 72215,
+   "population_est": 821
+  },
+  {
+   "code": "kol-zhagasy",
+   "name_ru": "Кол Жагасы",
+   "residential_buildings": 232,
+   "floor_m2": 70141,
+   "population_est": 797
+  },
+  {
+   "code": "tolkyn-2",
+   "name_ru": "Толкын-2 мкр",
+   "residential_buildings": 180,
+   "floor_m2": 63491,
+   "population_est": 721
+  },
+  {
+   "code": "samal",
+   "name_ru": "Самал мкр",
+   "residential_buildings": 90,
+   "floor_m2": 59053,
+   "population_est": 671
+  },
+  {
+   "code": "mkr-32",
+   "name_ru": "32 мкр",
+   "residential_buildings": 10,
+   "floor_m2": 56364,
+   "population_est": 640
+  },
+  {
+   "code": "tolkyn",
+   "name_ru": "Толкын мкр",
+   "residential_buildings": 182,
+   "floor_m2": 53339,
+   "population_est": 606
+  },
+  {
+   "code": "mkr-34a",
+   "name_ru": "34А мкр",
+   "residential_buildings": 10,
+   "floor_m2": 47665,
+   "population_est": 542
+  },
+  {
+   "code": "22-shi-toksany",
+   "name_ru": "22-й квартал",
+   "residential_buildings": 29,
+   "floor_m2": 38715,
+   "population_est": 440
+  },
+  {
+   "code": "mkr-9a",
+   "name_ru": "9А мкр",
+   "residential_buildings": 14,
+   "floor_m2": 32548,
+   "population_est": 370
+  },
+  {
+   "code": "mkr-11a",
+   "name_ru": "11А мкр",
+   "residential_buildings": 11,
+   "floor_m2": 30005,
+   "population_est": 341
+  },
+  {
+   "code": "samal-2",
+   "name_ru": "Самал-2",
+   "residential_buildings": 16,
+   "floor_m2": 26356,
+   "population_est": 299
+  },
+  {
+   "code": "primorskiy-1",
+   "name_ru": "Приморский 1",
+   "residential_buildings": 3,
+   "floor_m2": 25572,
+   "population_est": 291
+  },
+  {
+   "code": "mkr-12a",
+   "name_ru": "12А мкр",
+   "residential_buildings": 13,
+   "floor_m2": 13766,
+   "population_est": 156
+  },
+  {
+   "code": "mkr-1a",
+   "name_ru": "1А мкр",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "mkr-1b",
+   "name_ru": "1Б мкр",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "zhana-konys",
+   "name_ru": "Жана коныс",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "green-park-zh-k",
+   "name_ru": "ЖК Green Park",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "koktem",
+   "name_ru": "Коктем",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "rauan",
+   "name_ru": "Рауан",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  },
+  {
+   "code": "temir-su",
+   "name_ru": "Темир Су",
+   "residential_buildings": 0,
+   "floor_m2": 0,
+   "population_est": 0
+  }
+ ]
+}

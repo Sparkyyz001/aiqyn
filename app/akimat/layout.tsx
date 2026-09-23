@@ -4,6 +4,7 @@ import { getDict } from "@/lib/i18n/server";
 
 const NAV = [
   { href: "/akimat", key: "overview" },
+  { href: "/akimat/pain", key: "pain" },
   { href: "/akimat/clusters", key: "clusters" },
   { href: "/akimat/quality", key: "quality" },
   { href: "/akimat/money", key: "money" },

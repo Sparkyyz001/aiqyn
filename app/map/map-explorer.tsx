@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { CATEGORIES, CATEGORY, DISTRICTS, nm, OPEN_STATUSES, pointColor } from "@/lib/meta";
 import type { MapPoint } from "@/lib/data";
+import type { MapChoropleth } from "@/components/map/leaflet-map";
+import { PainLegend } from "@/components/akimat/pain-parts";
 import type { Dict, Lang } from "@/lib/i18n/dict";
 
 type ClusterRow = { category: string; lat: number; lng: number; radius_m: number; count: number; chronic_score: number; label: string | null };
@@ -16,15 +18,16 @@ type IncidentRow = { id: number; title: string; polygon: GeoJSON.GeoJsonObject; 
 const ALL = "__all";
 
 export function MapExplorer({
-  points, clusters, incidents, lang, t,
+  points, clusters, incidents, choropleth, lang, t,
 }: {
   points: MapPoint[];
   clusters: ClusterRow[];
   incidents: IncidentRow[];
+  choropleth: MapChoropleth[];
   lang: Lang;
-  t: Pick<Dict, "map" | "status" | "nav">;
+  t: Pick<Dict, "map" | "status" | "nav" | "pain">;
 }) {
-  const [mode, setMode] = useState<"pins" | "heat">("pins");
+  const [mode, setMode] = useState<"pins" | "heat" | "pain">("pins");
   const [cat, setCat] = useState(ALL);
   const [district, setDistrict] = useState(ALL);
   const [period, setPeriod] = useState("90");
@@ -55,10 +58,11 @@ export function MapExplorer({
     <div className="relative flex flex-1 flex-col lg:flex-row">
       <aside className="order-2 flex flex-col gap-4 border-t p-4 lg:order-1 lg:w-80 lg:border-t-0 lg:border-r">
         <h1 className="text-lg font-semibold">{t.map.title}</h1>
-        <Tabs value={mode} onValueChange={(v) => setMode(v as "pins" | "heat")}>
+        <Tabs value={mode} onValueChange={(v) => setMode(v as "pins" | "heat" | "pain")}>
           <TabsList className="w-full">
             <TabsTrigger value="pins" className="flex-1">{t.map.pins}</TabsTrigger>
             <TabsTrigger value="heat" className="flex-1">{t.map.heat}</TabsTrigger>
+            <TabsTrigger value="pain" className="flex-1">{t.pain.short}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -110,9 +114,16 @@ export function MapExplorer({
           </label>
         </div>
 
-        <div className="text-sm text-muted-foreground tabular-nums">
-          {t.map.shown}: {filtered.length}
-        </div>
+        {mode === "pain" ? (
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground">
+            <PainLegend t={t.pain} />
+            <p>{t.pain.formula}</p>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground tabular-nums">
+            {t.map.shown}: {filtered.length}
+          </div>
+        )}
 
         <ul className="grid grid-cols-2 gap-1.5 text-xs lg:grid-cols-1">
           {legend.map((l) => (
@@ -131,13 +142,14 @@ export function MapExplorer({
       <div className="order-1 h-[60vh] flex-1 lg:order-2 lg:h-auto">
         <CityMap
           fullTouch
-          points={filtered}
-          mode={mode}
+          points={mode === "pain" ? [] : filtered}
+          mode={mode === "heat" ? "heat" : "pins"}
+          choropleth={mode === "pain" ? choropleth : []}
           className="h-full min-h-[60vh] w-full lg:min-h-[calc(100vh-3.5rem)]"
           statusLabels={t.status}
           demoLabel={t.map.demo}
           openLabel={t.map.open}
-          circles={clusters
+          circles={mode === "pain" ? [] : clusters
             .filter((c) => cat === ALL || c.category === cat)
             .map((c) => ({
               lat: c.lat, lng: c.lng, radius: Math.max(60, c.radius_m),

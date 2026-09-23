@@ -8,16 +8,20 @@ import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap, Circle, 
 import { useTheme } from "next-themes";
 import { AKTAU_CENTER } from "@/lib/geo";
 import { pointColor } from "@/lib/meta";
+import { painColor } from "@/lib/pain-index";
 import type { MapPoint } from "@/lib/data";
 
 export type MapOverlayCircle = { lat: number; lng: number; radius: number; color: string; label?: string; href?: string };
 export type MapOverlayPolygon = { geojson: GeoJSON.GeoJsonObject; color: string; label?: string };
+// Заливка районов по индексу 0–100 (цвет по проверенной шкале, своей для светлой и тёмной темы)
+export type MapChoropleth = { geojson: GeoJSON.GeoJsonObject; index: number | null; label: string; href?: string };
 
 export type LeafletMapProps = {
   points?: MapPoint[];
   mode?: "pins" | "heat";
   circles?: MapOverlayCircle[];
   polygons?: MapOverlayPolygon[];
+  choropleth?: MapChoropleth[];
   center?: { lat: number; lng: number };
   zoom?: number;
   className?: string;
@@ -71,7 +75,7 @@ function FlyTo({ to }: { to: { lat: number; lng: number; zoom?: number } | null 
 }
 
 export default function LeafletMap({
-  points = [], mode = "pins", circles = [], polygons = [], center = AKTAU_CENTER, zoom = 13, className,
+  points = [], mode = "pins", circles = [], polygons = [], choropleth = [], center = AKTAU_CENTER, zoom = 13, className,
   statusLabels = {}, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false,
 }: LeafletMapProps) {
   const touchLock = !fullTouch && L.Browser.mobile;
@@ -98,6 +102,23 @@ export default function LeafletMap({
         maxZoom={19}
         className={dark ? "aiqyn-dark-tiles" : undefined}
       />
+      {choropleth.map((c, i) => (
+        <GeoJSON
+          key={`${i}-${dark}-${c.index}`}
+          data={c.geojson}
+          style={{ color: dark ? "#0b0e12" : "#ffffff", weight: 1, fillColor: painColor(c.index, dark), fillOpacity: c.index == null ? 0.25 : 0.7 }}
+        >
+          <Popup>
+            {c.href ? (
+              <a href={c.href} className="text-primary underline">
+                {c.label}
+              </a>
+            ) : (
+              c.label
+            )}
+          </Popup>
+        </GeoJSON>
+      ))}
       {polygons.map((p, i) => (
         <GeoJSON key={i} data={p.geojson} style={{ color: p.color, weight: 1.5, fillOpacity: 0.15 }}>
           {p.label && <Popup>{p.label}</Popup>}

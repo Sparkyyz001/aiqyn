@@ -10,6 +10,8 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { DailyChart } from "@/components/akimat/daily-chart";
 import { BarList } from "@/components/akimat/bar-list";
 import { StatusBadge } from "@/components/status-badge";
+import { PainRanking } from "@/components/akimat/pain-parts";
+import { painData } from "@/lib/pain-data";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -17,7 +19,7 @@ export async function generateMetadata() {
 }
 
 export default async function AkimatPage() {
-  const [{ lang, t }, { all, real }] = await Promise.all([getDict(), flow()]);
+  const [{ lang, t }, { all, real }, pain] = await Promise.all([getDict(), flow(), painData()]);
   const k = kpis(all);
   const series = daily(all, 90);
   const cats = byKey(all, (r) => r.category).slice(0, 10);
@@ -44,6 +46,15 @@ export default async function AkimatPage() {
         <Kpi label={t.akimat.overview.kpiReopened} value={fmt.format(k.reopened)} />
         <Kpi label={t.akimat.overview.kpiMedian} value={k.medianDays} />
       </div>
+
+      <section className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-medium">{t.pain.title}</h2>
+          <Link href="/akimat/pain" className="text-sm text-primary hover:underline">{t.pain.all} →</Link>
+        </div>
+        <p className="text-sm text-muted-foreground">{t.pain.pitch}</p>
+        <PainRanking rows={pain.rows} delta={pain.delta} lang={lang} t={t.pain} limit={5} />
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-lg border p-4">

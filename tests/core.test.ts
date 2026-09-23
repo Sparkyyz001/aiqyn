@@ -115,3 +115,26 @@ test("Приоритет: время в очереди ограничено ср
   const base = { severityBase: 55, confirmationWeights: 0, slaDays: 15, nearSocial: false, slaBreached: true, chronicScore: 0, reopenCount: 0 };
   assert.equal(computePriority({ ...base, daysInQueue: 175 }).score, computePriority({ ...base, daysInQueue: 15 }).score);
 });
+
+import { painIndex } from "../lib/pain-index";
+test("Индекс боли: нормировка на население, закрытые ×0.3, мало данных", () => {
+  const now = new Date("2026-09-23T12:00:00Z").getTime();
+  const base = { demo: true, service: "roads", title: "", title_kz: null, lat: 0, lng: 0, accepted_at: null, sla_due_at: "", sla_breached: false, reopen_count: 0, confirmations: 0, after_geo_verified: null, reply_boilerplate: null, source: "app", public_no: "" };
+  const mk = (id: number, district: string, priority: number, status: string, resolved_at: string | null = null) => ({
+    ...base, id, district, priority, status, resolved_at, category: "road_pit", created_at: "2026-09-10T00:00:00Z",
+  });
+  const reports = [
+    ...[1, 2, 3, 4, 5].map((i) => mk(i, "a", 100, "routed")), // A: 500 баллов открыто
+    ...[6, 7, 8, 9].map((i) => mk(i, "b", 100, "routed")), //       B: 400 открыто
+    mk(10, "b", 100, "resolved", "2026-09-20T00:00:00Z"), //         B: +0.3×100 закрыто недавно
+    mk(11, "c", 100, "routed"), //                                   C: 1 обращение — мало данных
+  ];
+  const rows = painIndex(reports, [{ code: "a", population: 10000 }, { code: "b", population: 2000 }, { code: "c", population: 1000 }], now);
+  const a = rows.find((r) => r.district === "a")!, b = rows.find((r) => r.district === "b")!, c = rows.find((r) => r.district === "c")!;
+  assert.equal(a.raw, 50); //  500 / 10 тыс.
+  assert.equal(b.raw, 215); // (400 + 30) / 2 тыс. — меньший район с меньшим числом жалоб «болит» сильнее
+  assert.equal(b.index, 100);
+  assert.equal(a.index, 23);
+  assert.equal(c.insufficient, true);
+  assert.equal(c.index, null);
+});
