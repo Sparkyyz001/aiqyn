@@ -1,0 +1,123 @@
+{
+  "note": "Реестр ответственных организаций Актау. Только открытые источники. verified=false — организация указана по открытым источникам и требует уточнения у акимата. Телефоны не выдумываются: null, если нет в первоисточнике.",
+  "collected_at": "2026-09-23",
+  "items": [
+    {
+      "code": "kzhsa",
+      "short": "КЖСА",
+      "name_ru": "ГКП «Каспий жылу, су арнасы» Управления энергетики и ЖКХ Мангистауской области",
+      "name_kz": "«Каспий жылу, су арнасы» МКК",
+      "description": "Теплоснабжение, водоснабжение, канализация; восстановление покрытия после раскопок на своих сетях",
+      "address": "Актау, 22 мкр, 43",
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://www.goszakup.gov.kz/ru/registry/show_supplier/4540",
+      "extra_sources": ["https://www.caspiyarnasy.kz/ru/company/activity", "https://2gis.kz/aktau/firm/70000001028855733"]
+    },
+    {
+      "code": "mrek",
+      "short": "МРЭК",
+      "name_ru": "АО «Мангистауская распределительная электросетевая компания»",
+      "name_kz": "«Маңғыстау өңірлік электр желілік компаниясы» АҚ",
+      "description": "Передача и распределение электроэнергии по области; с 01.01.2025 — энергоснабжение (функции переданы от ТОО «Маңғыстау Жарық»)",
+      "address": "Актау, 14 мкр, 84, ЖК «Президент», 1 этаж",
+      "contact_phone": "32-00-16",
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://www.mrek.kz/media/novosti/kuda-obrashhatsya-po-voprosam-elektroenergii-v-mangistauskoj-oblasti.html",
+      "extra_sources": ["https://kase.kz/ru/issuers/MREK/"]
+    },
+    {
+      "code": "aues",
+      "short": "АУЭС",
+      "name_ru": "ГКП «Актауское управление электрических сетей» на ПХВ акимата города Актау",
+      "name_kz": "«Ақтау электр желілері басқармасы» МКК",
+      "description": "Городские электросети и уличное освещение, аварийные отключения в городе",
+      "address": "Актау, промзона 1",
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://goszakup.gov.kz/ru/registry/show_supplier/13118",
+      "extra_sources": ["https://forbes.kz/news/newsid_78005", "https://2gis.kz/aktau/firm/70000001029208511"]
+    },
+    {
+      "code": "maek",
+      "short": "МАЭК",
+      "name_ru": "МАЭК (Мангистауский атомный энергокомбинат)",
+      "name_kz": "МАЭК (Маңғыстау атом энергетикалық комбинаты)",
+      "description": "Генерация тепла и электроэнергии, опреснение — производство питьевой и технической воды для города",
+      "address": null,
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": false,
+      "source_url": "https://www.openstreetmap.org/search?query=МАЭК%20Актау",
+      "extra_sources": []
+    },
+    {
+      "code": "sanitary",
+      "short": "Zero Waste",
+      "name_ru": "ТОО «Zero Waste Ақтау»",
+      "name_kz": "«Zero Waste Ақтау» ЖШС",
+      "description": "Единственный оператор вывоза ТБО в Актау: нижняя зона — с 14.11.2025, весь город — с 01.01.2026",
+      "address": null,
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://www.lada.kz/aktau_news/society/154056-too-zero-waste-aktau-raziasnilo-situatsiiu-s-nachisleniiami-za-vyvoz-musora.html",
+      "extra_sources": ["https://www.lada.kz/aktau_news/communal/157249-kuda-ushli-dengi-zhitelei-aktau-za-vyvoz-musora-i-pochemu-ikh-ne-vozvrashchaiut.html"]
+    },
+    {
+      "code": "roads",
+      "short": "Отдел ПТиАД",
+      "name_ru": "Отдел пассажирского транспорта и автомобильных дорог города Актау",
+      "name_kz": "Ақтау қаласының жолаушылар көлігі және автомобиль жолдары бөлімі",
+      "description": "Дороги, тротуары, ямочный ремонт; городские автобусные маршруты",
+      "address": "Актау, 4 мкр, 72 (здание акимата)",
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": false,
+      "source_url": "https://2gis.kz/aktau/firm/70000001028366942",
+      "extra_sources": []
+    },
+    {
+      "code": "housing",
+      "short": "Отдел ЖКХ",
+      "name_ru": "Отдел жилищно-коммунального хозяйства города Актау",
+      "name_kz": "Ақтау қаласының тұрғын үй-коммуналдық шаруашылығы бөлімі",
+      "description": "Благоустройство дворов, контейнерные площадки, контроль за восстановлением после раскопок",
+      "address": "Актау, 4 мкр, 72 (здание акимата)",
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": false,
+      "source_url": "https://aktau-gid.kz/item/gorodskoj-akimat-aktau/",
+      "extra_sources": []
+    },
+    {
+      "code": "eco",
+      "short": "ДЭ Мангистау",
+      "name_ru": "РГУ «Департамент экологии по Мангистауской области»",
+      "name_kz": "«Маңғыстау облысы бойынша экология департаменті» РММ",
+      "description": "Экологический контроль: выбросы, запах, загрязнение",
+      "address": "Актау, промзона 3, 10",
+      "contact_phone": null,
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://www.goszakup.gov.kz/ru/registry/show_supplier/45922",
+      "extra_sources": ["https://2gis.kz/aktau/firm/70000001028895571"]
+    },
+    {
+      "code": "akimat",
+      "short": "Акимат",
+      "name_ru": "Акимат города Актау",
+      "name_kz": "Ақтау қаласының әкімдігі",
+      "description": "Всё остальное; эскалация. Единый контакт-центр 109 (24/7), сайт aktau109.kz, приложение «Smart Aktau»",
+      "address": "Актау, 4 мкр, 72",
+      "contact_phone": "109",
+      "contact_email": null,
+      "verified": true,
+      "source_url": "https://www.lada.kz/society/society/93427-v-aktau-zarabotal-edinyy-kontakt-centr-109-po-voprosam-zhizneobespecheniya-naseleniya.html",
+      "extra_sources": ["https://www.inaktau.kz/news/3164559/v-aktau-sozdan-kontakt-centr-po-voprosam-zizneobespecenia-naselenia"]
+    }
+  ]
+}

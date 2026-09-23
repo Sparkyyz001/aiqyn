@@ -1,0 +1,894 @@
+{
+ "source": "OpenStreetMap contributors, Overpass API",
+ "license": "ODbL 1.0",
+ "fetched_at": "2026-09-23T12:47:44.193Z",
+ "bbox": {
+  "s": 43.55,
+  "w": 51.1,
+  "n": 43.72,
+  "e": 51.3
+ },
+ "query": "(node[\"highway\"=\"bus_stop\"](43.55,51.1,43.72,51.3);node[\"public_transport\"=\"platform\"](43.55,51.1,43.72,51.3););out;",
+ "items": [
+  {
+   "osm_id": "node/2562593296",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6351788,
+   "lng": 51.1859598
+  },
+  {
+   "osm_id": "node/4323077492",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6555764,
+   "lng": 51.1511004
+  },
+  {
+   "osm_id": "node/4359206390",
+   "name": "Салтанат",
+   "name_ru": "Салтанат",
+   "name_kz": null,
+   "lat": 43.6883002,
+   "lng": 51.2089034
+  },
+  {
+   "osm_id": "node/4359225891",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6827197,
+   "lng": 51.2837532
+  },
+  {
+   "osm_id": "node/4359241690",
+   "name": "#0",
+   "name_ru": "#0",
+   "name_kz": null,
+   "lat": 43.6849622,
+   "lng": 51.266901
+  },
+  {
+   "osm_id": "node/4359248389",
+   "name": "Асыл Ана",
+   "name_ru": "Асыл Ана",
+   "name_kz": null,
+   "lat": 43.6878094,
+   "lng": 51.2054333
+  },
+  {
+   "osm_id": "node/4391590189",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.635369,
+   "lng": 51.1996777
+  },
+  {
+   "osm_id": "node/4548657891",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6693093,
+   "lng": 51.1626522
+  },
+  {
+   "osm_id": "node/4548665390",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6726382,
+   "lng": 51.1594042
+  },
+  {
+   "osm_id": "node/4548679389",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6726682,
+   "lng": 51.1596138
+  },
+  {
+   "osm_id": "node/4548679390",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6694238,
+   "lng": 51.1626929
+  },
+  {
+   "osm_id": "node/4556700884",
+   "name": "Парус",
+   "name_ru": "Парус",
+   "name_kz": null,
+   "lat": 43.6315313,
+   "lng": 51.1626333
+  },
+  {
+   "osm_id": "node/4556700885",
+   "name": "Парус",
+   "name_ru": "Парус",
+   "name_kz": null,
+   "lat": 43.6319399,
+   "lng": 51.1616829
+  },
+  {
+   "osm_id": "node/4556700887",
+   "name": "Филармония",
+   "name_ru": "Филармония",
+   "name_kz": null,
+   "lat": 43.6366707,
+   "lng": 51.157042
+  },
+  {
+   "osm_id": "node/4556700888",
+   "name": "Филармония",
+   "name_ru": "Филармония",
+   "name_kz": null,
+   "lat": 43.6367425,
+   "lng": 51.1566611
+  },
+  {
+   "osm_id": "node/4556703090",
+   "name": "Набережная",
+   "name_ru": "Набережная",
+   "name_kz": null,
+   "lat": 43.6409994,
+   "lng": 51.1545476
+  },
+  {
+   "osm_id": "node/4556703091",
+   "name": "Балбобек",
+   "name_ru": "Балбобек",
+   "name_kz": null,
+   "lat": 43.6424571,
+   "lng": 51.1535431
+  },
+  {
+   "osm_id": "node/4556703097",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6488427,
+   "lng": 51.1436665
+  },
+  {
+   "osm_id": "node/4556703098",
+   "name": "Астана",
+   "name_ru": "Астана",
+   "name_kz": null,
+   "lat": 43.6515598,
+   "lng": 51.1414094
+  },
+  {
+   "osm_id": "node/4556703099",
+   "name": "Астана",
+   "name_ru": "Астана",
+   "name_kz": null,
+   "lat": 43.6523458,
+   "lng": 51.1401756
+  },
+  {
+   "osm_id": "node/4556703100",
+   "name": "68 дом",
+   "name_ru": "68 дом",
+   "name_kz": null,
+   "lat": 43.6546726,
+   "lng": 51.1387661
+  },
+  {
+   "osm_id": "node/4556703101",
+   "name": "4 дом",
+   "name_ru": "4 дом",
+   "name_kz": null,
+   "lat": 43.6555595,
+   "lng": 51.137775
+  },
+  {
+   "osm_id": "node/4556703102",
+   "name": "15-й микрорайон, 35",
+   "name_ru": "15-й микрорайон, 35",
+   "name_kz": null,
+   "lat": 43.6617419,
+   "lng": 51.1336726
+  },
+  {
+   "osm_id": "node/4556703103",
+   "name": "15-й микрорайон, 38",
+   "name_ru": "15-й микрорайон, 38",
+   "name_kz": null,
+   "lat": 43.6636279,
+   "lng": 51.1332005
+  },
+  {
+   "osm_id": "node/4556703104",
+   "name": "52 дом",
+   "name_ru": "52 дом",
+   "name_kz": null,
+   "lat": 43.665704,
+   "lng": 51.1322725
+  },
+  {
+   "osm_id": "node/4556851690",
+   "name": "Достык",
+   "name_ru": "Дружба",
+   "name_kz": null,
+   "lat": 43.6352012,
+   "lng": 51.1793989
+  },
+  {
+   "osm_id": "node/4556851691",
+   "name": "Дружба",
+   "name_ru": "Дружба",
+   "name_kz": null,
+   "lat": 43.6350168,
+   "lng": 51.1788169
+  },
+  {
+   "osm_id": "node/4556851702",
+   "name": "Акку",
+   "name_ru": "Акку",
+   "name_kz": null,
+   "lat": 43.6355138,
+   "lng": 51.174306
+  },
+  {
+   "osm_id": "node/4556851703",
+   "name": "Акбота",
+   "name_ru": "Акбота",
+   "name_kz": null,
+   "lat": 43.6352148,
+   "lng": 51.1700977
+  },
+  {
+   "osm_id": "node/4556851704",
+   "name": "4-й микрорайон д.4",
+   "name_ru": "4-й микрорайон д.4",
+   "name_kz": null,
+   "lat": 43.6315846,
+   "lng": 51.167335
+  },
+  {
+   "osm_id": "node/4565144491",
+   "name": "Бекет",
+   "name_ru": "Бекет",
+   "name_kz": "Бекет",
+   "lat": 43.6778265,
+   "lng": 51.16
+  },
+  {
+   "osm_id": "node/4568668596",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.684491,
+   "lng": 51.269868
+  },
+  {
+   "osm_id": "node/4568676592",
+   "name": "Кука",
+   "name_ru": "Кука",
+   "name_kz": "Кука",
+   "lat": 43.690395,
+   "lng": 51.2208155
+  },
+  {
+   "osm_id": "node/5078037721",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6518183,
+   "lng": 51.152754
+  },
+  {
+   "osm_id": "node/5078037722",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6472082,
+   "lng": 51.1574287
+  },
+  {
+   "osm_id": "node/5153301521",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6879088,
+   "lng": 51.1739344
+  },
+  {
+   "osm_id": "node/5154129230",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6872071,
+   "lng": 51.1741079
+  },
+  {
+   "osm_id": "node/5598712622",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6583711,
+   "lng": 51.1790895
+  },
+  {
+   "osm_id": "node/7282967985",
+   "name": "Юран",
+   "name_ru": "Юран",
+   "name_kz": null,
+   "lat": 43.604777,
+   "lng": 51.2257022
+  },
+  {
+   "osm_id": "node/10570018160",
+   "name": "Сары базар",
+   "name_ru": "Сары базар",
+   "name_kz": null,
+   "lat": 43.6780049,
+   "lng": 51.1721903
+  },
+  {
+   "osm_id": "node/10584171924",
+   "name": "Сеним/29а микрорайон",
+   "name_ru": "Сеним/29а микрорайон",
+   "name_kz": null,
+   "lat": 43.6742284,
+   "lng": 51.1853642
+  },
+  {
+   "osm_id": "node/11896767177",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6470493,
+   "lng": 51.1574008
+  },
+  {
+   "osm_id": "node/12167942851",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6412156,
+   "lng": 51.1577277
+  },
+  {
+   "osm_id": "node/13397989292",
+   "name": "4-й микрорайон д.4",
+   "name_ru": "4-й микрорайон д.4",
+   "name_kz": null,
+   "lat": 43.6315674,
+   "lng": 51.1671878
+  },
+  {
+   "osm_id": "node/13888715262",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6821303,
+   "lng": 51.2902254
+  },
+  {
+   "osm_id": "node/13939646316",
+   "name": "15-й микрорайон, 35",
+   "name_ru": "15-й микрорайон, 35",
+   "name_kz": null,
+   "lat": 43.6622667,
+   "lng": 51.1339541
+  },
+  {
+   "osm_id": "node/13940158775",
+   "name": "Водозаборный канал",
+   "name_ru": "Водозаборный канал",
+   "name_kz": null,
+   "lat": 43.5828911,
+   "lng": 51.2548062
+  },
+  {
+   "osm_id": "node/13940158776",
+   "name": "Водозаборный канал",
+   "name_ru": "Водозаборный канал",
+   "name_kz": null,
+   "lat": 43.5825182,
+   "lng": 51.2553759
+  },
+  {
+   "osm_id": "node/13940158783",
+   "name": "Омирзак",
+   "name_ru": "Омирзак",
+   "name_kz": null,
+   "lat": 43.5989587,
+   "lng": 51.2502966
+  },
+  {
+   "osm_id": "node/13940158784",
+   "name": "Омирзак",
+   "name_ru": "Омирзак",
+   "name_kz": null,
+   "lat": 43.5981429,
+   "lng": 51.2506179
+  },
+  {
+   "osm_id": "node/13940158797",
+   "name": "Военная часть",
+   "name_ru": "Военная часть",
+   "name_kz": null,
+   "lat": 43.6184963,
+   "lng": 51.2297998
+  },
+  {
+   "osm_id": "node/13940158798",
+   "name": "Военная часть",
+   "name_ru": "Военная часть",
+   "name_kz": null,
+   "lat": 43.6186257,
+   "lng": 51.2300188
+  },
+  {
+   "osm_id": "node/13940158799",
+   "name": "Военная часть",
+   "name_ru": "Военная часть",
+   "name_kz": null,
+   "lat": 43.6176233,
+   "lng": 51.2263532
+  },
+  {
+   "osm_id": "node/13940158800",
+   "name": "Военная часть",
+   "name_ru": "Военная часть",
+   "name_kz": null,
+   "lat": 43.6174316,
+   "lng": 51.2270922
+  },
+  {
+   "osm_id": "node/13940232437",
+   "name": "Приморский",
+   "name_ru": "Приморский",
+   "name_kz": null,
+   "lat": 43.6190628,
+   "lng": 51.2133327
+  },
+  {
+   "osm_id": "node/13940232438",
+   "name": "Приморский",
+   "name_ru": "Приморский",
+   "name_kz": null,
+   "lat": 43.6197727,
+   "lng": 51.2124531
+  },
+  {
+   "osm_id": "node/13940232448",
+   "name": "ЖК Family Town",
+   "name_ru": "ЖК Family Town",
+   "name_kz": null,
+   "lat": 43.6219302,
+   "lng": 51.206983
+  },
+  {
+   "osm_id": "node/13940232449",
+   "name": "ЖК Family Town",
+   "name_ru": "ЖК Family Town",
+   "name_kz": null,
+   "lat": 43.6223066,
+   "lng": 51.2065096
+  },
+  {
+   "osm_id": "node/13940232453",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6245086,
+   "lng": 51.1997323
+  },
+  {
+   "osm_id": "node/13940232454",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6248603,
+   "lng": 51.1992513
+  },
+  {
+   "osm_id": "node/13940232459",
+   "name": "Пляж",
+   "name_ru": "Пляж",
+   "name_kz": null,
+   "lat": 43.6286719,
+   "lng": 51.1941572
+  },
+  {
+   "osm_id": "node/13940232460",
+   "name": "Пляж",
+   "name_ru": "Пляж",
+   "name_kz": null,
+   "lat": 43.6283173,
+   "lng": 51.1952174
+  },
+  {
+   "osm_id": "node/13940232503",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6236306,
+   "lng": 51.2027632
+  },
+  {
+   "osm_id": "node/13940232520",
+   "name": "Поликлиника КНБ",
+   "name_ru": "Поликлиника КНБ",
+   "name_kz": null,
+   "lat": 43.6335819,
+   "lng": 51.1890386
+  },
+  {
+   "osm_id": "node/13940232521",
+   "name": "Поликлиника КНБ",
+   "name_ru": "Поликлиника КНБ",
+   "name_kz": null,
+   "lat": 43.6335893,
+   "lng": 51.1892518
+  },
+  {
+   "osm_id": "node/14026224981",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6515255,
+   "lng": 51.1655071
+  },
+  {
+   "osm_id": "node/14026224982",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6538684,
+   "lng": 51.1709559
+  },
+  {
+   "osm_id": "node/14026224983",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.658314,
+   "lng": 51.1798263
+  },
+  {
+   "osm_id": "node/14026224984",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.662231,
+   "lng": 51.1865067
+  },
+  {
+   "osm_id": "node/14026224985",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6664097,
+   "lng": 51.1930393
+  },
+  {
+   "osm_id": "node/14026224986",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6663278,
+   "lng": 51.1924507
+  },
+  {
+   "osm_id": "node/14026224987",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6619798,
+   "lng": 51.185693
+  },
+  {
+   "osm_id": "node/14026224988",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6541511,
+   "lng": 51.1709691
+  },
+  {
+   "osm_id": "node/14026224989",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6519778,
+   "lng": 51.1654405
+  },
+  {
+   "osm_id": "node/14026224990",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6797895,
+   "lng": 51.194351
+  },
+  {
+   "osm_id": "node/14026224991",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6791918,
+   "lng": 51.19449
+  },
+  {
+   "osm_id": "node/14026224992",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6846334,
+   "lng": 51.1956491
+  },
+  {
+   "osm_id": "node/14026224993",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6865624,
+   "lng": 51.1993661
+  },
+  {
+   "osm_id": "node/14026224994",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6864367,
+   "lng": 51.1996467
+  },
+  {
+   "osm_id": "node/14026224995",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6874305,
+   "lng": 51.2044882
+  },
+  {
+   "osm_id": "node/14026224996",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6876108,
+   "lng": 51.2061623
+  },
+  {
+   "osm_id": "node/14026224997",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6884289,
+   "lng": 51.2108476
+  },
+  {
+   "osm_id": "node/14026224998",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6891466,
+   "lng": 51.2148808
+  },
+  {
+   "osm_id": "node/14026224999",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6893307,
+   "lng": 51.215032
+  },
+  {
+   "osm_id": "node/14026225000",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6901797,
+   "lng": 51.2206118
+  },
+  {
+   "osm_id": "node/14026247401",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6903869,
+   "lng": 51.2315704
+  },
+  {
+   "osm_id": "node/14026247402",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6901729,
+   "lng": 51.2320513
+  },
+  {
+   "osm_id": "node/14026247403",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6890166,
+   "lng": 51.2385639
+  },
+  {
+   "osm_id": "node/14026247404",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6891421,
+   "lng": 51.2386446
+  },
+  {
+   "osm_id": "node/14026247405",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6884823,
+   "lng": 51.2415713
+  },
+  {
+   "osm_id": "node/14026247406",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6884143,
+   "lng": 51.2434014
+  },
+  {
+   "osm_id": "node/14026247407",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.687652,
+   "lng": 51.2481864
+  },
+  {
+   "osm_id": "node/14026247408",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6874973,
+   "lng": 51.2512094
+  },
+  {
+   "osm_id": "node/14026247409",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6870849,
+   "lng": 51.252809
+  },
+  {
+   "osm_id": "node/14026247410",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6867574,
+   "lng": 51.2570652
+  },
+  {
+   "osm_id": "node/14026247411",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6864238,
+   "lng": 51.2579783
+  },
+  {
+   "osm_id": "node/14026247412",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6858721,
+   "lng": 51.2624164
+  },
+  {
+   "osm_id": "node/14026247413",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6855106,
+   "lng": 51.2631092
+  },
+  {
+   "osm_id": "node/14026247414",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6842354,
+   "lng": 51.2703428
+  },
+  {
+   "osm_id": "node/14026247415",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6836038,
+   "lng": 51.2770123
+  },
+  {
+   "osm_id": "node/14026247416",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6833064,
+   "lng": 51.2773742
+  },
+  {
+   "osm_id": "node/14026247417",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6823881,
+   "lng": 51.2845338
+  },
+  {
+   "osm_id": "node/14026247418",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6820783,
+   "lng": 51.2910976
+  },
+  {
+   "osm_id": "node/14026247419",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6816303,
+   "lng": 51.2969006
+  },
+  {
+   "osm_id": "node/14026247420",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6815217,
+   "lng": 51.2967192
+  },
+  {
+   "osm_id": "node/14026247421",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6838574,
+   "lng": 51.299453
+  },
+  {
+   "osm_id": "node/14026247425",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6872466,
+   "lng": 51.2980771
+  },
+  {
+   "osm_id": "node/14026247426",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6896439,
+   "lng": 51.2977409
+  },
+  {
+   "osm_id": "node/14026247430",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6987078,
+   "lng": 51.2980376
+  },
+  {
+   "osm_id": "node/14026247431",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6949416,
+   "lng": 51.2973341
+  }
+ ]
+}

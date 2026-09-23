@@ -1,0 +1,13 @@
+{
+ "source": "OpenStreetMap contributors, Overpass API",
+ "license": "ODbL 1.0",
+ "fetched_at": "2026-09-23T12:45:57.120Z",
+ "bbox": {
+  "s": 43.55,
+  "w": 51.1,
+  "n": 43.72,
+  "e": 51.3
+ },
+ "query": "(node[\"highway\"=\"street_lamp\"](43.55,51.1,43.72,51.3););out;",
+ "items": []
+}

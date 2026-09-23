@@ -1,0 +1,1328 @@
+{
+ "source": "OpenStreetMap contributors, Overpass API",
+ "license": "ODbL 1.0",
+ "fetched_at": "2026-09-23T12:46:46.271Z",
+ "bbox": {
+  "s": 43.55,
+  "w": 51.1,
+  "n": 43.72,
+  "e": 51.3
+ },
+ "query": "(nwr[\"amenity\"~\"^(school|kindergarten|hospital|clinic|doctors|college|university)$\"](43.55,51.1,43.72,51.3););out center;",
+ "items": [
+  {
+   "osm_id": "node/3745026821",
+   "amenity": "clinic",
+   "name": "Клиника психотерапии",
+   "name_ru": "Клиника психотерапии",
+   "name_kz": null,
+   "lat": 43.631959,
+   "lng": 51.1639415
+  },
+  {
+   "osm_id": "node/4323132490",
+   "amenity": "clinic",
+   "name": "Нейрон",
+   "name_ru": "Нейрон",
+   "name_kz": null,
+   "lat": 43.6519295,
+   "lng": 51.1459628
+  },
+  {
+   "osm_id": "node/4332185092",
+   "amenity": "kindergarten",
+   "name": "Детсад Инкары",
+   "name_ru": "Детсад Инкары",
+   "name_kz": null,
+   "lat": 43.6590609,
+   "lng": 51.151827
+  },
+  {
+   "osm_id": "node/4359232290",
+   "amenity": "hospital",
+   "name": "Денсаулык",
+   "name_ru": "Денсаулык",
+   "name_kz": null,
+   "lat": 43.6565313,
+   "lng": 51.1644855
+  },
+  {
+   "osm_id": "node/4511615939",
+   "amenity": "clinic",
+   "name": "SOS International Aktau",
+   "name_ru": "SOS International Aktau",
+   "name_kz": null,
+   "lat": 43.6609935,
+   "lng": 51.1641572
+  },
+  {
+   "osm_id": "node/4511615940",
+   "amenity": "clinic",
+   "name": "Касиет",
+   "name_ru": "Касиет",
+   "name_kz": null,
+   "lat": 43.6589201,
+   "lng": 51.1601198
+  },
+  {
+   "osm_id": "node/4511615943",
+   "amenity": "university",
+   "name": "Каспийский государственный университет технологий и инжиниринга им. Ш.Есенова",
+   "name_ru": "Каспийский государственный университет технологий и инжиниринга им. Ш.Есенова",
+   "name_kz": null,
+   "lat": 43.6538398,
+   "lng": 51.1593581
+  },
+  {
+   "osm_id": "node/4511673390",
+   "amenity": "clinic",
+   "name": "Медицинский центр",
+   "name_ru": "Медицинский центр",
+   "name_kz": "Сенім",
+   "lat": 43.6742351,
+   "lng": 51.1843383
+  },
+  {
+   "osm_id": "node/4531760599",
+   "amenity": "clinic",
+   "name": "Ясин",
+   "name_ru": "Ясин",
+   "name_kz": null,
+   "lat": 43.6591964,
+   "lng": 51.1606371
+  },
+  {
+   "osm_id": "node/4756110023",
+   "amenity": "hospital",
+   "name": "СПИД центр",
+   "name_ru": "СПИД центр",
+   "name_kz": null,
+   "lat": 43.6380118,
+   "lng": 51.1792046
+  },
+  {
+   "osm_id": "node/4788872321",
+   "amenity": "kindergarten",
+   "name": "Айкоркем",
+   "name_ru": "Айкоркем",
+   "name_kz": "Айкөркем",
+   "lat": 43.6772027,
+   "lng": 51.1680777
+  },
+  {
+   "osm_id": "node/5113378923",
+   "amenity": "college",
+   "name": "Кайнар",
+   "name_ru": "Кайнар",
+   "name_kz": "Қайнар",
+   "lat": 43.6397888,
+   "lng": 51.1831477
+  },
+  {
+   "osm_id": "node/5248604349",
+   "amenity": "school",
+   "name": "Global students center",
+   "name_ru": "Global students center",
+   "name_kz": null,
+   "lat": 43.6555037,
+   "lng": 51.145572
+  },
+  {
+   "osm_id": "node/5494729970",
+   "amenity": "school",
+   "name": "Opportunity Language Centre",
+   "name_ru": "Opportunity Language Centre",
+   "name_kz": null,
+   "lat": 43.6524359,
+   "lng": 51.1492173
+  },
+  {
+   "osm_id": "node/8520874080",
+   "amenity": "school",
+   "name": "Бэби-клуб",
+   "name_ru": "Бэби-клуб",
+   "name_kz": null,
+   "lat": 43.644673,
+   "lng": 51.162294
+  },
+  {
+   "osm_id": "node/9868249109",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.648987,
+   "lng": 51.166313
+  },
+  {
+   "osm_id": "node/9868249110",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.662091,
+   "lng": 51.153468
+  },
+  {
+   "osm_id": "node/9868249111",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.6853754,
+   "lng": 51.1785087
+  },
+  {
+   "osm_id": "node/9868249112",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.6692666,
+   "lng": 51.1459789
+  },
+  {
+   "osm_id": "node/10255596607",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6488392,
+   "lng": 51.1664414
+  },
+  {
+   "osm_id": "node/10255637109",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6509391,
+   "lng": 51.1512762
+  },
+  {
+   "osm_id": "node/10255637110",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6719497,
+   "lng": 51.1476928
+  },
+  {
+   "osm_id": "node/10255637111",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6441889,
+   "lng": 51.1566675
+  },
+  {
+   "osm_id": "node/10255637112",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.664515,
+   "lng": 51.1666614
+  },
+  {
+   "osm_id": "node/10255637113",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6431097,
+   "lng": 51.1695367
+  },
+  {
+   "osm_id": "node/10255637114",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.673731,
+   "lng": 51.156136
+  },
+  {
+   "osm_id": "node/10255637115",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.683406,
+   "lng": 51.15928
+  },
+  {
+   "osm_id": "node/10255637116",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6672372,
+   "lng": 51.1686221
+  },
+  {
+   "osm_id": "node/10255637123",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.656536,
+   "lng": 51.1642635
+  },
+  {
+   "osm_id": "node/10255637124",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.660242,
+   "lng": 51.162933
+  },
+  {
+   "osm_id": "node/10261843701",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.657591,
+   "lng": 51.214769
+  },
+  {
+   "osm_id": "node/10567197394",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6700388,
+   "lng": 51.1355424
+  },
+  {
+   "osm_id": "node/10567197395",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.677498,
+   "lng": 51.1551815
+  },
+  {
+   "osm_id": "node/10567197398",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6467625,
+   "lng": 51.1722136
+  },
+  {
+   "osm_id": "node/10567197399",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.662237,
+   "lng": 51.1371517
+  },
+  {
+   "osm_id": "node/10567197400",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6389403,
+   "lng": 51.171881
+  },
+  {
+   "osm_id": "node/10567197402",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6863374,
+   "lng": 51.219694
+  },
+  {
+   "osm_id": "node/10567197404",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6641036,
+   "lng": 51.1346197
+  },
+  {
+   "osm_id": "node/10570027589",
+   "amenity": "clinic",
+   "name": "Городская поликлиника №2 города Актау",
+   "name_ru": "Городская поликлиника №2 города Актау",
+   "name_kz": null,
+   "lat": 43.6563734,
+   "lng": 51.1630835
+  },
+  {
+   "osm_id": "node/10575873934",
+   "amenity": "school",
+   "name": "IT",
+   "name_ru": "IT",
+   "name_kz": null,
+   "lat": 43.6617813,
+   "lng": 51.1371036
+  },
+  {
+   "osm_id": "node/10583650393",
+   "amenity": "clinic",
+   "name": "СЕНИМ",
+   "name_ru": "СЕНИМ",
+   "name_kz": null,
+   "lat": 43.6740214,
+   "lng": 51.1850061
+  },
+  {
+   "osm_id": "node/10584181651",
+   "amenity": "school",
+   "name": "Назарбаев Интеллектуальная школа химико-биологического направления, филиал в г. Актау",
+   "name_ru": "Назарбаев Интеллектуальная школа химико-биологического направления, филиал в г. Актау",
+   "name_kz": null,
+   "lat": 43.6862526,
+   "lng": 51.1567371
+  },
+  {
+   "osm_id": "node/10971339968",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.6449303,
+   "lng": 51.1605352
+  },
+  {
+   "osm_id": "node/10971339998",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6581311,
+   "lng": 51.1517483
+  },
+  {
+   "osm_id": "node/11031842688",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.6770712,
+   "lng": 51.140145
+  },
+  {
+   "osm_id": "node/11089077515",
+   "amenity": "doctors",
+   "name": "Invivo",
+   "name_ru": "Invivo",
+   "name_kz": null,
+   "lat": 43.6413626,
+   "lng": 51.1535078
+  },
+  {
+   "osm_id": "node/11896767249",
+   "amenity": "doctors",
+   "name": "Meyirim",
+   "name_ru": "Meyirim",
+   "name_kz": null,
+   "lat": 43.6533638,
+   "lng": 51.1581636
+  },
+  {
+   "osm_id": "node/12167874608",
+   "amenity": "kindergarten",
+   "name": "Bala Land",
+   "name_ru": "Bala Land",
+   "name_kz": null,
+   "lat": 43.6456154,
+   "lng": 51.1570008
+  },
+  {
+   "osm_id": "node/12211242557",
+   "amenity": "doctors",
+   "name": "Invitro",
+   "name_ru": "Invitro",
+   "name_kz": null,
+   "lat": 43.6662614,
+   "lng": 51.1664835
+  },
+  {
+   "osm_id": "way/230847248",
+   "amenity": "university",
+   "name": "Каспийский государственный университет технологий и инжиниринга им. Ш.Есенова",
+   "name_ru": "Каспийский государственный университет технологий и инжиниринга им. Ш.Есенова",
+   "name_kz": null,
+   "lat": 43.6811125,
+   "lng": 51.1690455
+  },
+  {
+   "osm_id": "way/295285847",
+   "amenity": "kindergarten",
+   "name": "детский сад №58",
+   "name_ru": "детский сад №58",
+   "name_kz": null,
+   "lat": 43.6583361,
+   "lng": 51.1395868
+  },
+  {
+   "osm_id": "way/326732671",
+   "amenity": "clinic",
+   "name": "Центр крови",
+   "name_ru": "Центр крови",
+   "name_kz": null,
+   "lat": 43.6882578,
+   "lng": 51.1676387
+  },
+  {
+   "osm_id": "way/326750829",
+   "amenity": "school",
+   "name": "Средняя школа-гимназия №13",
+   "name_ru": "Средняя школа-гимназия №13",
+   "name_kz": null,
+   "lat": 43.6629733,
+   "lng": 51.1505293
+  },
+  {
+   "osm_id": "way/326750830",
+   "amenity": "school",
+   "name": "Средняя общеобразовательная школа №12",
+   "name_ru": "Средняя общеобразовательная школа №12",
+   "name_kz": null,
+   "lat": 43.6602711,
+   "lng": 51.1489188
+  },
+  {
+   "osm_id": "way/327534092",
+   "amenity": "school",
+   "name": "Средняя школа №10",
+   "name_ru": "Средняя школа №10",
+   "name_kz": null,
+   "lat": 43.655556,
+   "lng": 51.1540156
+  },
+  {
+   "osm_id": "way/327541736",
+   "amenity": "kindergarten",
+   "name": "Детский сад №46",
+   "name_ru": "Детский сад №46",
+   "name_kz": null,
+   "lat": 43.6696725,
+   "lng": 51.1608484
+  },
+  {
+   "osm_id": "way/327541737",
+   "amenity": "college",
+   "name": "Колледж Казахстанской современной академии Болашак",
+   "name_ru": "Колледж Казахстанской современной академии Болашак",
+   "name_kz": null,
+   "lat": 43.6706166,
+   "lng": 51.1596711
+  },
+  {
+   "osm_id": "way/327541738",
+   "amenity": "kindergarten",
+   "name": "Ясли-сад №44",
+   "name_ru": "Ясли-сад №44",
+   "name_kz": null,
+   "lat": 43.665337,
+   "lng": 51.1611996
+  },
+  {
+   "osm_id": "way/327546058",
+   "amenity": "school",
+   "name": "Средняя школа №16",
+   "name_ru": "Средняя школа №16",
+   "name_kz": null,
+   "lat": 43.6669797,
+   "lng": 51.1603863
+  },
+  {
+   "osm_id": "way/327572497",
+   "amenity": "school",
+   "name": "Школа-гимназия №4",
+   "name_ru": "Школа-гимназия №4",
+   "name_kz": null,
+   "lat": 43.6560269,
+   "lng": 51.1563428
+  },
+  {
+   "osm_id": "way/327715934",
+   "amenity": "school",
+   "name": "Средняя школа №28",
+   "name_ru": "Средняя школа №28",
+   "name_kz": null,
+   "lat": 43.6727632,
+   "lng": 51.1724904
+  },
+  {
+   "osm_id": "way/327715949",
+   "amenity": "kindergarten",
+   "name": "Детский сад №57",
+   "name_ru": "Детский сад №57",
+   "name_kz": null,
+   "lat": 43.6690352,
+   "lng": 51.1672325
+  },
+  {
+   "osm_id": "way/327727317",
+   "amenity": "school",
+   "name": "Средняя школа №8",
+   "name_ru": "Средняя школа №8",
+   "name_kz": null,
+   "lat": 43.647048,
+   "lng": 51.1636965
+  },
+  {
+   "osm_id": "way/335575308",
+   "amenity": "school",
+   "name": "Средняя школа №5",
+   "name_ru": "Средняя школа №5",
+   "name_kz": null,
+   "lat": 43.633485,
+   "lng": 51.1647768
+  },
+  {
+   "osm_id": "way/335575310",
+   "amenity": "college",
+   "name": "Колледж искусств",
+   "name_ru": "Колледж искусств",
+   "name_kz": null,
+   "lat": 43.6380366,
+   "lng": 51.1597686
+  },
+  {
+   "osm_id": "way/335575311",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6335437,
+   "lng": 51.1804172
+  },
+  {
+   "osm_id": "way/335575314",
+   "amenity": "school",
+   "name": "Средняя школа №3",
+   "name_ru": "Средняя школа №3",
+   "name_kz": null,
+   "lat": 43.6333082,
+   "lng": 51.1785182
+  },
+  {
+   "osm_id": "way/335575388",
+   "amenity": "hospital",
+   "name": "Областной противотуберкулезный диспансер",
+   "name_ru": "Областной противотуберкулезный диспансер",
+   "name_kz": null,
+   "lat": 43.6318989,
+   "lng": 51.1875145
+  },
+  {
+   "osm_id": "way/335868437",
+   "amenity": "kindergarten",
+   "name": "Детский сад №56",
+   "name_ru": "Детский сад №56",
+   "name_kz": null,
+   "lat": 43.6732281,
+   "lng": 51.1627888
+  },
+  {
+   "osm_id": "way/336805463",
+   "amenity": "school",
+   "name": "Средняя общеобразовательная школа №1",
+   "name_ru": "Средняя общеобразовательная школа №1",
+   "name_kz": null,
+   "lat": 43.6500294,
+   "lng": 51.1443579
+  },
+  {
+   "osm_id": "way/336805466",
+   "amenity": "school",
+   "name": "Средняя школа №2",
+   "name_ru": "Средняя школа №2",
+   "name_kz": null,
+   "lat": 43.63726,
+   "lng": 51.1810878
+  },
+  {
+   "osm_id": "way/336805468",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6374165,
+   "lng": 51.1795096
+  },
+  {
+   "osm_id": "way/336805470",
+   "amenity": "kindergarten",
+   "name": "Детский сад №17",
+   "name_ru": "Детский сад №17",
+   "name_kz": null,
+   "lat": 43.6484139,
+   "lng": 51.1656332
+  },
+  {
+   "osm_id": "way/336805472",
+   "amenity": "kindergarten",
+   "name": "Детский сад №22",
+   "name_ru": "Детский сад №22",
+   "name_kz": null,
+   "lat": 43.6421615,
+   "lng": 51.1553639
+  },
+  {
+   "osm_id": "way/336817489",
+   "amenity": "school",
+   "name": "Средняя общеобразовательная школа №6",
+   "name_ru": "Средняя общеобразовательная школа №6",
+   "name_kz": null,
+   "lat": 43.6418625,
+   "lng": 51.1659502
+  },
+  {
+   "osm_id": "way/336817492",
+   "amenity": "kindergarten",
+   "name": "Детский сад №18",
+   "name_ru": "Детский сад №18",
+   "name_kz": null,
+   "lat": 43.6453298,
+   "lng": 51.1631622
+  },
+  {
+   "osm_id": "way/336817493",
+   "amenity": "school",
+   "name": "Школа-интернат",
+   "name_ru": "Школа-интернат",
+   "name_kz": null,
+   "lat": 43.6428857,
+   "lng": 51.1638016
+  },
+  {
+   "osm_id": "way/370974771",
+   "amenity": "clinic",
+   "name": "SOFIE MEDGROUP",
+   "name_ru": "Софимед",
+   "name_kz": null,
+   "lat": 43.6329248,
+   "lng": 51.183498
+  },
+  {
+   "osm_id": "way/398555044",
+   "amenity": "kindergarten",
+   "name": "Детский сад №54",
+   "name_ru": "Детский сад №54",
+   "name_kz": null,
+   "lat": 43.6618433,
+   "lng": 51.1442561
+  },
+  {
+   "osm_id": "way/398555049",
+   "amenity": "kindergarten",
+   "name": "детский сад № 4",
+   "name_ru": "детский сад № 4",
+   "name_kz": null,
+   "lat": 43.6385849,
+   "lng": 51.1696707
+  },
+  {
+   "osm_id": "way/398555051",
+   "amenity": "kindergarten",
+   "name": "Детский сад №53",
+   "name_ru": "Детский сад №53",
+   "name_kz": null,
+   "lat": 43.6668416,
+   "lng": 51.1378828
+  },
+  {
+   "osm_id": "way/398555052",
+   "amenity": "school",
+   "name": "Средняя общеобразовательная школа № 9",
+   "name_ru": "Средняя общеобразовательная школа № 9",
+   "name_kz": null,
+   "lat": 43.6424092,
+   "lng": 51.1573691
+  },
+  {
+   "osm_id": "way/399622243",
+   "amenity": "school",
+   "name": "QSI School",
+   "name_ru": "QSI School",
+   "name_kz": null,
+   "lat": 43.6367021,
+   "lng": 51.1713606
+  },
+  {
+   "osm_id": "way/399624813",
+   "amenity": "clinic",
+   "name": "№1 Ақтау қалалық емханасы",
+   "name_ru": "Aктауская городская поликлиника №1",
+   "name_kz": "№1 Ақтау қалалық емханасы",
+   "lat": 43.644216,
+   "lng": 51.1589861
+  },
+  {
+   "osm_id": "way/399627135",
+   "amenity": "hospital",
+   "name": "Больничный городок",
+   "name_ru": "Больничный городок",
+   "name_kz": null,
+   "lat": 43.6579847,
+   "lng": 51.1628563
+  },
+  {
+   "osm_id": "way/413171046",
+   "amenity": "kindergarten",
+   "name": "детский сад № 60",
+   "name_ru": "детский сад № 60",
+   "name_kz": null,
+   "lat": 43.6634144,
+   "lng": 51.1712383
+  },
+  {
+   "osm_id": "way/413171066",
+   "amenity": "kindergarten",
+   "name": "детсад № 43",
+   "name_ru": "детсад № 43",
+   "name_kz": null,
+   "lat": 43.6493662,
+   "lng": 51.1455644
+  },
+  {
+   "osm_id": "way/413171067",
+   "amenity": "school",
+   "name": "Средняя общеобразовательная школа №23",
+   "name_ru": "Средняя общеобразовательная школа №23",
+   "name_kz": null,
+   "lat": 43.6650003,
+   "lng": 51.1706629
+  },
+  {
+   "osm_id": "way/413171069",
+   "amenity": "kindergarten",
+   "name": "Детский сад №14",
+   "name_ru": "Детский сад №14",
+   "name_kz": null,
+   "lat": 43.6400924,
+   "lng": 51.1573823
+  },
+  {
+   "osm_id": "way/413171070",
+   "amenity": "kindergarten",
+   "name": "Детский сад №29",
+   "name_ru": "Детский сад №29",
+   "name_kz": null,
+   "lat": 43.6469489,
+   "lng": 51.1534931
+  },
+  {
+   "osm_id": "way/413171071",
+   "amenity": "school",
+   "name": "Областная казахско-турецкая специализированная школа-лицей-интернат для одаренных детей",
+   "name_ru": "Областная казахско-турецкая специализированная школа-лицей-интернат для одаренных детей",
+   "name_kz": null,
+   "lat": 43.6805484,
+   "lng": 51.1589853
+  },
+  {
+   "osm_id": "way/413171072",
+   "amenity": "school",
+   "name": "Специализированная физико-математическая школа №11",
+   "name_ru": "Специализированная физико-математическая школа №11",
+   "name_kz": null,
+   "lat": 43.6483629,
+   "lng": 51.1532824
+  },
+  {
+   "osm_id": "way/413171073",
+   "amenity": "school",
+   "name": "Школа-лицей №7 имени Н.А.Марабаева",
+   "name_ru": "Школа-лицей №7 имени Н.А.Марабаева",
+   "name_kz": null,
+   "lat": 43.6398217,
+   "lng": 51.159705
+  },
+  {
+   "osm_id": "way/413171075",
+   "amenity": "university",
+   "name": "Училище МВД",
+   "name_ru": "Училище МВД",
+   "name_kz": null,
+   "lat": 43.6350288,
+   "lng": 51.1603519
+  },
+  {
+   "osm_id": "way/413249388",
+   "amenity": "school",
+   "name": "школа № 22",
+   "name_ru": "школа № 22",
+   "name_kz": null,
+   "lat": 43.6450401,
+   "lng": 51.1751731
+  },
+  {
+   "osm_id": "way/413267706",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6339079,
+   "lng": 51.1867234
+  },
+  {
+   "osm_id": "way/413267707",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6579408,
+   "lng": 51.1496772
+  },
+  {
+   "osm_id": "way/413309047",
+   "amenity": "college",
+   "name": "Медицинский колледж Меирбике",
+   "name_ru": "Медицинский колледж Меирбике",
+   "name_kz": null,
+   "lat": 43.659117,
+   "lng": 51.1657444
+  },
+  {
+   "osm_id": "way/413309050",
+   "amenity": "kindergarten",
+   "name": "Детский сад №24",
+   "name_ru": "Детский сад №24",
+   "name_kz": null,
+   "lat": 43.6581304,
+   "lng": 51.1562414
+  },
+  {
+   "osm_id": "way/414705531",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6290425,
+   "lng": 51.1632844
+  },
+  {
+   "osm_id": "way/414848215",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6641696,
+   "lng": 51.1530081
+  },
+  {
+   "osm_id": "way/414848241",
+   "amenity": "school",
+   "name": "Средняя школа №21",
+   "name_ru": "Средняя школа №21",
+   "name_kz": null,
+   "lat": 43.6637486,
+   "lng": 51.1445772
+  },
+  {
+   "osm_id": "way/414848242",
+   "amenity": "school",
+   "name": "Средняя школа №17",
+   "name_ru": "Средняя школа №17",
+   "name_kz": null,
+   "lat": 43.6664955,
+   "lng": 51.1416959
+  },
+  {
+   "osm_id": "way/415280725",
+   "amenity": "college",
+   "name": "Медико-профессионально-технический колледж",
+   "name_ru": "Медико-профессионально-технический колледж",
+   "name_kz": null,
+   "lat": 43.6658429,
+   "lng": 51.1444104
+  },
+  {
+   "osm_id": "way/415280734",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6857514,
+   "lng": 51.2173633
+  },
+  {
+   "osm_id": "way/415280739",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6840673,
+   "lng": 51.2175997
+  },
+  {
+   "osm_id": "way/415280743",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6867575,
+   "lng": 51.1570311
+  },
+  {
+   "osm_id": "way/415300129",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6790538,
+   "lng": 51.281999
+  },
+  {
+   "osm_id": "way/415309959",
+   "amenity": "hospital",
+   "name": "Инфекционная больница",
+   "name_ru": "Инфекционная больница",
+   "name_kz": null,
+   "lat": 43.6343785,
+   "lng": 51.1921762
+  },
+  {
+   "osm_id": "way/415331290",
+   "amenity": "college",
+   "name": "Медицинский колледж Меридиан",
+   "name_ru": "Медицинский колледж Меридиан",
+   "name_kz": null,
+   "lat": 43.6646844,
+   "lng": 51.1420456
+  },
+  {
+   "osm_id": "way/415331294",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.647425,
+   "lng": 51.1602726
+  },
+  {
+   "osm_id": "way/415407192",
+   "amenity": "school",
+   "name": "Школа №15",
+   "name_ru": "Школа №15",
+   "name_kz": null,
+   "lat": 43.6549161,
+   "lng": 51.143416
+  },
+  {
+   "osm_id": "way/415433850",
+   "amenity": "hospital",
+   "name": "Интертич",
+   "name_ru": "Интертич",
+   "name_kz": null,
+   "lat": 43.6569734,
+   "lng": 51.1642016
+  },
+  {
+   "osm_id": "way/415442537",
+   "amenity": "hospital",
+   "name": "Медгородок",
+   "name_ru": "Медгородок",
+   "name_kz": null,
+   "lat": 43.6324242,
+   "lng": 51.1859726
+  },
+  {
+   "osm_id": "way/415442540",
+   "amenity": "school",
+   "name": "Областная специализированная школа-интернат для одаренных детей с углубленным изучением различных предметов",
+   "name_ru": "Областная специализированная школа-интернат для одаренных детей с углубленным изучением различных предметов",
+   "name_kz": null,
+   "lat": 43.6898712,
+   "lng": 51.1754376
+  },
+  {
+   "osm_id": "way/415442542",
+   "amenity": "school",
+   "name": "Специализированный экономический лицей",
+   "name_ru": "Специализированный экономический лицей",
+   "name_kz": null,
+   "lat": 43.6617276,
+   "lng": 51.13755
+  },
+  {
+   "osm_id": "way/415491407",
+   "amenity": "clinic",
+   "name": "Областной кожно-венерологический диспансер",
+   "name_ru": "Областной кожно-венерологический диспансер",
+   "name_kz": null,
+   "lat": 43.637466,
+   "lng": 51.1825146
+  },
+  {
+   "osm_id": "way/415717248",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6667133,
+   "lng": 51.1637827
+  },
+  {
+   "osm_id": "way/415717249",
+   "amenity": "school",
+   "name": "Профессиональный лицей №1",
+   "name_ru": "Профессиональный лицей №1",
+   "name_kz": null,
+   "lat": 43.6638155,
+   "lng": 51.1603897
+  },
+  {
+   "osm_id": "way/415717255",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6691289,
+   "lng": 51.165736
+  },
+  {
+   "osm_id": "way/415717256",
+   "amenity": "school",
+   "name": "Cредняя общеобразовательная школа №20 имени Мухтара Ауэзова",
+   "name_ru": "Cредняя общеобразовательная школа №20 имени Мухтара Ауэзова",
+   "name_kz": null,
+   "lat": 43.6713095,
+   "lng": 51.1650882
+  },
+  {
+   "osm_id": "way/416514411",
+   "amenity": "kindergarten",
+   "name": "детский сад №28",
+   "name_ru": "детский сад №28",
+   "name_kz": null,
+   "lat": 43.6549833,
+   "lng": 51.1590216
+  },
+  {
+   "osm_id": "way/416514412",
+   "amenity": "kindergarten",
+   "name": "Детский сад №26",
+   "name_ru": "Детский сад №26",
+   "name_kz": null,
+   "lat": 43.6549241,
+   "lng": 51.1516589
+  },
+  {
+   "osm_id": "way/416571191",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6395644,
+   "lng": 51.1618448
+  },
+  {
+   "osm_id": "way/416714254",
+   "amenity": "kindergarten",
+   "name": "Детский сад №19",
+   "name_ru": "Детский сад №19",
+   "name_kz": null,
+   "lat": 43.6442435,
+   "lng": 51.1658529
+  },
+  {
+   "osm_id": "way/416714258",
+   "amenity": "kindergarten",
+   "name": "Детский сад №11",
+   "name_ru": "Детский сад №11",
+   "name_kz": null,
+   "lat": 43.6418512,
+   "lng": 51.168216
+  },
+  {
+   "osm_id": "way/417201497",
+   "amenity": "college",
+   "name": "Актауский Транспортный Колледж КазАТК имени М.Тынышпаева",
+   "name_ru": "Актауский Транспортный Колледж КазАТК имени М.Тынышпаева",
+   "name_kz": null,
+   "lat": 43.6495432,
+   "lng": 51.1522599
+  },
+  {
+   "osm_id": "way/417201526",
+   "amenity": "college",
+   "name": "Мангистауский политехнический колледж",
+   "name_ru": "Мангистауский политехнический колледж",
+   "name_kz": null,
+   "lat": 43.6399265,
+   "lng": 51.1798081
+  },
+  {
+   "osm_id": "way/417201536",
+   "amenity": "college",
+   "name": "Мангистауский энергетический колледж",
+   "name_ru": "Мангистауский энергетический колледж",
+   "name_kz": null,
+   "lat": 43.6404965,
+   "lng": 51.1753651
+  },
+  {
+   "osm_id": "way/418583629",
+   "amenity": "college",
+   "name": "Мангистауский гуманитарный колледж",
+   "name_ru": "Мангистауский гуманитарный колледж",
+   "name_kz": null,
+   "lat": 43.6376805,
+   "lng": 51.1685805
+  },
+  {
+   "osm_id": "way/418951098",
+   "amenity": "school",
+   "name": "Cредняя общеобразовательная школа №14",
+   "name_ru": "Cредняя общеобразовательная школа №14",
+   "name_kz": null,
+   "lat": 43.6619761,
+   "lng": 51.1683556
+  },
+  {
+   "osm_id": "way/419422902",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6740356,
+   "lng": 51.1733581
+  },
+  {
+   "osm_id": "way/439099922",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6796028,
+   "lng": 51.2756798
+  },
+  {
+   "osm_id": "way/439841824",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6580389,
+   "lng": 51.2160918
+  },
+  {
+   "osm_id": "way/456958513",
+   "amenity": "hospital",
+   "name": "Мунайлинская ЦРБ",
+   "name_ru": "Мунайлинская ЦРБ",
+   "name_kz": null,
+   "lat": 43.6941608,
+   "lng": 51.2959133
+  },
+  {
+   "osm_id": "way/798208199",
+   "amenity": "school",
+   "name": "Школа №14",
+   "name_ru": "Школа №14",
+   "name_kz": null,
+   "lat": 43.6939546,
+   "lng": 51.1904201
+  },
+  {
+   "osm_id": "way/807045759",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.7077931,
+   "lng": 51.2884802
+  },
+  {
+   "osm_id": "way/807204471",
+   "amenity": "school",
+   "name": "Общеобразовательная средняя школа №11",
+   "name_ru": "Общеобразовательная средняя школа №11",
+   "name_kz": null,
+   "lat": 43.7160072,
+   "lng": 51.2839125
+  },
+  {
+   "osm_id": "way/807204473",
+   "amenity": "school",
+   "name": "Спортивный комплекс",
+   "name_ru": "Спортивный комплекс",
+   "name_kz": null,
+   "lat": 43.7174552,
+   "lng": 51.2868768
+  },
+  {
+   "osm_id": "way/1249809946",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6957088,
+   "lng": 51.2060751
+  },
+  {
+   "osm_id": "way/1463979186",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6726177,
+   "lng": 51.1367469
+  },
+  {
+   "osm_id": "way/1464339938",
+   "amenity": "college",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6489177,
+   "lng": 51.1696285
+  },
+  {
+   "osm_id": "way/1474544621",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6842997,
+   "lng": 51.1418511
+  },
+  {
+   "osm_id": "way/1474958784",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6716723,
+   "lng": 51.1441457
+  },
+  {
+   "osm_id": "way/1537795850",
+   "amenity": "school",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6727528,
+   "lng": 51.1386181
+  },
+  {
+   "osm_id": "way/1537796077",
+   "amenity": "kindergarten",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "lat": 43.6704383,
+   "lng": 51.1434511
+  }
+ ]
+}

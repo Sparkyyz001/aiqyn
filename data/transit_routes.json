@@ -1,0 +1,24 @@
+{
+ "source": "OpenStreetMap contributors, Overpass API",
+ "license": "ODbL 1.0",
+ "fetched_at": "2026-09-23T12:48:50.665Z",
+ "bbox": {
+  "s": 43.55,
+  "w": 51.1,
+  "n": 43.72,
+  "e": 51.3
+ },
+ "query": "(relation[\"route\"=\"bus\"](43.55,51.1,43.72,51.3););out tags;",
+ "items": [
+  {
+   "osm_id": "relation/21116877",
+   "ref": "105",
+   "name": null,
+   "name_ru": null,
+   "name_kz": null,
+   "from": "Aқtau",
+   "to": "Maңғystau",
+   "operator": null
+  }
+ ]
+}
