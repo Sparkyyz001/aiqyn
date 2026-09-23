@@ -11,6 +11,7 @@
 //  - сезонность: вода и запах — лето, отопление — зима.
 
 import districtsData from "@/data/districts.normalized.json";
+import populationData from "@/data/population.json";
 import categoriesData from "@/data/categories.json";
 import { pointInPolygon, destination, type GeoPolygon, type LatLng } from "./geo";
 import { slaDueAt, TZ_OFFSET_H } from "./sla";
@@ -57,8 +58,10 @@ const DISTRICTS = (districtsData.items as D[]).filter((d) => d.kind === "mkr" &&
 const CATS = categoriesData.items;
 const CAT_BY = Object.fromEntries(CATS.map((c) => [c.code, c]));
 
-// Жилые районы с исторически большим числом жалоб в прессе получают больший вес
-const DISTRICT_WEIGHT: Record<string, number> = { "mkr-3": 3, "mkr-15": 2.5, "mkr-20": 2, "mkr-14": 1.8, "mkr-19": 1.6, "mkr-30": 1.5, "mkr-34": 1.4, "mkr-35": 1.4 };
+// Поток жалоб пропорционален оценке населения района (scripts/estimate-population.mjs):
+// больше людей — больше обращений. Районы, по которым в прессе много жалоб, — с повышающим весом.
+const POPULATION: Record<string, number> = Object.fromEntries(populationData.items.map((p) => [p.code, p.population_est]));
+const PRESS_WEIGHT: Record<string, number> = { "mkr-3": 1.8, "mkr-15": 1.6, "mkr-20": 1.5, "mkr-14": 1.3, "mkr-19": 1.2, "mkr-30": 1.2, "mkr-34": 1.2, "mkr-35": 1.2 };
 
 // Доля категорий в потоке и сезонный множитель по месяцу (1..12)
 const CAT_SHARE: Record<string, number> = {
@@ -207,7 +210,7 @@ function build(anchor: Date): BaseReport[] {
   };
 
   // Фоновый поток
-  const districtWeights = DISTRICTS.map((d) => DISTRICT_WEIGHT[d.code] ?? 1);
+  const districtWeights = DISTRICTS.map((d) => Math.max(POPULATION[d.code] ?? 0, 300) * (PRESS_WEIGHT[d.code] ?? 1));
   const catCodes = Object.keys(CAT_SHARE);
   for (let i = 0; i < TARGET; i++) {
     const created = new Date(anchor.getTime() - r() * DAYS * 86400_000);

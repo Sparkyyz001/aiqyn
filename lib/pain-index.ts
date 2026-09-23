@@ -9,8 +9,11 @@
 //                                                                 ← недавно разгребли завал — район всё ещё
 //                                                                    не идеален; решённое весит в 3 раза меньше
 //   ────────────────────────────────────────────────────────────
-//   население района / 1000                                      ← на 1000 жителей: иначе большой район всегда
-//                                                                    «хуже» маленького просто из-за числа людей
+//   max(население района, 1000) / 1000                          ← на 1000 жителей: иначе большой район всегда
+//                                                                    «хуже» маленького просто из-за числа людей.
+//                                                                    Нижняя граница 1000 (решение команды): население
+//                                                                    оценено по зданиям OSM, и у районов с неполной
+//                                                                    разметкой делитель был бы слишком мал
 //
 // pain_index = pain_raw / max(pain_raw по районам) × 100          ← шкала 0–100, 100 = худший район города
 //
@@ -24,6 +27,7 @@ export const CLOSED_WEIGHT = 0.3;
 export const CLOSED_WINDOW_DAYS = 30;
 export const MIN_REPORTS = 5;
 export const WINDOW_DAYS = 90;
+export const MIN_POPULATION_BASE = 1000;
 const DAY = 86400_000;
 
 // Группы причин для разбивки индекса
@@ -94,7 +98,7 @@ export function painIndex(reports: BaseReport[], districts: DistrictPop[], at = 
     const a = acc.get(d.code)!;
     const insufficient = a.reports90 < MIN_REPORTS || !d.population;
     // Нормировка на население: баллы приоритета на 1000 жителей
-    const raw = insufficient ? null : a.sum / (d.population! / 1000);
+    const raw = insufficient ? null : a.sum / (Math.max(d.population!, MIN_POPULATION_BASE) / 1000);
     return {
       district: d.code,
       population: d.population,
