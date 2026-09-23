@@ -3,6 +3,7 @@
 import exifr from "exifr";
 import { createClient } from "@/lib/supabase/client";
 import type { PhotoInput } from "@/lib/actions/reports";
+import { measurePhoto } from "@/lib/report-quality";
 
 // ФИШКА 6 (клиентская часть): читаем EXIF до сжатия (canvas стирает метаданные),
 // сжимаем до 1600 px и грузим в Storage в папку пользователя. Координаты и время
@@ -54,5 +55,6 @@ export async function uploadPhoto(file: File, userId: string): Promise<UploadedP
     upsert: false,
   });
   if (error) throw new Error(error.message);
-  return { path, ...exif, preview: URL.createObjectURL(blob) };
+  const stats = await measurePhoto(blob);
+  return { path, ...exif, stats, preview: URL.createObjectURL(blob) };
 }

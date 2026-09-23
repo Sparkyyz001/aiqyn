@@ -37,7 +37,7 @@ export default async function OperatorPage() {
           <TabsTrigger value="recent">{t.operator.tabRecent}</TabsTrigger>
         </TabsList>
         <TabsContent value="report" className="-mx-4">
-          <ReportForm operator userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing }} />
+          <ReportForm operator userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing, quality: t.quality }} />
         </TabsContent>
         <TabsContent value="incident" className="grid gap-6 pt-4 lg:grid-cols-2">
           <IncidentForm t={t.incident} lang={lang} districts={ref.districts.filter((d) => d.polygon && d.kind !== "zone").map((d) => ({ id: d.id, name: lang === "kz" ? d.name_kz : d.name_ru }))} />

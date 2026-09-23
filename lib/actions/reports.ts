@@ -15,11 +15,13 @@ import { boilerplateScore } from "@/lib/boilerplate";
 import { recomputeReport, logEvent } from "@/lib/report-engine";
 import { recomputeClustersAround } from "@/lib/clustering-db";
 import { incidentTypeFor } from "@/lib/incidents";
+import { textChecks, photoChecks, worst, type PhotoStats } from "@/lib/report-quality";
+import { analyzePhotoUrl, aiEnabled, type Vision } from "@/lib/ai-vision";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
 
-export type PhotoInput = { path: string; lat: number | null; lng: number | null; taken_at: string | null };
+export type PhotoInput = { path: string; lat: number | null; lng: number | null; taken_at: string | null; stats?: PhotoStats | null };
 
 const PHOTO_GEO_RADIUS_M = 100; // ФИШКА 6: фото «после» не дальше 100 м от точки обращения
 
@@ -104,6 +106,8 @@ export type CreateInput = {
   photos: PhotoInput[];
   source?: "app" | "operator" | "call109" | "instagram";
   source_url?: string;
+  /** ответ ИИ-зрения по первому фото (если ИИ включён) — логируем в хронологию */
+  ai?: Vision | null;
 };
 
 export async function createReport(input: CreateInput): Promise<Result<{ public_no: string }>> {
@@ -112,6 +116,21 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
   const title = input.title?.trim();
   if (!title || title.length < 3) return fail(await msg("shortTitle"));
   if (!inAktau(input)) return fail(await msg("outside"));
+
+  // Проверка качества — те же правила, что видит житель в форме (обойти из консоли нельзя)
+  const tq = textChecks(title, input.description ?? "");
+  if (tq.some((c) => c.id === "text_gibberish")) return fail(await msg("textGibberish"));
+  if (tq.some((c) => c.id === "text_profanity")) return fail(await msg("textProfanity"));
+  if (input.photos.some((p) => worst(photoChecks({ stats: p.stats ?? null })) === "fail")) return fail(await msg("photoBad"));
+  if (input.ai && !input.ai.is_city_problem) return fail(await msg("notProblem"));
+  if (me.role === "citizen") {
+    const dbq = createAdminClient();
+    const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+    const { data: mine } = await dbq.from("reports").select("public_no, lat, lng, created_at").eq("author_id", me.id).gte("created_at", new Date(Date.now() - 12 * 3600_000).toISOString());
+    if ((mine ?? []).filter((r) => r.created_at >= hourAgo).length >= 5) return fail(await msg("rateLimit"));
+    const same = (mine ?? []).find((r) => haversine(input, r) < 60);
+    if (same) return fail(await msg("repeatHere", { no: same.public_no }));
+  }
 
   // Источник «оператор/109/Instagram» — только для оператора и акимата
   const source = input.source ?? "app";
@@ -171,7 +190,10 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
     );
   }
 
-  await logEvent({ report_id: report.id, actor_id: me.id, type: "created", to_status: "new", meta: { source, source_url: input.source_url ?? null } });
+  if (input.ai) {
+    await logEvent({ report_id: report.id, actor_id: null, type: "ai_analysis", meta: { ...input.ai } });
+  }
+  await logEvent({ report_id: report.id, actor_id: me.id, type: "created", to_status: "new", meta: { source, source_url: input.source_url ?? null, quality: [...tq.map((c) => c.id)] } });
   await logEvent({
     report_id: report.id, actor_id: null, type: "routed", from_status: "new", to_status: "routed",
     comment: `${svc.short_name}: ${routing.reason}`, meta: { service: svc.code, rule: routing.rule },
@@ -414,4 +436,19 @@ export async function settleVerification(reportId: number): Promise<string> {
   await recomputeReport(r.id);
   revalidatePath("/service");
   return d.outcome;
+}
+
+// ---------------------------------------------------------------------------
+// ИИ-зрение по загруженному фото (PROMPTS_AI_VISION.md, промпт 1). Без ключа — { enabled: false }
+// ---------------------------------------------------------------------------
+
+export async function analyzePhoto(input: { path: string; text?: string; lat?: number | null; lng?: number | null; taken_at?: string | null }): Promise<Result<{ enabled: boolean; vision: Vision | null }>> {
+  const me = await getProfile();
+  if (!me) return fail(await msg("login"));
+  if (!aiEnabled()) return { ok: true, data: { enabled: false, vision: null } };
+  if (!ownsPath(me, input.path)) return fail(await msg("forbidden"));
+  const ref = await getReference();
+  const district = input.lat != null && input.lng != null ? districtAt({ lat: input.lat, lng: input.lng }, ref.districts) : null;
+  const vision = await analyzePhotoUrl(publicPhotoUrl(input.path), { text: input.text, district: district?.name_ru ?? null, takenAt: input.taken_at ?? null });
+  return { ok: true, data: { enabled: true, vision } };
 }

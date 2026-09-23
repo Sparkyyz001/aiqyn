@@ -25,5 +25,5 @@ export default async function NewReportPage() {
       </div>
     );
   }
-  return <ReportForm userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing }} />;
+  return <ReportForm userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing, quality: t.quality }} />;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, Check, CircleAlert, Crosshair, Loader2, MapPin, ShieldAlert, ThumbsUp, X } from "lucide-react";
+import { Camera, Check, CircleAlert, CircleX, Crosshair, Loader2, MapPin, ShieldAlert, Sparkles, ThumbsUp, X } from "lucide-react";
 import { CityMap } from "@/components/map/map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
-import { previewReport, createReport, confirmReport, type Preview } from "@/lib/actions/reports";
+import { previewReport, createReport, confirmReport, analyzePhoto, type Preview } from "@/lib/actions/reports";
+import { textChecks, photoChecks, worst, type Check as QCheck } from "@/lib/report-quality";
+import type { Vision } from "@/lib/ai-vision";
 import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
 import { AKTAU_CENTER, inAktau } from "@/lib/geo";
 import { AMENITY, CATEGORIES, nm } from "@/lib/meta";
@@ -25,7 +27,7 @@ export function ReportForm({
 }: {
   userId: string;
   lang: Lang;
-  t: Pick<Dict, "report" | "common" | "card" | "status" | "operator" | "routing">;
+  t: Pick<Dict, "report" | "common" | "card" | "status" | "operator" | "routing" | "quality">;
   operator?: boolean;
 }) {
   const router = useRouter();
@@ -49,6 +51,8 @@ export function ReportForm({
   // «Сканирование» последнего фото: что удалось прочитать из EXIF
   const [scan, setScan] = useState<{ gps: "ok" | "outside" | "none" | "device"; taken: string | null } | null>(null);
   const [showMissing, setShowMissing] = useState(false);
+  // ИИ-зрение по первому фото: off — ключа нет, работаем на собственных проверках
+  const [ai, setAi] = useState<{ status: "idle" | "checking" | "done" | "off"; vision: Vision | null }>({ status: "idle", vision: null });
 
   // Предпросмотр категории/службы/дублей — с небольшой задержкой после ввода
   useEffect(() => {
@@ -82,6 +86,20 @@ export function ReportForm({
     );
   };
 
+  const runAi = async (ph: UploadedPhoto) => {
+    setAi({ status: "checking", vision: null });
+    const res = await analyzePhoto({ path: ph.path, text: `${title} ${description}`.trim(), lat: ph.lat, lng: ph.lng, taken_at: ph.taken_at }).catch(() => null);
+    if (!res || !res.ok || !res.data.enabled) return setAi({ status: "off", vision: null });
+    const v = res.data.vision;
+    setAi({ status: "done", vision: v });
+    // ИИ сам заполняет карточку — житель может поправить
+    if (v?.is_city_problem) {
+      setTitle((cur) => cur.trim() || (lang === "kz" ? v.title_kz : v.title_ru));
+      setDescription((cur) => cur.trim() || (lang === "kz" ? v.description_kz : v.description_ru));
+      setCategory((cur) => cur ?? (v.category as CategoryCode));
+    }
+  };
+
   const pick = (p: { lat: number; lng: number }) => {
     if (!inAktau(p)) return toast.error(t.report.outside);
     setPoint(p);
@@ -94,6 +112,7 @@ export function ReportForm({
       for (const f of Array.from(files).slice(0, 5 - photos.length)) {
         const ph = await uploadPhoto(f, userId);
         setPhotos((prev) => [...prev, ph]);
+        if (photos.length === 0 && ai.status === "idle") void runAi(ph);
         const hasGps = ph.lat != null && ph.lng != null;
         const gpsIn = hasGps && inAktau({ lat: ph.lat!, lng: ph.lng! });
         setScan({ gps: gpsIn ? "ok" : hasGps ? "outside" : "none", taken: ph.taken_at });
@@ -117,10 +136,23 @@ export function ReportForm({
     }
   };
 
+  const checks: QCheck[] = [
+    ...(point ? [{ id: "place_ok", level: "ok" } as QCheck] : [{ id: "place_none", level: "warn" } as QCheck]),
+    ...photoChecks(photos[0] ?? null, point),
+    ...textChecks(title, description),
+    ...(ai.status === "done" && ai.vision
+      ? ai.vision.is_city_problem
+        ? [{ id: "ai_ok", level: "ok" } as QCheck, ...(ai.vision.prompt_injection_suspected ? [{ id: "ai_injection", level: "warn" } as QCheck] : []), ...(ai.vision.photo_of_screen_suspected ? [{ id: "ai_screen", level: "warn" } as QCheck] : [])]
+        : [{ id: "ai_not_problem", level: "fail" } as QCheck]
+      : []),
+  ];
+  const blocking = checks.filter((c) => c.level === "fail");
+
   const missing = [
     !point && t.report.needPoint,
     title.trim().length < 3 && t.report.needTitle,
     source === "instagram" && !/^https:\/\/(www\.)?instagram\.com\//.test(sourceUrl) && t.report.needInstagram,
+    ...blocking.map((c) => fmt(t.quality[c.id as keyof Dict["quality"]] as string, c.vars ?? {})),
   ].filter(Boolean) as string[];
 
   const submit = () =>
@@ -142,7 +174,8 @@ export function ReportForm({
       const res = await createReport({
         title, description, lat: point!.lat, lng: point!.lng,
         category: pv.category,
-        photos: photos.map(({ path, lat, lng, taken_at }) => ({ path, lat, lng, taken_at })),
+        photos: photos.map(({ path, lat, lng, taken_at, stats }) => ({ path, lat, lng, taken_at, stats })),
+        ai: ai.vision,
         source, source_url: sourceUrl || undefined,
       });
       if (!res.ok) return void toast.error(res.error);
@@ -161,33 +194,20 @@ export function ReportForm({
   const dups = !skipDup ? (preview?.duplicates ?? []) : [];
   const canSubmit = !pending && !uploading;
 
+  const stepHead = (n: number, title: string, hint?: string, done?: boolean) => (
+    <div className="flex items-start gap-3">
+      <span className={`grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold ${done ? "bg-[color:var(--ok)] text-white" : "bg-primary/10 text-primary"}`}>{done ? <Check className="size-4" /> : n}</span>
+      <div>
+        <div className="font-medium">{title}</div>
+        {hint && <div className="text-sm text-muted-foreground">{hint}</div>}
+      </div>
+    </div>
+  );
+
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-2">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-xl font-semibold">{t.report.newTitle}</h1>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <div className="font-medium">1. {t.report.step1}</div>
-            <div className="text-sm text-muted-foreground">{t.report.step1Hint}</div>
-          </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => locate()} disabled={locating}>
-            {locating ? <Loader2 className="animate-spin" /> : <Crosshair />}
-            <span>{locating ? t.report.locating : t.report.locate}</span>
-          </Button>
-        </div>
-        <div ref={mapRef} className={`overflow-hidden rounded-lg border ${showMissing && !point ? "ring-2 ring-[color:var(--danger)]" : ""}`}>
-          <CityMap fullTouch className="h-[42vh] w-full lg:h-[520px]" center={AKTAU_CENTER} zoom={13} picked={point} onPick={pick} flyTo={flyTo} />
-        </div>
-        {point && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
-            <MapPin className="size-3.5" /> {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
-            {preview?.district && ` · ${nm(preview.district, lang)}`}
-          </p>
-        )}
-      </div>
-
       <div className="flex flex-col gap-4">
-        <div className="font-medium lg:mt-9">2. {t.report.step2}</div>
+        <h1 className="text-2xl font-semibold tracking-tight">{t.report.newTitle}</h1>
 
         {operator && (
           <div className="grid gap-3 rounded-lg border bg-muted/30 p-3">
@@ -206,17 +226,10 @@ export function ReportForm({
           </div>
         )}
 
-        <div className="grid gap-2">
-          <Label htmlFor="title">{t.report.titleLabel}</Label>
-          <Input ref={titleRef} id="title" aria-invalid={showMissing && title.trim().length < 3} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.report.titlePh} maxLength={140} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="desc">{t.report.descLabel}</Label>
-          <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={2000} />
-        </div>
-
-        <div className="grid gap-2">
-          <Label>{t.report.photo}</Label>
+        {/* 1. Фото */}
+        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+          {stepHead(1, t.report.stepPhoto, t.report.stepPhotoHint, photos.length > 0)}
+          <div className="grid gap-2">
           <div className="flex flex-wrap gap-2">
             {photos.map((p, i) => (
               <div key={p.path} className="relative size-20 overflow-hidden rounded-md border">
@@ -230,7 +243,13 @@ export function ReportForm({
                 </button>
               </div>
             ))}
-            {photos.length < 5 && (
+            {photos.length === 0 && (
+              <Button type="button" className="btn-shine h-28 w-full flex-col gap-2 text-base" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="size-6 animate-spin" /> : <Camera className="size-6" />}
+                {t.report.photoCta}
+              </Button>
+            )}
+            {photos.length > 0 && photos.length < 5 && (
               <Button type="button" variant="outline" className="h-20 min-w-20 flex-col gap-1 px-3 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
                 {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
                 {t.report.addPhoto}
@@ -255,6 +274,73 @@ export function ReportForm({
             </div>
           )}
         </div>
+          {ai.status === "checking" && (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> {t.quality.aiChecking}</p>
+          )}
+          {ai.status === "done" && ai.vision?.is_city_problem && (
+            <div className="flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">{t.quality.aiSuggest}</div>
+                <div className="font-medium">{lang === "kz" ? ai.vision.title_kz : ai.vision.title_ru}</div>
+                <div className="text-xs text-muted-foreground">{fmt(t.quality.severity, { n: ai.vision.severity })}</div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 2. Место */}
+        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+          <div className="flex items-start justify-between gap-2">
+            {stepHead(2, t.report.stepPlace, t.report.stepPlaceHint, !!point)}
+            <Button type="button" variant="outline" size="sm" onClick={() => locate()} disabled={locating}>
+              {locating ? <Loader2 className="animate-spin" /> : <Crosshair />}
+              <span>{locating ? t.report.locating : t.report.locate}</span>
+            </Button>
+          </div>
+          <div ref={mapRef} className={`overflow-hidden rounded-lg border ${showMissing && !point ? "ring-2 ring-[color:var(--danger)]" : ""}`}>
+            <CityMap fullTouch className="h-[38vh] w-full lg:h-[380px]" center={AKTAU_CENTER} zoom={13} picked={point} onPick={pick} flyTo={flyTo} />
+          </div>
+          {point && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+              <MapPin className="size-3.5" /> {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
+              {preview?.district && ` · ${nm(preview.district, lang)}`}
+            </p>
+          )}
+        </section>
+      </div>
+
+      <div className="flex flex-col gap-4 lg:pt-12">
+        {/* 3. Что случилось */}
+        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+          {stepHead(3, t.report.stepText, undefined, title.trim().length >= 3)}
+          <div className="grid gap-2">
+            <Label htmlFor="title">{t.report.titleLabel}</Label>
+            <Input ref={titleRef} id="title" aria-invalid={showMissing && title.trim().length < 3} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.report.titlePh} maxLength={140} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="desc">{t.report.descLabel}</Label>
+            <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={2000} />
+          </div>
+        </section>
+
+        {/* Проверка обращения: собственная модель AIQYN (+ ИИ-зрение, если подключено) */}
+        {(photos.length > 0 || point || title.trim()) && (
+          <section className="rounded-2xl border p-4">
+            <div className="flex items-center gap-2 font-medium">
+              <ShieldAlert className="size-4 text-primary" /> {t.quality.title}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t.quality.sub}</p>
+            <ul className="mt-3 flex flex-col gap-1.5 text-sm">
+              {checks.map((c, i) => (
+                <li key={`${c.id}-${i}`} className={`flex items-start gap-2 ${c.level === "fail" ? "text-[color:var(--danger)]" : c.level === "warn" ? "text-[color:var(--warn)]" : "text-[color:var(--ok)]"}`}>
+                  {c.level === "fail" ? <CircleX className="mt-0.5 size-4 shrink-0" /> : c.level === "warn" ? <CircleAlert className="mt-0.5 size-4 shrink-0" /> : <Check className="mt-0.5 size-4 shrink-0" />}
+                  <span className={c.level === "ok" ? "text-foreground" : ""}>{fmt(t.quality[c.id as keyof Dict["quality"]] as string, c.vars ?? {})}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {preview && (
           <div className="grid gap-3 rounded-lg border p-3 text-sm">
