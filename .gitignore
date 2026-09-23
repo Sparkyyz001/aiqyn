@@ -49,3 +49,6 @@ AGENTS.md
 .vercel
 .env*
 !.env.example
+ml/.venv/
+ml/honest_deadline/raw/
+__pycache__/

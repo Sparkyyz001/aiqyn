@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AlarmClock, CheckCheck, Inbox, Layers, RotateCcw, Timer } from "lucide-react";
+import { AlarmClock, ArrowRight, CheckCheck, Inbox, Layers, RotateCcw, ShieldAlert, Timer } from "lucide-react";
+import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
 import { flow, toMapPoint, titleOf } from "@/lib/data";
@@ -30,6 +31,14 @@ export default async function AkimatPage() {
     .sort((a, b) => b.priority - a.priority)
     .slice(0, 10);
   const fmt = new Intl.NumberFormat("ru-RU");
+  // Раннее предупреждение: сколько открытых заявок, по прогнозу, не уложится в законный срок
+  const hctx = honestContext(all);
+  const now = new Date();
+  const atRisk = all.filter((r) => {
+    if (!["routed", "accepted", "in_progress", "reopened"].includes(r.status) || !r.sla_due_at || new Date(r.sla_due_at) < now) return false;
+    const f = honestForecast(r, hctx, now);
+    return f.ok && (f.pBreach ?? 0) >= 0.5;
+  }).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,6 +56,22 @@ export default async function AkimatPage() {
         <Kpi label={t.akimat.overview.kpiReopened} value={fmt.format(k.reopened)} icon={<RotateCcw />} />
         <Kpi label={t.akimat.overview.kpiMedian} value={k.medianDays} icon={<Timer />} />
       </div>
+
+      <Link
+        href="/akimat/risk"
+        className="group flex items-center gap-4 rounded-xl border border-[color:var(--danger)]/35 bg-[linear-gradient(120deg,rgb(220_80_60/0.10),rgb(220_80_60/0)_70%)] p-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-14px_rgb(120_30_20/0.45)]"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[color:var(--danger)]/12 text-[color:var(--danger)]">
+          <ShieldAlert className="size-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">
+            <span className="text-[color:var(--danger)] tabular-nums">{fmt.format(atRisk)}</span> · {t.akimat.risk.kpiRisk.toLowerCase()}
+          </span>
+          <span className="block text-sm text-muted-foreground">{t.akimat.risk.title}</span>
+        </span>
+        <ArrowRight className="size-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+      </Link>
 
       <section className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

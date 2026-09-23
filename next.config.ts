@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/documents/**": ["./assets/fonts/**"],
     "/report/[no]/escalate": ["./assets/fonts/**"],
+    "/api/og/**": ["./assets/fonts/**", "./assets/og-landscape.jpg"],
   },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "ixrghjvdbavkaimaftvw.supabase.co" }],

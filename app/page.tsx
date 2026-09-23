@@ -8,6 +8,9 @@ import { LandscapeHero } from "@/components/landing/landscape-hero";
 import { ScrollWords } from "@/components/landing/scroll-words";
 import { Accent } from "@/components/landing/accent";
 import { SpotlightTracker } from "@/components/landing/spotlight";
+import { HonestDeadline } from "@/components/reports/honest-deadline";
+import { honestContext, honestForecast, honestMetrics } from "@/lib/honest-deadline";
+import { fmt as tf } from "@/lib/i18n/dict";
 import { CountUp, Reveal } from "@/components/landing/motion";
 import { getDict } from "@/lib/i18n/server";
 import { flow, toMapPoint } from "@/lib/data";
@@ -33,6 +36,16 @@ export default async function Home() {
   const k = kpis(all);
   const h = t.home;
   const recent = real.slice(0, 5);
+  // Живой пример «Честного срока»: открытое обращение с самым большим расхождением прогноза и закона
+  const hctx = honestContext(all);
+  const now = new Date();
+  const example = all
+    .filter((r) => ["routed", "accepted", "in_progress"].includes(r.status) && r.sla_due_at && new Date(r.sla_due_at) > now)
+    .map((r) => ({ r, f: honestForecast(r, hctx, now) }))
+    .filter((v) => v.f.ok)
+    .sort((a, b) => (b.f.ok && a.f.ok ? (b.f.lateBy ?? 0) - (a.f.lateBy ?? 0) : 0))[0];
+  const hRows = new Intl.NumberFormat("ru-RU").format(honestMetrics.train_rows + honestMetrics.test_rows);
+  const hPct = Math.round(honestMetrics.improvement_vs_official_pct);
 
   return (
     <>
@@ -59,6 +72,56 @@ export default async function Home() {
             <Kicker>{h.statementKicker}</Kicker>
           </Reveal>
           <ScrollWords text={h.statement} className="mt-8 max-w-5xl text-3xl leading-[1.15] font-semibold tracking-tight text-balance md:text-5xl lg:text-6xl" />
+        </section>
+
+        {/* 2б. Главная фишка — «Честный срок»: два срока вместо одного */}
+        <section className="border-t">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 md:py-28 lg:grid-cols-[1fr_1.05fr] lg:items-center">
+            <Reveal>
+              <Kicker>{h.honestKicker}</Kicker>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance md:text-5xl">
+                <Accent text={h.honestTitle} />
+              </h2>
+              <p className="mt-4 max-w-xl text-muted-foreground text-pretty">{h.honestSub}</p>
+              <ul className="mt-8 flex flex-col gap-5">
+                {h.honestPoints.map(([title, text], i) => (
+                  <li key={i} className="flex gap-4">
+                    <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-lt-coral/15 text-xs font-semibold text-lt-coral tabular-nums">{i + 1}</span>
+                    <span>
+                      <span className="block font-semibold">{title}</span>
+                      <span className="mt-1 block text-sm text-muted-foreground text-pretty">{tf(text, { rows: hRows, pct: hPct })}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            {example && (
+              <Reveal delay={150}>
+                <div className="spot rounded-[28px] border bg-foreground/[0.03] p-4 md:p-6">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-lt-green uppercase">
+                      <span className="relative flex size-2">
+                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-lt-green opacity-60 motion-reduce:animate-none" />
+                        <span className="relative inline-flex size-2 rounded-full bg-lt-green" />
+                      </span>
+                      {h.honestExample}
+                    </span>
+                    <Link href={`/report/${example.r.public_no}`} className="inline-flex items-center gap-1 text-sm text-lt-coral hover:underline">
+                      {h.honestOpen} <ArrowRight className="size-3.5" />
+                    </Link>
+                  </div>
+                  <div className="mb-4">
+                    <div className="line-clamp-2 text-lg font-semibold">{lang === "kz" && example.r.title_kz ? example.r.title_kz : example.r.title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {nm(CATEGORY[example.r.category], lang)}
+                      {example.r.district && DISTRICT[example.r.district] ? ` · ${nm(DISTRICT[example.r.district], lang)}` : ""}
+                    </div>
+                  </div>
+                  <HonestDeadline f={example.f} dueAt={example.r.sla_due_at} t={t.honest} lang={lang} />
+                </div>
+              </Reveal>
+            )}
+          </div>
         </section>
 
         {/* 3. Живые цифры */}

@@ -22,6 +22,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     ["/service", t.nav.service],
     ["/operator", t.nav.operator],
     ["/akimat", a.overview],
+    ["/akimat/risk", a.risk],
     ["/akimat/pain", a.pain],
     ["/akimat/clusters", a.clusters],
     ["/akimat/quality", a.quality],

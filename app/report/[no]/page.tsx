@@ -19,10 +19,17 @@ import { DemoCard } from "./demo-card";
 import { demoBaseline } from "@/lib/demo-baseline";
 import { Outcome } from "@/components/reports/outcome";
 import { PainContribution } from "@/components/reports/pain-contribution";
+import { HonestDeadline } from "@/components/reports/honest-deadline";
+import { ShareButton } from "@/components/reports/share-button";
+import { honestContext, honestForecast } from "@/lib/honest-deadline";
+import { flow } from "@/lib/data";
 
 export async function generateMetadata({ params }: PageProps<"/report/[no]">) {
   const { no } = await params;
-  return { title: no };
+  const { lang } = await getDict();
+  // превью в Telegram/WhatsApp — та же карточка-постер, что и для шеринга
+  const image = { url: `/api/og/report/${no}?lang=${lang}`, width: 1080, height: 1350 };
+  return { title: no, openGraph: { title: `AIQYN · ${no}`, images: [image] }, twitter: { card: "summary_large_image", images: [image.url] } };
 }
 
 const fmt = (s: string) =>
@@ -34,8 +41,9 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   if (no.startsWith("DEMO-")) {
     const demo = demoBaseline().find((x) => x.public_no === no);
     if (!demo) notFound();
-    const { lang, t } = await getDict();
-    return <DemoCard r={demo} lang={lang} t={t} />;
+    const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
+    const honest = honestForecast(demo, honestContext(all));
+    return <DemoCard r={demo} lang={lang} t={t} honest={honest} />;
   }
   const db = createAdminClient();
   const { data: head } = await db.from("reports").select("id, status").eq("public_no", no).maybeSingle();
@@ -62,6 +70,14 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   if (r.cluster_id) chronic = (await db.from("clusters").select("chronic_score").eq("id", r.cluster_id).single()).data?.chronic_score ?? 0;
 
   const closed = r.status === "resolved" || r.status === "rejected";
+  // Честный срок: прогноз по похожим обращениям (только для открытых)
+  const { all } = await flow();
+  const honest = closed
+    ? null
+    : honestForecast(
+        { id: r.id, category: cat.code, service: svc?.code ?? "akimat", district: district?.code ?? null, status: r.status, created_at: r.created_at, resolved_at: r.resolved_at, sla_due_at: r.sla_due_at },
+        honestContext(all)
+      );
   const social = nearestSocial(r);
   const prio = computePriority({
     severityBase: cat.severity_base,
@@ -147,6 +163,16 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
           </div>
         </div>
       )}
+
+      {honest && (
+        <div className="mt-4">
+          <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />
+        </div>
+      )}
+
+      <div className="mt-4">
+        <ShareButton no={no} lang={lang} t={t.share} />
+      </div>
 
       {/* Телефон: главное — сколько осталось по закону и сколько людей видят проблему — сразу под заголовком */}
       <div className="mt-4 grid grid-cols-[1fr_auto_auto] items-stretch gap-2 lg:hidden">

@@ -1,4 +1,7 @@
 import { FlaskConical, MapPin, Users, RotateCcw } from "lucide-react";
+import { HonestDeadline } from "@/components/reports/honest-deadline";
+import { ShareButton } from "@/components/reports/share-button";
+import type { HonestForecast } from "@/lib/honest-deadline";
 import { SlaTimer } from "@/components/reports/sla-timer";
 import { StatusBadge } from "@/components/status-badge";
 import { CityMap } from "@/components/map/map";
@@ -14,7 +17,7 @@ const dt = (s: string) =>
 const plus = (s: string, minutes: number) => new Date(new Date(s).getTime() + minutes * 60_000).toISOString();
 
 // Карточка демо-обращения: те же блоки, что у реального, но только для чтения и с явной пометкой
-export function DemoCard({ r, lang, t }: { r: BaseReport; lang: Lang; t: Dict }) {
+export function DemoCard({ r, lang, t, honest }: { r: BaseReport; lang: Lang; t: Dict; honest: HonestForecast }) {
   const o = t.outcome;
   const svc = SERVICE[r.service];
   const { description, resolution } = demoDetails(r, lang);
@@ -64,6 +67,9 @@ export function DemoCard({ r, lang, t }: { r: BaseReport; lang: Lang; t: Dict })
       <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="flex min-w-0 flex-col gap-6">
           <p className="text-pretty">{description}</p>
+
+          {!closed && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
+          <ShareButton no={r.public_no} lang={lang} t={t.share} />
 
           <Outcome status={r.status} createdAt={r.created_at} resolvedAt={r.resolved_at} slaDueAt={r.sla_due_at} resolution={resolution} serviceName={nm(svc, lang)} t={o} />
 

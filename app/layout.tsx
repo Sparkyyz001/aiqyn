@@ -16,7 +16,11 @@ const serif = PT_Serif({ variable: "--font-serif", subsets: ["latin", "cyrillic"
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLang();
   const { t } = { t: DICTS[lang] };
-  return { title: { default: t.meta.title, template: "%s · AIQYN" }, description: t.meta.description };
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://aiqyn-aktau.vercel.app"),
+    title: { default: t.meta.title, template: "%s · AIQYN" },
+    description: t.meta.description,
+  };
 }
 
 export const viewport: Viewport = {
