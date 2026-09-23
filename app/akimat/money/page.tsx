@@ -54,7 +54,23 @@ export default async function MoneyPage() {
         </div>
       )}
 
-      <section className="overflow-x-auto rounded-lg border">
+      <ul className="divide-y rounded-lg border md:hidden">
+        {rows.map((r) => (
+          <li key={r.key} className="px-4 py-2.5 text-sm">
+            <div className="flex justify-between gap-2">
+              <span className="font-medium">{nm(DISTRICT[r.key], lang)}</span>
+              <span className="tabular-nums text-muted-foreground">{r.money ? `${mln(r.money.sum)} ${t.akimat.money.mln}` : "—"}</span>
+            </div>
+            <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+              <span>{t.akimat.money.reports}: <span className="tabular-nums text-foreground">{r.total}</span></span>
+              <span>{t.akimat.money.breached}: <span className="tabular-nums text-foreground">{r.breached}</span></span>
+              {r.money && r.money.sum > 0 && <span>{t.akimat.money.perMln}: <span className="tabular-nums text-foreground">{(r.total / (r.money.sum / 1e6)).toFixed(2)}</span></span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <section className="hidden overflow-x-auto rounded-lg border md:block">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr className="border-b">

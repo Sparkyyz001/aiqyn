@@ -49,7 +49,22 @@ export default async function ForecastPage() {
           }))}
         />
       </div>
-      <section className="overflow-x-auto rounded-lg border">
+      <section className="rounded-lg border md:hidden">
+        <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.forecast.top}</h2>
+        <ul className="divide-y">
+          {top.map((s) => (
+            <li key={s.osm_id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+              <div className="min-w-0">
+                <a className="text-primary hover:underline" href={`https://www.openstreetmap.org/${s.osm_id}`} target="_blank" rel="noopener noreferrer">{s.name ?? t.akimat.forecast.unnamed}</a>
+                <div className="text-xs text-muted-foreground">{s.highway} · {s.km} km · {t.akimat.forecast.complaints}: {s.complaints}</div>
+              </div>
+              <span className="shrink-0 font-medium tabular-nums">{s.risk.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="hidden overflow-x-auto rounded-lg border md:block">
         <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.forecast.top}</h2>
         <table className="w-full min-w-[560px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">

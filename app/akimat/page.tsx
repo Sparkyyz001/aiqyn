@@ -77,18 +77,18 @@ export default async function AkimatPage() {
         <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.overview.topOverdue}</h2>
         <ul className="divide-y">
           {overdue.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-sm">
-              <span className="w-10 font-semibold tabular-nums">{Math.round(r.priority)}</span>
+            <li key={r.id} className="grid grid-cols-[2.5rem_1fr] items-start gap-x-3 gap-y-1 px-4 py-2.5 text-sm sm:grid-cols-[2.5rem_1fr_auto_auto] sm:items-center">
+              <span className="row-span-2 font-semibold tabular-nums sm:row-span-1">{Math.round(r.priority)}</span>
               {r.demo ? (
-                <span className="min-w-0 flex-1 truncate">{titleOf(r, lang)}</span>
+                <span className="line-clamp-2 min-w-0">{titleOf(r, lang)}</span>
               ) : (
-                <Link href={`/report/${r.public_no}`} className="min-w-0 flex-1 truncate text-primary hover:underline">{r.title}</Link>
+                <Link href={`/report/${r.public_no}`} className="line-clamp-2 min-w-0 text-primary hover:underline">{r.title}</Link>
               )}
               <span className="text-xs text-muted-foreground">
                 {nm(DISTRICT[r.district ?? ""], lang)} · {SERVICE[r.service]?.short}
                 {r.demo && ` · ${t.akimat.demo}`}
               </span>
-              <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status]} />
+              <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status]} className="col-start-2 w-fit sm:col-start-auto" />
             </li>
           ))}
         </ul>

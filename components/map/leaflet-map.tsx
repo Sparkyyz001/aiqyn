@@ -28,6 +28,10 @@ export type LeafletMapProps = {
   picked?: { lat: number; lng: number } | null;
   onPick?: (p: { lat: number; lng: number }) => void;
   flyTo?: { lat: number; lng: number; zoom?: number } | null;
+  // Полноэкранная карта и выбор точки: карта двигается одним пальцем.
+  // Встроенные в страницу карты на телефоне: одним пальцем прокручивается страница,
+  // карта — двумя пальцами (иначе страницу невозможно пролистать).
+  fullTouch?: boolean;
 };
 
 // Иконка маркера выбора точки — без внешних картинок (у Leaflet по умолчанию битые пути в бандле)
@@ -68,15 +72,24 @@ function FlyTo({ to }: { to: { lat: number; lng: number; zoom?: number } | null 
 
 export default function LeafletMap({
   points = [], mode = "pins", circles = [], polygons = [], center = AKTAU_CENTER, zoom = 13, className,
-  statusLabels = {}, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo,
+  statusLabels = {}, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false,
 }: LeafletMapProps) {
+  const touchLock = !fullTouch && L.Browser.mobile;
   const { resolvedTheme } = useTheme();
   const dark = resolvedTheme === "dark";
   // Реальные обращения рисуем поверх демо
   const sorted = useMemo(() => [...points].sort((a, b) => Number(!a.demo) - Number(!b.demo)), [points]);
 
   return (
-    <MapContainer center={[center.lat, center.lng]} zoom={zoom} className={className} scrollWheelZoom preferCanvas>
+    <MapContainer
+      center={[center.lat, center.lng]}
+      zoom={zoom}
+      className={className}
+      scrollWheelZoom={fullTouch}
+      dragging={!touchLock}
+      preferCanvas
+      style={touchLock ? { touchAction: "pan-y" } : undefined}
+    >
       {/* Тайлы OpenStreetMap (без ключа, с атрибуцией). Тёмная тема — CSS-инверсия только подложки */}
       <TileLayer
         key={dark ? "dark" : "light"}

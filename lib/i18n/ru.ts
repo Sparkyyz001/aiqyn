@@ -161,6 +161,7 @@ export const ru = {
     phone: "тел.",
     markers: "маркеры",
     lacks: "нет",
+    sources: { app: "приложение", operator: "оператор", call109: "звонок в 109", instagram: "Instagram" },
   },
   service: {
     title: "Очередь службы",

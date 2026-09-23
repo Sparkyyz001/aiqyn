@@ -162,6 +162,7 @@ export const kz: Dict = {
     phone: "тел.",
     markers: "белгілер",
     lacks: "жоқ",
+    sources: { app: "қосымша", operator: "оператор", call109: "109-ға қоңырау", instagram: "Instagram" },
   },
   service: {
     title: "Қызмет кезегі",

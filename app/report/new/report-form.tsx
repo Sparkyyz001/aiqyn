@@ -134,11 +134,11 @@ export function ReportForm({
           </div>
           <Button type="button" variant="outline" size="sm" onClick={locate} disabled={locating}>
             {locating ? <Loader2 className="animate-spin" /> : <Crosshair />}
-            <span className="hidden sm:inline">{locating ? t.report.locating : t.report.locate}</span>
+            <span>{locating ? t.report.locating : t.report.locate}</span>
           </Button>
         </div>
         <div className="overflow-hidden rounded-lg border">
-          <CityMap className="h-[42vh] w-full lg:h-[520px]" center={AKTAU_CENTER} zoom={13} picked={point} onPick={pick} flyTo={flyTo} />
+          <CityMap fullTouch className="h-[42vh] w-full lg:h-[520px]" center={AKTAU_CENTER} zoom={13} picked={point} onPick={pick} flyTo={flyTo} />
         </div>
         {point && (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
@@ -193,7 +193,7 @@ export function ReportForm({
               </div>
             ))}
             {photos.length < 5 && (
-              <Button type="button" variant="outline" className="size-20 flex-col gap-1 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              <Button type="button" variant="outline" className="h-20 min-w-20 flex-col gap-1 px-3 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
                 {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
                 {t.report.addPhoto}
               </Button>

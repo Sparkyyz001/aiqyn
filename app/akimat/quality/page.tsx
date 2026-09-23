@@ -32,7 +32,24 @@ export default async function QualityPage() {
         </p>
       </div>
 
-      <section className="overflow-x-auto rounded-lg border">
+      <ul className="flex flex-col gap-3 md:hidden">
+        {rows.map((r) => (
+          <li key={r.service} className="rounded-lg border p-3 text-sm">
+            <div className="font-medium">{SERVICE[r.service]?.short}</div>
+            <div className="text-xs text-muted-foreground">{nm(SERVICE[r.service], lang)}</div>
+            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+              <dt className="text-muted-foreground">{t.akimat.quality.reports}</dt><dd className="text-right tabular-nums">{r.total}</dd>
+              <dt className="text-muted-foreground">{t.akimat.quality.breached}</dt><dd className="text-right tabular-nums">{r.breachedShare}</dd>
+              <dt className="text-muted-foreground">{t.akimat.quality.reopened}</dt><dd className="text-right tabular-nums">{r.reopenShare} ({r.reopenTotal})</dd>
+              <dt className="text-muted-foreground">{t.akimat.quality.boiler}</dt><dd className="text-right tabular-nums">{r.boilerShare}</dd>
+              <dt className="text-muted-foreground">{t.akimat.quality.unverified}</dt><dd className="text-right tabular-nums">{r.unverifiedPhotoShare}</dd>
+              <dt className="text-muted-foreground">{t.akimat.quality.median}</dt><dd className="text-right tabular-nums">{r.medianDays}</dd>
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      <section className="hidden overflow-x-auto rounded-lg border md:block">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr className="border-b">

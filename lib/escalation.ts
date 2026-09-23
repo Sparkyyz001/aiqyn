@@ -102,7 +102,7 @@ export function escalationText(p: EscalationPayload): string {
     `Обращение зарегистрировано ${d(p.created_at)}. Срок рассмотрения по ст. 76 АППК РК — до ${d(p.sla_due_at)}.`,
     p.sla_breached_at ? `Срок нарушен с ${d(p.sla_breached_at)}.` : "",
     p.reopen_count ? `Служба сообщала о выполнении, но жители опровергли это ${p.reopen_count} раз(а).` : "",
-    `Проблему подтвердили ${p.confirmations} жителей.`,
+    `Число жителей, подтвердивших проблему: ${p.confirmations}.`,
     "",
     "Хронология:",
     ...p.timeline.map((t) => `• ${d(t.at)} — ${t.what}${t.comment ? `: ${t.comment}` : ""}`),

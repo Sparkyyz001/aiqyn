@@ -130,6 +130,7 @@ export function MapExplorer({
 
       <div className="order-1 h-[60vh] flex-1 lg:order-2 lg:h-auto">
         <CityMap
+          fullTouch
           points={filtered}
           mode={mode}
           className="h-full min-h-[60vh] w-full lg:min-h-[calc(100vh-3.5rem)]"

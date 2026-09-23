@@ -137,6 +137,19 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
       )}
 
+      {/* Телефон: главное — сколько осталось по закону и сколько людей видят проблему — сразу под заголовком */}
+      <div className="mt-4 grid grid-cols-[1fr_auto_auto] items-stretch gap-2 lg:hidden">
+        <SlaTimer dueAt={r.sla_due_at} closed={closed} t={t.card} />
+        <div className="flex flex-col justify-center rounded-lg border px-3 text-center">
+          <div className="text-lg font-semibold tabular-nums">{r.confirmations_count}</div>
+          <div className="text-[11px] leading-tight text-muted-foreground">{t.card.confirmations}</div>
+        </div>
+        <div className="flex flex-col justify-center rounded-lg border px-3 text-center">
+          <div className={`text-lg font-semibold tabular-nums ${r.reopen_count ? "text-[color:var(--danger)]" : ""}`}>{r.reopen_count}</div>
+          <div className="text-[11px] leading-tight text-muted-foreground">{t.card.reopened}</div>
+        </div>
+      </div>
+
       <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="flex min-w-0 flex-col gap-6">
           {r.description && <p className="whitespace-pre-wrap text-pretty">{r.description}</p>}
@@ -237,9 +250,11 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
 
         <aside className="flex flex-col gap-4">
-          <SlaTimer dueAt={r.sla_due_at} closed={closed} t={t.card} />
+          <div className="hidden lg:block">
+            <SlaTimer dueAt={r.sla_due_at} closed={closed} t={t.card} />
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="hidden grid-cols-2 gap-3 lg:grid">
             <div className="rounded-lg border p-3">
               <div className="flex items-center gap-1.5 text-2xl font-semibold tabular-nums"><Users className="size-5 text-muted-foreground" />{r.confirmations_count}</div>
               <div className="text-xs text-muted-foreground">{t.card.confirmations}</div>
@@ -285,7 +300,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
 
           {r.source_url && (
             <Link href={r.source_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
-              <ExternalLink className="size-3.5" /> {t.card.source} ({r.source})
+              <ExternalLink className="size-3.5" /> {t.card.source} ({t.card.sources[r.source as keyof Dict["card"]["sources"]] ?? r.source})
             </Link>
           )}
           <p className="text-xs text-muted-foreground">{t.card.live}</p>

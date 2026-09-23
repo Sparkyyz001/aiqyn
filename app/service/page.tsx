@@ -61,7 +61,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
         <Kpi label={t.service.kpiReopened} value={fresh.filter((r) => r.reopen_count > 0).length} />
       </div>
 
-      <nav className="mt-5 flex gap-1 overflow-x-auto border-b">
+      <nav className="mt-5 flex flex-wrap gap-x-1 border-b">
         {TABS.map((x) => {
           const n = fresh.filter((r) => (x.statuses as readonly string[]).includes(r.status)).length;
           return (

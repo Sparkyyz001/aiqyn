@@ -37,7 +37,34 @@ export default async function ClustersPage() {
           }))}
         />
       </div>
-      <section className="overflow-x-auto rounded-lg border">
+      <section className="rounded-lg border md:hidden">
+        <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.clusters.top}</h2>
+        <ul className="divide-y">
+          {top.map((c) => (
+            <li key={c.key} className="px-4 py-3 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium">{c.label ?? nm(DISTRICT[c.district ?? ""], lang)}</div>
+                  <div className="text-xs text-muted-foreground">{nm(CATEGORY[c.category], lang)} · {nm(DISTRICT[c.district ?? ""], lang)}</div>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1.5 font-medium tabular-nums">
+                  <span className="size-2.5 rounded-full" style={{ background: color(c.chronic_score) }} />
+                  {c.chronic_score.toFixed(2)}
+                </span>
+              </div>
+              <dl className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                <div><dt className="text-muted-foreground">{t.akimat.clusters.reports}</dt><dd className="tabular-nums">{c.count}</dd></div>
+                <div><dt className="text-muted-foreground">{t.akimat.clusters.open}</dt><dd className="tabular-nums">{c.open}</dd></div>
+                <div><dt className="text-muted-foreground">{t.akimat.clusters.reopened}</dt><dd className={`tabular-nums ${c.reopen_total ? "text-[color:var(--danger)]" : ""}`}>{c.reopen_total}</dd></div>
+                <div><dt className="text-muted-foreground">{t.akimat.clusters.downtime}</dt><dd className="tabular-nums">{c.downtime_days}</dd></div>
+              </dl>
+              <div className="mt-1 text-xs text-muted-foreground">{fmt(c.first_seen)} — {fmt(c.last_seen)}</div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="hidden overflow-x-auto rounded-lg border md:block">
         <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.clusters.top}</h2>
         <table className="w-full min-w-[720px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
