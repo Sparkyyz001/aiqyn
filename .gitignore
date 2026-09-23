@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# локальные заметки редактора
+CLAUDE.md
+AGENTS.md
+.claude/
