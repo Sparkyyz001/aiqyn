@@ -11,7 +11,7 @@ type Labels = { sent: string; sla: string; days: string; done: string; confirmed
 // Анимация первого экрана: из темноты проступает Актау (реальные границы микрорайонов и берег
 // Каспия), загораются обращения, и по очереди одно из них «проживает» путь жалобы:
 // подано → передано службе → идёт срок по закону → сделано → жители подтвердили (точка зеленеет).
-export function HeroMap({ w, h, areas, coast, dots, lang, labels }: { w: number; h: number; areas: string[]; coast: string[]; dots: HeroDot[]; lang: Lang; labels: Labels }) {
+export function HeroMap({ w, h, areas, coast, dots, lang, labels, cardOnly = false }: { w: number; h: number; areas: string[]; coast: string[]; dots: HeroDot[]; lang: Lang; labels: Labels; cardOnly?: boolean }) {
   const [ready, setReady] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [active, setActive] = useState<number | null>(null);
@@ -69,6 +69,7 @@ export function HeroMap({ w, h, areas, coast, dots, lang, labels }: { w: number;
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden>
       {/* на десктопе карта — правые две трети экрана, слева текст */}
+      {!cardOnly && (
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full md:left-[34%] md:w-[66%]">
         {/* берег Каспия */}
         {coast.map((d, i) => (
@@ -107,6 +108,7 @@ export function HeroMap({ w, h, areas, coast, dots, lang, labels }: { w: number;
           <circle key={`ring${active}-${phase}`} cx={a.x} cy={a.y} r={12} fill="none" stroke={phase === 3 ? "#3fbf7f" : "#e8f4ff"} strokeWidth={2.5} className="hero-ring" />
         )}
       </svg>
+      )}
 
       {/* карточка текущей истории */}
       {a && !reduced && (

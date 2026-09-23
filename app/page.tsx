@@ -5,6 +5,7 @@ import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/status-badge";
 import { HeroMap } from "@/components/landing/hero-map";
+import { HeroVideo } from "@/components/landing/hero-video";
 import { CountUp, Reveal } from "@/components/landing/motion";
 import { getDict } from "@/lib/i18n/server";
 import { flow, toMapPoint } from "@/lib/data";
@@ -27,15 +28,21 @@ export default async function Home() {
     <>
       <LiveRefresh />
 
-      {/* 1. Первый экран — живая карта Актау */}
+      {/* 1. Первый экран — видео берега Каспия + живая карточка «путь жалобы» */}
       <section className="relative isolate flex min-h-[calc(100svh-3.5rem)] flex-col overflow-hidden bg-[#07131d] text-white">
+        <HeroVideo />
+        {/* лёгкий морской оттенок поверх ч/б видео */}
+        <div className="pointer-events-none absolute inset-0 bg-[#0a2a40]/45 mix-blend-multiply" />
         <HeroMap
+          cardOnly
           {...geo}
+          areas={[]}
+          coast={[]}
           lang={lang}
           labels={{ sent: h.heroSent, sla: h.heroSla, days: h.heroDays, done: h.heroDone, confirmed: h.heroConfirmed }}
         />
         {/* затемнение под текстом: слева на десктопе, снизу на телефоне */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07131d] via-[#07131d]/70 to-transparent md:bg-gradient-to-r md:from-[#07131d] md:via-[#07131d]/80 md:to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07131d]/95 via-[#07131d]/55 to-[#07131d]/10 md:bg-gradient-to-r md:from-[#07131d]/90 md:via-[#07131d]/55 md:to-transparent" />
 
         <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pt-56 pb-10 md:justify-center md:pt-24 md:pb-24">
           <p className="text-sm font-medium tracking-wide text-[#9fd0ff]">{h.kicker}</p>
