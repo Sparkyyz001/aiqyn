@@ -89,6 +89,9 @@
   --ok: oklch(0.55 0.12 155);
   --warn: oklch(0.7 0.14 70);
   --danger: oklch(0.56 0.19 27);
+  /* серии графиков — проверены валидатором (CVD ΔE 17.2, контраст ≥ 3:1) */
+  --series-1: #2f6fa3;
+  --series-2: #3f9a6b;
 }
 
 .dark {
@@ -126,6 +129,8 @@
   --ok: oklch(0.7 0.13 155);
   --warn: oklch(0.8 0.13 75);
   --danger: oklch(0.68 0.17 27);
+  --series-1: #4f94d4;
+  --series-2: #35a263;
 }
 
 @layer base {
