@@ -9,6 +9,7 @@ import { signOut } from "@/lib/actions/session";
 import { LangSwitch } from "@/components/lang-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { HeaderShell } from "@/components/header-shell";
+import { NotificationBell } from "@/components/notifications/bell";
 
 export async function SiteHeader() {
   const [{ lang, t }, profile] = await Promise.all([getDict(), getProfile()]);
@@ -48,6 +49,7 @@ export async function SiteHeader() {
               <Plus /> {t.nav.report}
             </Link>
           </Button>
+          {profile && <NotificationBell userId={profile.id} lang={lang} t={t.notify} />}
           <LangSwitch lang={lang} label={t.common.lang} />
           <ThemeToggle label={t.common.theme} />
           {profile ? (

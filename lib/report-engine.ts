@@ -58,4 +58,11 @@ export async function logEvent(e: {
 }) {
   const db = createAdminClient();
   await db.from("report_events").insert(e);
+  // уведомления — вторично: их сбой не должен ломать подачу или смену статуса
+  try {
+    const { notifyEvent } = await import("@/lib/notify");
+    await notifyEvent(e);
+  } catch (err) {
+    console.error("notify", err);
+  }
 }

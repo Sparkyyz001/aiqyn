@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Bell,
   Building2,
   ChevronsUpDown,
   CircleDollarSign,
-  Database,
   Flame,
   Headset,
   Inbox,
@@ -48,6 +48,7 @@ export type ShellLabels = {
   guest: string;
   guestHint: string;
   report: string;
+  notifications: string;
   nav: { map: string; incidents: string; openData: string; me: string; service: string; operator: string; login: string; logout: string };
   akimatNav: { overview: string; risk: string; pain: string; clusters: string; quality: string; money: string; forecast: string; air: string; light: string };
   roles: Record<Role, string>;
@@ -65,17 +66,20 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
   const city: Item[] = [
     { title: l.nav.map, url: "/map", icon: MapIcon },
     { title: l.nav.incidents, url: "/incidents", icon: Siren },
-    { title: l.nav.openData, url: "/open-data", icon: Database },
   ];
+  const bell: Item = { title: l.notifications, url: "/notifications", icon: Bell };
   const cabinet: Item[] = !user
     ? []
     : user.role === "citizen"
-      ? [{ title: l.nav.me, url: "/me", icon: Inbox }]
+      ? [{ title: l.nav.me, url: "/me", icon: Inbox }, bell]
       : user.role === "service"
-        ? [{ title: l.nav.service, url: "/service", icon: Wrench }]
-        : user.role === "operator"
-          ? [{ title: l.nav.operator, url: "/operator", icon: Headset }]
-          : [];
+        ? [{ title: l.nav.service, url: "/service", icon: Wrench }, bell]
+        : // оператор и акимат видят всё: очереди всех служб и пульт 109
+          [
+            { title: l.nav.operator, url: "/operator", icon: Headset },
+            { title: l.nav.service, url: "/service", icon: Wrench },
+            bell,
+          ];
   const akimat: Item[] =
     user && (user.role === "akimat" || user.role === "operator")
       ? [

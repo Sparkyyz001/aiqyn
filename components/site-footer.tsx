@@ -12,7 +12,6 @@ export async function SiteFooter() {
         { href: "/map", label: t.nav.map },
         { href: "/report/new", label: t.nav.report },
         { href: "/incidents", label: t.nav.incidents },
-        { href: "/open-data", label: t.nav.openData },
       ],
     },
     {
