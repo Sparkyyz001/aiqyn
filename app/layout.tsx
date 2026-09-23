@@ -3,8 +3,7 @@ import { Inter, JetBrains_Mono, PT_Serif } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { AppShell } from "@/components/app-shell/app-shell";
 import { getLang } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dict";
 import "./globals.css";
@@ -36,9 +35,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            <SiteHeader />
-            <main className="flex-1 flex flex-col">{children}</main>
-            <SiteFooter />
+            <AppShell>{children}</AppShell>
             <Toaster position="top-center" />
           </TooltipProvider>
         </ThemeProvider>

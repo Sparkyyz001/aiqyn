@@ -172,7 +172,7 @@ export function MapExplorer({
           mode={mode === "heat" ? "heat" : "pins"}
           choropleth={mode === "pain" ? choropleth : []}
           focus={district !== ALL ? districtInfo[district]?.geojson ?? null : null}
-          className="h-full min-h-[60vh] w-full lg:min-h-[calc(100vh-3.5rem)]"
+          className="h-full min-h-[60vh] w-full lg:min-h-[calc(100svh-4.5rem)]"
           statusLabels={t.status}
           lang={lang}
           popupLabels={{ created: t.outcome.created, resolved: t.status.resolved, confirmations: t.outcome.confirmations, more: t.outcome.openCard }}

@@ -3,6 +3,16 @@
 export const ru = {
   brand: "AIQYN",
   tagline: "Прозрачность городских проблем Актау",
+  shell: {
+    city: "Город",
+    cabinet: "Мой кабинет",
+    akimat: "Акимат",
+    home: "На главную",
+    guest: "Гость",
+    guestHint: "Войдите, чтобы следить за своими обращениями",
+    toggle: "Меню",
+    report: "Новое обращение",
+  },
   footer: { platform: "Платформа", cabinets: "Кабинеты", links: "Связанные сервисы" },
   nav: {
     map: "Карта",

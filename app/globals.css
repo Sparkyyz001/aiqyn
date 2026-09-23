@@ -369,3 +369,16 @@
   .marquee-track, .page-in { animation: none; }
   .scroll-progress, .btn-shine::after { display: none; }
 }
+
+/* Боковое меню приложения — всегда в палитре «лагуны», в светлой и тёмной теме */
+:root,
+.dark {
+  --sidebar: #053e42;
+  --sidebar-foreground: #f6f1dd;
+  --sidebar-primary: #ff907d;
+  --sidebar-primary-foreground: #063c40;
+  --sidebar-accent: rgb(246 241 221 / 0.09);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(246 241 221 / 0.1);
+  --sidebar-ring: #ff907d;
+}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlarmClock, CheckCheck, Inbox, Layers, RotateCcw, Timer } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
 import { flow, toMapPoint, titleOf } from "@/lib/data";
@@ -34,17 +35,17 @@ export default async function AkimatPage() {
     <div className="flex flex-col gap-6">
       <LiveRefresh />
       <div>
-        <h1 className="text-xl font-semibold">{t.nav.akimat}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{t.nav.akimat}</h1>
         <p className="text-sm text-muted-foreground">{tf(t.akimat.overview.sub, { n: real.length })}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <Kpi label={t.akimat.overview.kpiTotal} value={fmt.format(k.total)} hint={tf(t.akimat.overview.last7, { n: k.last7 })} />
-        <Kpi label={t.akimat.overview.kpiOpen} value={fmt.format(k.open)} />
-        <Kpi label={t.akimat.overview.kpiBreached} value={fmt.format(k.breachedOpen)} tone="danger" />
-        <Kpi label={t.akimat.overview.kpiAwaiting} value={fmt.format(k.awaiting)} tone="warn" />
-        <Kpi label={t.akimat.overview.kpiReopened} value={fmt.format(k.reopened)} />
-        <Kpi label={t.akimat.overview.kpiMedian} value={k.medianDays} />
+        <Kpi label={t.akimat.overview.kpiTotal} value={fmt.format(k.total)} hint={tf(t.akimat.overview.last7, { n: k.last7 })} icon={<Layers />} />
+        <Kpi label={t.akimat.overview.kpiOpen} value={fmt.format(k.open)} icon={<Inbox />} />
+        <Kpi label={t.akimat.overview.kpiBreached} value={fmt.format(k.breachedOpen)} tone="danger" icon={<AlarmClock />} />
+        <Kpi label={t.akimat.overview.kpiAwaiting} value={fmt.format(k.awaiting)} tone="warn" icon={<CheckCheck />} />
+        <Kpi label={t.akimat.overview.kpiReopened} value={fmt.format(k.reopened)} icon={<RotateCcw />} />
+        <Kpi label={t.akimat.overview.kpiMedian} value={k.medianDays} icon={<Timer />} />
       </div>
 
       <section className="flex flex-col gap-2">

@@ -4,6 +4,16 @@ import type { Dict } from "./ru";
 export const kz: Dict = {
   brand: "AIQYN",
   tagline: "Ақтау қаласы мәселелерінің айқындығы",
+  shell: {
+    city: "Қала",
+    cabinet: "Менің кабинетім",
+    akimat: "Әкімдік",
+    home: "Басты бетке",
+    guest: "Қонақ",
+    guestHint: "Өтініштеріңізді бақылау үшін кіріңіз",
+    toggle: "Мәзір",
+    report: "Жаңа өтініш",
+  },
   footer: { platform: "Платформа", cabinets: "Кабинеттер", links: "Байланысты сервистер" },
   nav: {
     map: "Карта",
