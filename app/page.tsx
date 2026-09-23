@@ -28,11 +28,11 @@ export default async function Home() {
     <>
       <LiveRefresh />
 
-      {/* 1. Первый экран — видео берега Каспия + живая карточка «путь жалобы» */}
+      {/* 1. Первый экран — видео Актау + живая карточка «путь жалобы» */}
       <section className="relative isolate flex min-h-[calc(100svh-3.5rem)] flex-col overflow-hidden bg-[#07131d] text-white">
         <HeroVideo />
-        {/* лёгкий морской оттенок поверх ч/б видео */}
-        <div className="pointer-events-none absolute inset-0 bg-[#0a2a40]/45 mix-blend-multiply" />
+        {/* лёгкое затемнение, чтобы видео не спорило с текстом */}
+        <div className="pointer-events-none absolute inset-0 bg-[#07131d]/25" />
         <HeroMap
           cardOnly
           {...geo}
