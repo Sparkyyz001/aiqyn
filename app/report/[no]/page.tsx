@@ -1,0 +1,274 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ExternalLink, MapPin, Siren, ShieldCheck, ShieldAlert, Users, RotateCcw, Info } from "lucide-react";
+import { getDict } from "@/lib/i18n/server";
+import { getProfile } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getReference, nearestSocial } from "@/lib/reference";
+import { settleVerification } from "@/lib/actions/reports";
+import { computePriority, PRIORITY_LABELS } from "@/lib/priority";
+import { boilerplateScore, BOILERPLATE_THRESHOLD } from "@/lib/boilerplate";
+import { nm } from "@/lib/meta";
+import { SlaTimer } from "@/components/reports/sla-timer";
+import { StatusBadge } from "@/components/status-badge";
+import { LiveRefresh } from "@/components/live-refresh";
+import { CityMap } from "@/components/map/map";
+import { ReportActions } from "./report-actions";
+
+export async function generateMetadata({ params }: PageProps<"/report/[no]">) {
+  const { no } = await params;
+  return { title: no };
+}
+
+const fmt = (s: string) =>
+  new Date(s).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Aqtau" });
+
+export default async function ReportPage({ params }: PageProps<"/report/[no]">) {
+  const { no } = await params;
+  const db = createAdminClient();
+  const { data: head } = await db.from("reports").select("id, status").eq("public_no", no).maybeSingle();
+  if (!head) notFound();
+  // Ленивое подведение итога голосования, если окно 72 ч истекло
+  if (head.status === "awaiting_confirmation") await settleVerification(head.id);
+
+  const [{ lang, t }, me, ref] = await Promise.all([getDict(), getProfile(), getReference()]);
+  const [{ data: r }, { data: photos }, { data: events }, { data: replies }, { data: conf }, { data: votes }] = await Promise.all([
+    db.from("reports").select("*").eq("id", head.id).single(),
+    db.from("report_photos").select("*").eq("report_id", head.id).order("created_at"),
+    db.from("report_events").select("*").eq("report_id", head.id).order("created_at"),
+    db.from("service_replies").select("*").eq("report_id", head.id).order("created_at"),
+    db.from("report_confirmations").select("user_id, weight").eq("report_id", head.id),
+    db.from("report_verifications").select("user_id, verdict, round").eq("report_id", head.id),
+  ]);
+  if (!r) notFound();
+
+  const cat = ref.categoryById.get(r.category_id)!;
+  const svc = r.service_id ? ref.serviceById.get(r.service_id) : null;
+  const district = r.district_id ? ref.districtById.get(r.district_id) : null;
+  const incident = r.incident_id ? (await db.from("incidents").select("title, eta_at, status").eq("id", r.incident_id).single()).data : null;
+  let chronic = 0;
+  if (r.cluster_id) chronic = (await db.from("clusters").select("chronic_score").eq("id", r.cluster_id).single()).data?.chronic_score ?? 0;
+
+  const closed = r.status === "resolved" || r.status === "rejected";
+  const social = nearestSocial(r);
+  const prio = computePriority({
+    severityBase: cat.severity_base,
+    confirmationWeights: (conf ?? []).reduce((s, c) => s + Number(c.weight), 0),
+    daysInQueue: (Date.now() - new Date(r.created_at).getTime()) / 86400_000,
+    slaDays: cat.sla_days,
+    nearSocial: !!social,
+    slaBreached: !!r.sla_breached_at,
+    chronicScore: chronic,
+    reopenCount: r.reopen_count,
+  });
+
+  const before = (photos ?? []).filter((p) => p.kind === "before");
+  const after = (photos ?? []).filter((p) => p.kind === "after");
+  const isAuthor = me?.id === r.author_id;
+  const isConfirmer = !!me && (conf ?? []).some((c) => c.user_id === me.id);
+  const myVote = me ? (votes ?? []).find((v) => v.user_id === me.id && v.round === r.reopen_count) : undefined;
+  const isStaff = !!me && (["akimat", "operator"].includes(me.role) || (me.role === "service" && me.service_id === r.service_id));
+  const canEscalate = !!r.sla_breached_at || r.reopen_count >= 2;
+
+  // Имена участников хронологии
+  const actorIds = [...new Set((events ?? []).map((e) => e.actor_id).filter(Boolean))];
+  const { data: actors } = actorIds.length ? await db.from("profiles").select("id, role, full_name, service_id").in("id", actorIds) : { data: [] };
+  const actorName = (id: string | null) => {
+    if (!id) return "AIQYN";
+    const a = (actors ?? []).find((x) => x.id === id);
+    if (!a) return "—";
+    if (a.role === "service") return ref.serviceById.get(a.service_id)?.short_name ?? t.roles.service;
+    if (a.role === "citizen") return id === r.author_id ? `${t.roles.citizen} (автор)` : t.roles.citizen;
+    return t.roles[a.role as keyof typeof t.roles];
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-6">
+      <LiveRefresh filter={`id=eq.${r.id}`} toastText={t.card.statusChanged} />
+      <LiveRefresh table="report_events" filter={`report_id=eq.${r.id}`} />
+
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span className="font-mono">{r.public_no}</span>
+        <span>·</span>
+        <span>{nm(cat, lang)}</span>
+        {district && (
+          <>
+            <span>·</span>
+            <span>{nm(district, lang)}</span>
+          </>
+        )}
+        <span>·</span>
+        <span>{fmt(r.created_at)}</span>
+      </div>
+      <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance">{r.title}</h1>
+        <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status]} className="text-sm" />
+      </div>
+
+      {incident && incident.status === "active" && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#b4447a]/40 bg-[#b4447a]/5 p-3 text-sm">
+          <Siren className="mt-0.5 size-4 text-[#b4447a]" />
+          <div>
+            <span className="font-medium">{t.card.incident}:</span> {incident.title}
+            {incident.eta_at && ` · ${t.card.restoreBy} ${fmt(incident.eta_at)}`}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="flex min-w-0 flex-col gap-6">
+          {r.description && <p className="whitespace-pre-wrap text-pretty">{r.description}</p>}
+
+          {(before.length > 0 || after.length > 0) && (
+            <section>
+              <h2 className="mb-2 font-medium">{t.card.photos}</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: t.card.before, list: before },
+                  { label: t.card.after, list: after },
+                ].map((col) => (
+                  <div key={col.label} className="flex flex-col gap-2">
+                    <div className="text-xs font-medium text-muted-foreground uppercase">{col.label}</div>
+                    {col.list.length ? (
+                      col.list.map((p) => (
+                        <figure key={p.id} className="overflow-hidden rounded-lg border">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p.url} alt={col.label} className="aspect-[4/3] w-full object-cover" />
+                          <figcaption className={`flex items-center gap-1 px-2 py-1 text-xs ${p.geo_verified ? "text-[color:var(--ok)]" : "text-[color:var(--warn)]"}`}>
+                            {p.geo_verified ? <ShieldCheck className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
+                            {p.geo_verified ? t.card.geoOk : t.card.geoBad}
+                            {p.taken_at && <span className="ml-auto text-muted-foreground">{fmt(p.taken_at)}</span>}
+                          </figcaption>
+                        </figure>
+                      ))
+                    ) : (
+                      <div className="grid aspect-[4/3] place-items-center rounded-lg border border-dashed text-xs text-muted-foreground">—</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <ReportActions
+            report={{ id: r.id, status: r.status, public_no: r.public_no, verification_due_at: r.verification_due_at }}
+            viewer={me ? { id: me.id, role: me.role } : null}
+            isAuthor={isAuthor}
+            isConfirmer={isConfirmer}
+            myVote={myVote?.verdict ?? null}
+            isStaff={isStaff}
+            canEscalate={canEscalate}
+            t={{ card: t.card, common: t.common, nav: t.nav }}
+          />
+
+          {(replies ?? []).length > 0 && (
+            <section>
+              <h2 className="mb-2 font-medium">{t.card.replies}</h2>
+              <ul className="flex flex-col gap-2">
+                {(replies ?? []).map((rep) => {
+                  const b = boilerplateScore(rep.text);
+                  return (
+                    <li key={rep.id} className="rounded-lg border p-3 text-sm">
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span>{ref.serviceById.get(rep.service_id)?.short_name} · {fmt(rep.created_at)}</span>
+                        {(rep.boilerplate_score ?? 0) >= BOILERPLATE_THRESHOLD && (
+                          <span className="rounded bg-warn/15 px-1.5 py-0.5 text-[color:var(--warn)]" title={`маркеры: ${b.markers.join(", ") || "—"}; нет: ${b.missing.join(", ")}`}>
+                            {t.card.noSpecifics} · {Math.round((rep.boilerplate_score ?? 0) * 100)}%
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap">{rep.text}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          <section>
+            <h2 className="mb-2 font-medium">{t.card.timeline}</h2>
+            <ol className="relative ml-2 border-l pl-5">
+              {(events ?? []).map((e) => (
+                <li key={e.id} className="mb-4 last:mb-0">
+                  <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-primary" />
+                  <div className="text-xs text-muted-foreground tabular-nums">
+                    {fmt(e.created_at)} · {actorName(e.actor_id)}
+                  </div>
+                  <div className="text-sm">
+                    {e.to_status ? (
+                      <>
+                        {e.from_status && <span className="text-muted-foreground">{t.status[e.from_status as keyof typeof t.status]} → </span>}
+                        <span className="font-medium">{t.status[e.to_status as keyof typeof t.status]}</span>
+                      </>
+                    ) : (
+                      <span className="font-medium">
+                        {({ confirmed: `+1 ${t.card.confirmations}`, reply: t.card.replies, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.card.escalate, incident_linked: t.card.incident } as Record<string, string>)[e.type] ?? e.type}
+                      </span>
+                    )}
+                  </div>
+                  {e.comment && e.type !== "reply" && <div className="text-sm text-muted-foreground">{e.comment}</div>}
+                  {e.meta?.reasons?.length > 0 && <div className="text-xs text-[color:var(--warn)]">{e.meta.reasons.join("; ")}</div>}
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+
+        <aside className="flex flex-col gap-4">
+          <SlaTimer dueAt={r.sla_due_at} closed={closed} t={t.card} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border p-3">
+              <div className="flex items-center gap-1.5 text-2xl font-semibold tabular-nums"><Users className="size-5 text-muted-foreground" />{r.confirmations_count}</div>
+              <div className="text-xs text-muted-foreground">{t.card.confirmations}</div>
+            </div>
+            <div className="rounded-lg border p-3">
+              <div className={`flex items-center gap-1.5 text-2xl font-semibold tabular-nums ${r.reopen_count ? "text-[color:var(--danger)]" : ""}`}><RotateCcw className="size-5 text-muted-foreground" />{r.reopen_count}</div>
+              <div className="text-xs text-muted-foreground">{t.card.reopened}, {t.card.times}</div>
+            </div>
+          </div>
+
+          {svc && (
+            <div className="rounded-lg border p-3 text-sm">
+              <div className="text-xs text-muted-foreground">{t.card.service}</div>
+              <div className="font-medium">{nm(svc, lang)}</div>
+              {svc.address && <div className="text-xs text-muted-foreground">{svc.address}</div>}
+              {svc.contact_phone && <div className="text-xs">тел. {svc.contact_phone}</div>}
+              {!svc.verified && <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Info className="size-3" />{t.card.unverifiedOrg}</div>}
+            </div>
+          )}
+
+          <details className="rounded-lg border p-3 text-sm">
+            <summary className="flex cursor-pointer items-center justify-between">
+              <span>{t.card.priority}</span>
+              <span className="font-semibold tabular-nums">{prio.score}</span>
+            </summary>
+            <div className="mt-2 text-xs text-muted-foreground">{t.card.whyPriority}</div>
+            <ul className="mt-1 space-y-1">
+              {prio.terms.map((term) => (
+                <li key={term.key} className={`flex justify-between gap-2 ${term.value ? "" : "text-muted-foreground"}`}>
+                  <span>{PRIORITY_LABELS[term.key][lang]}</span>
+                  <span className="tabular-nums">+{term.value}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+
+          <div className="overflow-hidden rounded-lg border">
+            <CityMap className="h-52 w-full" center={{ lat: r.lat, lng: r.lng }} zoom={16} picked={{ lat: r.lat, lng: r.lng }} />
+            <div className="flex items-center gap-1 px-3 py-2 text-xs text-muted-foreground">
+              <MapPin className="size-3" /> {r.address_text ?? `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}`}
+            </div>
+          </div>
+
+          {r.source_url && (
+            <Link href={r.source_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+              <ExternalLink className="size-3.5" /> {t.card.source} ({r.source})
+            </Link>
+          )}
+          <p className="text-xs text-muted-foreground">{t.card.live}</p>
+        </aside>
+      </div>
+    </div>
+  );
+}
