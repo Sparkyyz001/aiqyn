@@ -5,7 +5,10 @@ import { getProfile } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
 import { ReportForm } from "./report-form";
 
-export const metadata = { title: "Сообщить о проблеме" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.nav.report };
+}
 
 export default async function NewReportPage() {
   const [{ lang, t }, me] = await Promise.all([getDict(), getProfile()]);
@@ -22,5 +25,5 @@ export default async function NewReportPage() {
       </div>
     );
   }
-  return <ReportForm userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status }} />;
+  return <ReportForm userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing }} />;
 }

@@ -25,7 +25,7 @@ export function ReportForm({
 }: {
   userId: string;
   lang: Lang;
-  t: Pick<Dict, "report" | "common" | "card" | "status">;
+  t: Pick<Dict, "report" | "common" | "card" | "status" | "operator" | "routing">;
   operator?: boolean;
 }) {
   const router = useRouter();
@@ -153,13 +153,13 @@ export function ReportForm({
 
         {operator && (
           <div className="grid gap-3 rounded-lg border bg-muted/30 p-3">
-            <Label>Источник</Label>
+            <Label>{t.operator.source}</Label>
             <Select value={source} onValueChange={(v) => setSource(v as Source)}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent className="z-[1300]">
-                <SelectItem value="call109">Звонок в 109</SelectItem>
-                <SelectItem value="instagram">Публичный пост Instagram</SelectItem>
-                <SelectItem value="operator">Другое (оператор)</SelectItem>
+                <SelectItem value="call109">{t.operator.srcCall}</SelectItem>
+                <SelectItem value="instagram">{t.operator.srcInsta}</SelectItem>
+                <SelectItem value="operator">{t.operator.srcOther}</SelectItem>
               </SelectContent>
             </Select>
             {source === "instagram" && (
@@ -225,8 +225,8 @@ export function ReportForm({
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               <dt className="text-muted-foreground">{t.report.service}</dt>
               <dd className="font-medium">{nm(preview.service, lang)}</dd>
-              {preview.routingReason && preview.routingReason !== "Служба по умолчанию для категории" && (
-                <dd className="col-span-2 text-xs text-muted-foreground">{preview.routingReason}</dd>
+              {preview.routingRule && (
+                <dd className="col-span-2 text-xs text-muted-foreground">{t.routing[preview.routingRule as keyof Dict["routing"]] ?? preview.routingReason}</dd>
               )}
               <dt className="text-muted-foreground">{t.report.district}</dt>
               <dd>{preview.district ? nm(preview.district, lang) : "—"}</dd>
@@ -236,7 +236,7 @@ export function ReportForm({
                 <>
                   <dt className="text-muted-foreground">{t.report.nearSocial}</dt>
                   <dd>
-                    {AMENITY[preview.nearSocial.amenity]?.[lang]} {preview.nearSocial.name ?? ""} · {preview.nearSocial.distance_m} м ({t.report.priorityUp})
+                    {AMENITY[preview.nearSocial.amenity]?.[lang]} {preview.nearSocial.name ?? ""} · {preview.nearSocial.distance_m} m ({t.report.priorityUp})
                   </dd>
                 </>
               )}
@@ -263,7 +263,7 @@ export function ReportForm({
                   <a href={`/report/${d.public_no}`} target="_blank" className="line-clamp-1 text-sm font-medium hover:underline">{d.title}</a>
                   <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     <StatusBadge status={d.status} label={t.status[d.status as keyof Dict["status"]] ?? d.status} />
-                    {d.distance_m} м · {d.confirmations_count} {t.card.confirmations}
+                    {d.distance_m} m · {d.confirmations_count} {t.card.confirmations}
                   </div>
                   <Button size="sm" className="mt-2" onClick={() => confirmDup(d.id)} disabled={pending || confirmedId === d.id}>
                     <ThumbsUp /> {confirmedId === d.id ? t.report.confirmed : t.report.confirm}

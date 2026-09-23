@@ -5,7 +5,10 @@ import { flowClusters } from "@/lib/flow-clusters";
 import { LiveRefresh } from "@/components/live-refresh";
 import { MapExplorer } from "./map-explorer";
 
-export const metadata = { title: "Карта обращений" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.map.title };
+}
 
 export default async function MapPage() {
   const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
@@ -18,7 +21,7 @@ export default async function MapPage() {
     <>
       <LiveRefresh />
       <MapExplorer
-        points={all.map(toMapPoint)}
+        points={all.map((r) => toMapPoint(r, lang))}
         clusters={clusters}
         incidents={incidents ?? []}
         lang={lang}

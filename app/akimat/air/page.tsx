@@ -1,11 +1,16 @@
 import { flow } from "@/lib/data";
+import { getDict } from "@/lib/i18n/server";
+import { fmt as tf } from "@/lib/i18n/dict";
 import { backtrace, overlaps, SECTOR_DEG, MAX_DIST_M, CELL_M, type WindObs } from "@/lib/wind";
 import { AKTAU_CENTER, type GeoPolygon } from "@/lib/geo";
 import { CityMap } from "@/components/map/map";
 import weather from "@/data/weather_history.json";
 import industrial from "@/data/industrial.json";
 
-export const metadata = { title: "Источник запаха" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.akimat.nav.air };
+}
 
 // Почасовой ветер Open-Meteo (время в data — местное Asia/Aqtau, UTC+5)
 const OBS: WindObs[] = (weather.items as { t: string; wind_deg: number; wind_speed: number }[])
@@ -15,7 +20,7 @@ const OBS: WindObs[] = (weather.items as { t: string; wind_deg: number; wind_spe
 type Obj = { name: string | null; kind: string | null; polygon: GeoPolygon | null; lat: number; lng: number };
 
 export default async function AirPage() {
-  const { all } = await flow();
+  const [{ t }, { all }] = await Promise.all([getDict(), flow()]);
   const smell = all.filter((r) => r.category === "smell");
   const { cells, used } = backtrace(
     smell.map((r) => ({ lat: r.lat, lng: r.lng, time: new Date(r.created_at).getTime() })),
@@ -31,11 +36,9 @@ export default async function AirPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Вероятная зона источника запаха</h1>
+        <h1 className="text-xl font-semibold">{t.akimat.air.title}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          По совпадению жалоб и розы ветров. Для каждой из {used} жалоб на запах берётся реальный ветер Open-Meteo на час подачи;
-          источник — против ветра: сектор ±{SECTOR_DEG}°, до {MAX_DIST_M / 1000} км, сетка {CELL_M} м. Каждая жалоба голосует
-          за ячейки своего сектора. Это гипотеза для выездной проверки экологами, а не вывод о виновнике.
+          {tf(t.akimat.air.intro, { n: used, deg: SECTOR_DEG, km: MAX_DIST_M / 1000, cell: CELL_M })}
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
@@ -50,8 +53,8 @@ export default async function AirPage() {
         </div>
         <div className="flex flex-col gap-3">
           <div className="rounded-lg border p-4 text-sm">
-            <div className="font-medium">Объекты OSM в зоне максимума голосов</div>
-            <p className="mt-1 text-xs text-muted-foreground">Совпадение по географии — повод для замеров, не доказательство.</p>
+            <div className="font-medium">{t.akimat.air.objects}</div>
+            <p className="mt-1 text-xs text-muted-foreground">{t.akimat.air.objectsNote}</p>
             {hits.length ? (
               <ol className="mt-2 space-y-1">
                 {hits.map((h, i) => (
@@ -62,12 +65,11 @@ export default async function AirPage() {
                 ))}
               </ol>
             ) : (
-              <p className="mt-2 text-muted-foreground">Промышленные объекты OSM не попали в зону максимума.</p>
+              <p className="mt-2 text-muted-foreground">{t.akimat.air.noObjects}</p>
             )}
           </div>
           <div className="rounded-lg border p-4 text-xs text-muted-foreground">
-            Для сверки: по данным проверки Департамента экологии (декабрь 2025), с учётом направления ветра возможными
-            источниками запаха в 30, 34, 35, 38 мкр назывались хвостохранилище Кошкар-Ата и КОС-2 —{" "}
+            {t.akimat.air.check}{" "}
             <a className="text-primary hover:underline" href="https://tengrinews.kz/kazakhstan_news/jiteli-aktau-jaluyutsya-himicheskiy-zapah-ekologi-proveli-588154/" target="_blank" rel="noopener noreferrer">
               tengrinews.kz
             </a>

@@ -1,4 +1,5 @@
 import { getDict } from "@/lib/i18n/server";
+import { fmt as tf } from "@/lib/i18n/dict";
 import { flow } from "@/lib/data";
 import { serviceQuality } from "@/lib/stats";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -6,12 +7,14 @@ import { getReference } from "@/lib/reference";
 import { boilerplateScore, BOILERPLATE_THRESHOLD } from "@/lib/boilerplate";
 import { SERVICE, nm } from "@/lib/meta";
 
-export const metadata = { title: "Качество служб" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.akimat.nav.quality };
+}
 
-const MISSING: Record<string, string> = { date: "нет даты/срока", amount: "нет суммы", executor: "нет исполнителя", document: "нет ссылки на документ" };
 
 export default async function QualityPage() {
-  const [{ lang }, { all }, ref] = await Promise.all([getDict(), flow(), getReference()]);
+  const [{ lang, t }, { all }, ref] = await Promise.all([getDict(), flow(), getReference()]);
   const rows = serviceQuality(all);
   const db = createAdminClient();
   const { data: replies } = await db
@@ -23,11 +26,9 @@ export default async function QualityPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Качество работы служб</h1>
+        <h1 className="text-xl font-semibold">{t.akimat.quality.title}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Просрочки, переоткрытия жителями, фото без геоподтверждения и доля ответов без конкретики. «Ответ без конкретики»
-          считается объяснимо: маркеры шаблонных фраз (40%), TF-IDF сходство с корпусом типовых формулировок (35%),
-          отсутствие даты, суммы, исполнителя и ссылки на документ (25%). Порог — {Math.round(BOILERPLATE_THRESHOLD * 100)}%.
+          {tf(t.akimat.quality.intro, { p: Math.round(BOILERPLATE_THRESHOLD * 100) })}
         </p>
       </div>
 
@@ -35,13 +36,13 @@ export default async function QualityPage() {
         <table className="w-full min-w-[760px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr className="border-b">
-              <th className="px-4 py-2 font-normal">Служба</th>
-              <th className="px-2 py-2 text-right font-normal">Обращений</th>
-              <th className="px-2 py-2 text-right font-normal">Просрочено, %</th>
-              <th className="px-2 py-2 text-right font-normal">Переоткрыто, %</th>
-              <th className="px-2 py-2 text-right font-normal">Ответы без конкретики, %</th>
-              <th className="px-2 py-2 text-right font-normal">Фото без геометки, %</th>
-              <th className="px-4 py-2 text-right font-normal">Медиана решения, дн.</th>
+              <th className="px-4 py-2 font-normal">{t.akimat.quality.service}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.quality.reports}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.quality.breached}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.quality.reopened}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.quality.boiler}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.quality.unverified}</th>
+              <th className="px-4 py-2 text-right font-normal">{t.akimat.quality.median}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -64,7 +65,7 @@ export default async function QualityPage() {
       </section>
 
       <section>
-        <h2 className="font-medium">Самые шаблонные ответы (реальные ответы в системе)</h2>
+        <h2 className="font-medium">{t.akimat.quality.examples}</h2>
         {(replies ?? []).length ? (
           <ul className="mt-2 grid gap-3 md:grid-cols-2">
             {(replies ?? []).map((rep) => {
@@ -80,14 +81,14 @@ export default async function QualityPage() {
                   <p className="mt-1">«{rep.text}»</p>
                   <div className="mt-2 flex flex-wrap gap-1 text-xs">
                     {b.markers.map((m) => <span key={m} className="rounded bg-warn/15 px-1.5 py-0.5">{m}</span>)}
-                    {b.missing.map((m) => <span key={m} className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{MISSING[m]}</span>)}
+                    {b.missing.map((m) => <span key={m} className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">{t.akimat.quality.missing[m]}</span>)}
                   </div>
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-muted-foreground">Реальных ответов служб пока нет — они появятся, когда службы начнут отвечать в карточках.</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t.akimat.quality.noReplies}</p>
         )}
       </section>
     </div>

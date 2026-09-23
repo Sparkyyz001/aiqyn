@@ -10,7 +10,10 @@ import { ReportRow } from "@/components/reports/report-row";
 import { LiveRefresh } from "@/components/live-refresh";
 import { DistrictPicker } from "./district-picker";
 
-export const metadata = { title: "Мои обращения" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.nav.me };
+}
 
 export default async function MePage() {
   const me = await requireRole();
@@ -80,8 +83,9 @@ export default async function MePage() {
 
       <section className="mt-6">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-medium">Мой двор</h2>
+          <h2 className="font-medium">{t.me.yard}</h2>
           <DistrictPicker
+            placeholder={t.me.districtPh}
             value={me.district_id}
             options={ref.districts.filter((d) => d.kind !== "zone").map((d) => ({ id: d.id, name: lang === "kz" ? d.name_kz : d.name_ru }))}
           />
@@ -96,10 +100,10 @@ export default async function MePage() {
               ))}
             </ul>
           ) : (
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Открытых обращений в районе нет</div>
+            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">{t.me.yardEmpty}</div>
           )
         ) : (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Выберите свой микрорайон, чтобы следить за ним</div>
+          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">{t.me.yardPick}</div>
         )}
         {me.district_id && <LiveRefresh filter={`district_id=eq.${me.district_id}`} />}
       </section>

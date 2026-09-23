@@ -1,7 +1,10 @@
 import { getDict } from "@/lib/i18n/server";
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Вход" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.nav.login };
+}
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { t } = await getDict();

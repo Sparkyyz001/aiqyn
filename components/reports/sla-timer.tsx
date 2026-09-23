@@ -33,7 +33,7 @@ export function SlaTimer({ dueAt, closed, t, compact = false }: { dueAt: string 
         ? `${t.overdue} ${Math.max(1, Math.abs(s.workingDaysLeft))} ${t.wd}`
         : s.workingDaysLeft > 0
           ? `${t.left} ${s.workingDaysLeft} ${t.wd}`
-          : `${t.left} ${hours} ч`;
+          : `${t.left} ${hours} ${t.hours}`;
 
   if (compact)
     return (

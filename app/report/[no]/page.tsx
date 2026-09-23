@@ -9,6 +9,7 @@ import { settleVerification } from "@/lib/actions/reports";
 import { computePriority, PRIORITY_LABELS } from "@/lib/priority";
 import { boilerplateScore, BOILERPLATE_THRESHOLD } from "@/lib/boilerplate";
 import { nm } from "@/lib/meta";
+import { fmt as tf, type Dict } from "@/lib/i18n/dict";
 import { SlaTimer } from "@/components/reports/sla-timer";
 import { StatusBadge } from "@/components/status-badge";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -78,8 +79,29 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
     const a = (actors ?? []).find((x) => x.id === id);
     if (!a) return "—";
     if (a.role === "service") return ref.serviceById.get(a.service_id)?.short_name ?? t.roles.service;
-    if (a.role === "citizen") return id === r.author_id ? `${t.roles.citizen} (автор)` : t.roles.citizen;
+    if (a.role === "citizen") return id === r.author_id ? `${t.roles.citizen} (${t.me.author})` : t.roles.citizen;
     return t.roles[a.role as keyof typeof t.roles];
+  };
+
+  // Системные записи хранят код сообщения (meta.msg / meta.rule) — показываем на языке пользователя.
+  // Пользовательские комментарии и старые записи без кода — как есть.
+  type Ev = { type: string; comment: string | null; meta: Record<string, unknown> | null };
+  const eventText = (e: Ev): string | null => {
+    const m = e.meta ?? {};
+    if (typeof m.msg === "string" && m.msg in t.events) return tf(t.events[m.msg as keyof Dict["events"]], m as Record<string, string>);
+    if (e.type === "routed" && m.service) {
+      const short = ref.serviceByCode.get(String(m.service))?.short_name ?? "";
+      const reason = m.rule ? t.routing[m.rule as keyof Dict["routing"]] : t.routing.default;
+      return `${short}: ${reason ?? e.comment}`;
+    }
+    if (e.type === "created" && m.source === "press") return t.events.press;
+    return e.comment;
+  };
+  const photoReasonText = (e: Ev): string | null => {
+    const codes = e.meta?.reason_codes as { code: string; d?: number; max?: number }[] | undefined;
+    if (codes?.length) return codes.map((x) => tf(t.photoReasons[x.code as keyof Dict["photoReasons"]] ?? x.code, { d: x.d ?? "", max: x.max ?? "" })).join("; ");
+    const old = e.meta?.reasons as string[] | undefined;
+    return old?.length ? old.join("; ") : null;
   };
 
   return (
@@ -158,7 +180,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
             myVote={myVote?.verdict ?? null}
             isStaff={isStaff}
             canEscalate={canEscalate}
-            t={{ card: t.card, common: t.common, nav: t.nav }}
+            t={{ card: t.card, common: t.common, nav: t.nav, actions: t.actions, photoReasons: t.photoReasons }}
           />
 
           {(replies ?? []).length > 0 && (
@@ -172,7 +194,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
                       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                         <span>{ref.serviceById.get(rep.service_id)?.short_name} · {fmt(rep.created_at)}</span>
                         {(rep.boilerplate_score ?? 0) >= BOILERPLATE_THRESHOLD && (
-                          <span className="rounded bg-warn/15 px-1.5 py-0.5 text-[color:var(--warn)]" title={`маркеры: ${b.markers.join(", ") || "—"}; нет: ${b.missing.join(", ")}`}>
+                          <span className="rounded bg-warn/15 px-1.5 py-0.5 text-[color:var(--warn)]" title={`${t.card.markers}: ${b.markers.join(", ") || "—"}; ${t.card.lacks}: ${b.missing.map((m) => t.akimat.quality.missing[m]).join(", ")}`}>
                             {t.card.noSpecifics} · {Math.round((rep.boilerplate_score ?? 0) * 100)}%
                           </span>
                         )}
@@ -202,12 +224,12 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
                       </>
                     ) : (
                       <span className="font-medium">
-                        {({ confirmed: `+1 ${t.card.confirmations}`, reply: t.card.replies, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.card.escalate, incident_linked: t.card.incident } as Record<string, string>)[e.type] ?? e.type}
+                        {({ confirmed: t.events.confirmed, reply: t.events.reply, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.events.escalated, incident_linked: t.events.incident_linked } as Record<string, string>)[e.type] ?? e.type}
                       </span>
                     )}
                   </div>
-                  {e.comment && e.type !== "reply" && <div className="text-sm text-muted-foreground">{e.comment}</div>}
-                  {e.meta?.reasons?.length > 0 && <div className="text-xs text-[color:var(--warn)]">{e.meta.reasons.join("; ")}</div>}
+                  {e.type !== "reply" && eventText(e) && <div className="text-sm text-muted-foreground">{eventText(e)}</div>}
+                  {photoReasonText(e) && <div className="text-xs text-[color:var(--warn)]">{photoReasonText(e)}</div>}
                 </li>
               ))}
             </ol>
@@ -233,7 +255,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
               <div className="text-xs text-muted-foreground">{t.card.service}</div>
               <div className="font-medium">{nm(svc, lang)}</div>
               {svc.address && <div className="text-xs text-muted-foreground">{svc.address}</div>}
-              {svc.contact_phone && <div className="text-xs">тел. {svc.contact_phone}</div>}
+              {svc.contact_phone && <div className="text-xs">{t.card.phone} {svc.contact_phone}</div>}
               {!svc.verified && <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Info className="size-3" />{t.card.unverifiedOrg}</div>}
             </div>
           )}

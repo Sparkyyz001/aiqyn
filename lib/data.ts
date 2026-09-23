@@ -31,6 +31,7 @@ export async function realReports(): Promise<FlowReport[]> {
       service: r.service_id ? ref.serviceById.get(r.service_id)?.code ?? "akimat" : "akimat",
       district: r.district_id ? ref.districtById.get(r.district_id)?.code ?? null : null,
       title: r.title,
+      title_kz: null,
       lat: r.lat,
       lng: r.lng,
       status: r.status,
@@ -59,7 +60,10 @@ export type MapPoint = {
   id: number; no: string; c: string; s: string; lat: number; lng: number;
   t: string; d: string | null; b: boolean; demo: boolean; at: string;
 };
-export const toMapPoint = (r: FlowReport): MapPoint => ({
+/** Заголовок в нужной локали: у демо-записей есть казахский вариант, тексты жителей показываем как написаны */
+export const titleOf = (r: { title: string; title_kz: string | null }, lang: "ru" | "kz") => (lang === "kz" && r.title_kz ? r.title_kz : r.title);
+
+export const toMapPoint = (r: FlowReport, lang: "ru" | "kz" = "ru"): MapPoint => ({
   id: r.id, no: r.public_no, c: r.category, s: r.status, lat: r.lat, lng: r.lng,
-  t: r.title, d: r.district, b: r.sla_breached, demo: r.demo, at: r.created_at,
+  t: titleOf(r, lang), d: r.district, b: r.sla_breached, demo: r.demo, at: r.created_at,
 });

@@ -13,7 +13,7 @@ import type { Dict } from "@/lib/i18n/dict";
 const DEMO = [
   { email: "citizen@aiqyn.kz", role: "citizen" },
   { email: "kzhsa@aiqyn.kz", role: "service", note: "КЖСА" },
-  { email: "roads@aiqyn.kz", role: "service", note: "дороги" },
+  { email: "roads@aiqyn.kz", role: "service", note: "ПТиАД" },
   { email: "akimat@aiqyn.kz", role: "akimat" },
   { email: "operator@aiqyn.kz", role: "operator" },
 ] as const;

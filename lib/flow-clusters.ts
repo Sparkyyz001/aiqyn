@@ -21,7 +21,7 @@ export type FlowCluster = {
   chronic_score: number;
   label: string | null;
   downtime_days: number;
-  members: { id: number; no: string; status: string; demo: boolean; title: string; created_at: string }[];
+  members: { id: number; no: string; status: string; demo: boolean; title: string; title_kz: string | null; created_at: string }[];
 };
 
 export function flowClusters(all: FlowReport[]): FlowCluster[] {
@@ -57,7 +57,7 @@ export function flowClusters(all: FlowReport[]): FlowCluster[] {
         downtime_days: Math.round(downtime),
         members: c.members
           .sort((a, b) => b.created_at.localeCompare(a.created_at))
-          .map((m) => ({ id: m.id, no: m.public_no, status: m.status, demo: m.demo, title: m.title, created_at: m.created_at })),
+          .map((m) => ({ id: m.id, no: m.public_no, status: m.status, demo: m.demo, title: m.title, title_kz: m.title_kz, created_at: m.created_at })),
       });
     }
   }

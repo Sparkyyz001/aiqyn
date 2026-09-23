@@ -1,10 +1,15 @@
 import { flow } from "@/lib/data";
+import { getDict } from "@/lib/i18n/server";
+import { fmt as tf } from "@/lib/i18n/dict";
 import { roadRisk } from "@/lib/road-risk";
 import { CityMap } from "@/components/map/map";
 import { createAdminClient } from "@/lib/supabase/admin";
 import daily from "@/data/weather_daily.json";
 
-export const metadata = { title: "Прогноз дорог" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.akimat.nav.forecast };
+}
 
 type Seg = { osm_id: string; name: string | null; highway: string; geometry: { coordinates: [number, number][] } };
 
@@ -17,7 +22,7 @@ function lastWinterFreezeThaw() {
 }
 
 export default async function ForecastPage() {
-  const { all } = await flow();
+  const [{ t }, { all }] = await Promise.all([getDict(), flow()]);
   // 838 значимых сегментов (именованные + primary…tertiary) залиты seed-скриптом из OSM
   const { data } = await createAdminClient().from("road_segments").select("osm_id, name, highway_class, geometry").limit(2000);
   const segs: Seg[] = (data ?? []).map((r) => ({ osm_id: r.osm_id, name: r.name, highway: r.highway_class, geometry: r.geometry }));
@@ -29,12 +34,9 @@ export default async function ForecastPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Где дороги посыплются в ближайший сезон</h1>
+        <h1 className="text-xl font-semibold">{t.akimat.forecast.title}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Индекс риска по {segs.length} сегментам OSM: жалобы на ямы и раскопки в 40 м от сегмента за 90 дней, класс нагрузки
-          дороги, длина и переходы через 0 °C прошлой зимой по Open-Meteo ({ft} дней) — главный климатический разрушитель
-          покрытия. Формула открыта в <code>lib/road-risk.ts</code>. Когда накопится реальная история обращений, те же признаки
-          пойдут в обучение регрессионной модели.
+          {tf(t.akimat.forecast.intro, { n: segs.length, ft })}
         </p>
       </div>
       <div className="overflow-hidden rounded-lg border">
@@ -43,20 +45,20 @@ export default async function ForecastPage() {
           polygons={top.map((s) => ({
             geojson: { type: "LineString", coordinates: s.coords } as GeoJSON.LineString,
             color: s.risk >= 0.8 ? "#d0452f" : "#d69a1b",
-            label: `${s.name ?? s.highway} · риск ${s.risk}`,
+            label: tf(t.akimat.forecast.popup, { name: s.name ?? s.highway, r: s.risk }),
           }))}
         />
       </div>
       <section className="overflow-x-auto rounded-lg border">
-        <h2 className="border-b px-4 py-2.5 font-medium">Топ-20 участков для превентивного ремонта</h2>
+        <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.forecast.top}</h2>
         <table className="w-full min-w-[560px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr className="border-b">
-              <th className="px-4 py-2 font-normal">Участок (OSM)</th>
-              <th className="px-2 py-2 font-normal">Класс</th>
-              <th className="px-2 py-2 text-right font-normal">Длина, км</th>
-              <th className="px-2 py-2 text-right font-normal">Жалоб рядом</th>
-              <th className="px-4 py-2 text-right font-normal">Риск</th>
+              <th className="px-4 py-2 font-normal">{t.akimat.forecast.segment}</th>
+              <th className="px-2 py-2 font-normal">{t.akimat.forecast.class}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.forecast.length}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.forecast.complaints}</th>
+              <th className="px-4 py-2 text-right font-normal">{t.akimat.forecast.risk}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -64,7 +66,7 @@ export default async function ForecastPage() {
               <tr key={s.osm_id}>
                 <td className="px-4 py-2">
                   <a className="text-primary hover:underline" href={`https://www.openstreetmap.org/${s.osm_id}`} target="_blank" rel="noopener noreferrer">
-                    {s.name ?? "без названия"}
+                    {s.name ?? t.akimat.forecast.unnamed}
                   </a>
                 </td>
                 <td className="px-2 py-2 text-muted-foreground">{s.highway}</td>

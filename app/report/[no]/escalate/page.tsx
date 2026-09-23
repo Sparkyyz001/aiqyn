@@ -6,8 +6,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkEscalation } from "@/lib/escalation-access";
 import { buildEscalationPayload, escalationText } from "@/lib/escalation";
 import { EscalateClient } from "./escalate-client";
+import { getDict } from "@/lib/i18n/server";
 
-export const metadata = { title: "Эскалация в eOtinish" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.escalate.title };
+}
 
 export default async function EscalatePage({ params }: PageProps<"/report/[no]/escalate">) {
   const { no } = await params;
@@ -16,6 +20,7 @@ export default async function EscalatePage({ params }: PageProps<"/report/[no]/e
   if (!r) notFound();
 
   const chk = await checkEscalation(r.id);
+  const { t } = await getDict();
   const back = (
     <Link href={`/report/${no}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
       <ArrowLeft className="size-4" /> {no}
@@ -42,16 +47,16 @@ export default async function EscalatePage({ params }: PageProps<"/report/[no]/e
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       {back}
-      <h1 className="mt-2 text-xl font-semibold">Эскалация в eOtinish</h1>
+      <h1 className="mt-2 text-xl font-semibold">{t.escalate.title}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Мы не отправляем обращение в госсистему за вас. AIQYN готовит пакет: текст жалобы, хронологию, фото и число подтвердивших
-        жителей. Подаёте вы сами на eotinish.kz — так у обращения есть юридическая сила и ответственность по срокам.
+        {t.escalate.intro}
       </p>
       <EscalateClient
         reportId={r.id}
         defaultName={chk.me.full_name ?? ""}
         previewText={preview ? escalationText(preview) : ""}
         previous={prev ?? []}
+        t={t.escalate}
       />
     </div>
   );

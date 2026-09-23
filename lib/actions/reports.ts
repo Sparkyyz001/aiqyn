@@ -1,5 +1,6 @@
 "use server";
 
+import { msg } from "@/lib/i18n/server";
 import { revalidatePath } from "next/cache";
 import { getProfile, type Profile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -40,6 +41,7 @@ export type Preview = {
   matched: string[];
   service: { code: string; name_ru: string; name_kz: string };
   routingReason: string;
+  routingRule: string | null;
   district: { id: number; name_ru: string; name_kz: string } | null;
   nearSocial: { name: string | null; amenity: string; distance_m: number } | null;
   duplicates: {
@@ -49,7 +51,7 @@ export type Preview = {
 };
 
 export async function previewReport(input: { text: string; lat: number; lng: number; category?: CategoryCode | null }): Promise<Result<Preview>> {
-  if (!inAktau(input)) return fail("Точка вне Актау");
+  if (!inAktau(input)) return fail(await msg("outside"));
   const ref = await getReference();
   const cls = classify(input.text);
   const code = input.category ?? cls.category;
@@ -80,6 +82,7 @@ export async function previewReport(input: { text: string; lat: number; lng: num
       matched: cls.matched,
       service: { code: svc.code, name_ru: svc.name_ru, name_kz: svc.name_kz },
       routingReason: routing.reason,
+      routingRule: routing.rule,
       district: district ? { id: district.id, name_ru: district.name_ru, name_kz: district.name_kz } : null,
       nearSocial: social ? { name: social.name, amenity: social.amenity, distance_m: social.distance_m } : null,
       duplicates: dups.map((d) => ({
@@ -105,16 +108,16 @@ export type CreateInput = {
 
 export async function createReport(input: CreateInput): Promise<Result<{ public_no: string }>> {
   const me = await getProfile();
-  if (!me) return fail("Нужно войти");
+  if (!me) return fail(await msg("login"));
   const title = input.title?.trim();
-  if (!title || title.length < 3) return fail("Опишите проблему в двух словах");
-  if (!inAktau(input)) return fail("Точка вне Актау");
+  if (!title || title.length < 3) return fail(await msg("shortTitle"));
+  if (!inAktau(input)) return fail(await msg("outside"));
 
   // Источник «оператор/109/Instagram» — только для оператора и акимата
   const source = input.source ?? "app";
-  if (source !== "app" && !["operator", "akimat"].includes(me.role)) return fail("Нет прав");
+  if (source !== "app" && !["operator", "akimat"].includes(me.role)) return fail(await msg("forbidden"));
   if (source === "instagram" && !/^https:\/\/(www\.)?instagram\.com\//.test(input.source_url ?? ""))
-    return fail("Нужна ссылка на публичный пост Instagram");
+    return fail(await msg("instagramUrl"));
 
   const ref = await getReference();
   const cat = ref.categoryByCode.get(input.category) ?? ref.categoryByCode.get("other")!;
@@ -150,7 +153,7 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
     })
     .select("id, public_no")
     .single();
-  if (error || !report) return fail(error?.message ?? "Не удалось создать обращение");
+  if (error || !report) return fail(error?.message ?? await msg("createFailed"));
 
   const photos = input.photos.filter((p) => ownsPath(me, p.path)).slice(0, 5);
   if (photos.length) {
@@ -176,7 +179,7 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
   if (incident) {
     await logEvent({
       report_id: report.id, actor_id: null, type: "incident_linked",
-      comment: `Известная авария: ${incident.title}`, meta: { incident_id: incident.id, eta_at: incident.eta_at },
+      comment: `Известная авария: ${incident.title}`, meta: { msg: "incident", title: incident.title, incident_id: incident.id, eta_at: incident.eta_at },
     });
   }
 
@@ -202,15 +205,15 @@ async function matchIncident(categoryCode: string, p: { lat: number; lng: number
 
 export async function confirmReport(reportId: number): Promise<Result<{ count: number }>> {
   const me = await getProfile();
-  if (!me) return fail("Нужно войти");
+  if (!me) return fail(await msg("login"));
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("id, author_id, status, public_no").eq("id", reportId).single();
-  if (!r) return fail("Обращение не найдено");
-  if (r.author_id === me.id) return fail("Это ваше обращение");
-  if (["resolved", "rejected"].includes(r.status)) return fail("Обращение уже закрыто");
+  if (!r) return fail(await msg("notFound"));
+  if (r.author_id === me.id) return fail(await msg("ownReport"));
+  if (["resolved", "rejected"].includes(r.status)) return fail(await msg("closed"));
 
   const { error } = await db.from("report_confirmations").insert({ report_id: r.id, user_id: me.id });
-  if (error) return fail(error.code === "23505" ? "Вы уже подтвердили" : error.message);
+  if (error) return fail(error.code === "23505" ? await msg("alreadyConfirmed") : error.message);
   await logEvent({ report_id: r.id, actor_id: me.id, type: "confirmed" });
   await recomputeReport(r.id);
 
@@ -225,12 +228,12 @@ export async function confirmReport(reportId: number): Promise<Result<{ count: n
 
 async function loadForStaff(reportId: number) {
   const me = await getProfile();
-  if (!me) return { error: "Нужно войти" } as const;
+  if (!me) return { error: await msg("login") } as const;
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("*").eq("id", reportId).single();
-  if (!r) return { error: "Обращение не найдено" } as const;
+  if (!r) return { error: await msg("notFound") } as const;
   const allowed = ["akimat", "operator"].includes(me.role) || (me.role === "service" && me.service_id === r.service_id);
-  if (!allowed) return { error: "Обращение не в вашей очереди" } as const;
+  if (!allowed) return { error: await msg("notInQueue") } as const;
   return { me, r, db } as const;
 }
 
@@ -246,8 +249,8 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
   if ("error" in ctx) return fail(ctx.error!);
   const { me, r, db } = ctx;
   const t = TRANSITIONS[action];
-  if (!(t.from as readonly string[]).includes(r.status)) return fail(`Нельзя из статуса «${r.status}»`);
-  if (action === "reject" && !comment?.trim()) return fail("Укажите причину отказа");
+  if (!(t.from as readonly string[]).includes(r.status)) return fail(await msg("badTransition", { s: r.status }));
+  if (action === "reject" && !comment?.trim()) return fail(await msg("rejectReason"));
 
   const patch: Record<string, unknown> = { status: t.to };
   if (action === "accept" && !r.accepted_at) patch.accepted_at = new Date().toISOString();
@@ -266,27 +269,40 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
  * Сверяем EXIF: ≤100 м от точки обращения и снято позже, чем заявку приняли.
  * Если не сошлось — не блокируем, но geo_verified=false (бейдж + метрика качества службы).
  */
-export async function submitCompletion(reportId: number, photo: PhotoInput, comment?: string): Promise<Result<{ geo_verified: boolean; reasons: string[] }>> {
+export async function submitCompletion(reportId: number, photo: PhotoInput, comment?: string): Promise<Result<{ geo_verified: boolean; reasons: { code: string; d?: number; max?: number }[] }>> {
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
   const { me, r, db } = ctx;
-  if (!["accepted", "in_progress", "reopened"].includes(r.status)) return fail("Сначала примите обращение в работу");
-  if (!photo?.path || !ownsPath(me, photo.path)) return fail("Приложите фото «после»");
+  if (!["accepted", "in_progress", "reopened"].includes(r.status)) return fail(await msg("acceptFirst"));
+  if (!photo?.path || !ownsPath(me, photo.path)) return fail(await msg("afterPhoto"));
 
   const reasons: string[] = [];
+  const reasonCodes: { code: string; d?: number; max?: number }[] = [];
   let geoOk = false;
-  if (photo.lat == null || photo.lng == null) reasons.push("в фото нет GPS-координат");
+  if (photo.lat == null || photo.lng == null) {
+    reasons.push("в фото нет GPS-координат");
+    reasonCodes.push({ code: "no_gps" });
+  }
   else {
     const d = Math.round(haversine(r, { lat: photo.lat, lng: photo.lng }));
     geoOk = d <= PHOTO_GEO_RADIUS_M;
-    if (!geoOk) reasons.push(`снято в ${d} м от точки обращения (допустимо ${PHOTO_GEO_RADIUS_M} м)`);
+    if (!geoOk) {
+      reasons.push(`снято в ${d} м от точки обращения (допустимо ${PHOTO_GEO_RADIUS_M} м)`);
+      reasonCodes.push({ code: "far", d, max: PHOTO_GEO_RADIUS_M });
+    }
   }
   const acceptedAt = r.accepted_at ? new Date(r.accepted_at) : new Date(r.created_at);
   let fresh = false;
-  if (!photo.taken_at) reasons.push("в фото нет даты съёмки");
+  if (!photo.taken_at) {
+    reasons.push("в фото нет даты съёмки");
+    reasonCodes.push({ code: "no_date" });
+  }
   else {
     fresh = new Date(photo.taken_at) > acceptedAt;
-    if (!fresh) reasons.push("фото снято раньше, чем заявку приняли в работу");
+    if (!fresh) {
+      reasons.push("фото снято раньше, чем заявку приняли в работу");
+      reasonCodes.push({ code: "too_early" });
+    }
   }
   const verified = geoOk && fresh;
 
@@ -299,13 +315,13 @@ export async function submitCompletion(reportId: number, photo: PhotoInput, comm
   await logEvent({
     report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: "awaiting_confirmation",
     comment: comment?.trim() || "Служба сообщает, что проблема решена",
-    meta: { photo_geo_verified: verified, reasons, voting_until: dueVote },
+    meta: { msg: comment?.trim() ? undefined : "service_done", photo_geo_verified: verified, reasons, reason_codes: reasonCodes, voting_until: dueVote },
   });
   if (comment?.trim()) await addReplyInternal(r.id, r.service_id, me.id, comment.trim());
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
   revalidatePath("/service");
-  return { ok: true, data: { geo_verified: verified, reasons } };
+  return { ok: true, data: { geo_verified: verified, reasons: reasonCodes } };
 }
 
 async function addReplyInternal(reportId: number, serviceId: number, authorId: string, text: string) {
@@ -319,7 +335,7 @@ async function addReplyInternal(reportId: number, serviceId: number, authorId: s
 export async function addReply(reportId: number, text: string): Promise<Result> {
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
-  if (!text?.trim()) return fail("Пустой ответ");
+  if (!text?.trim()) return fail(await msg("emptyReply"));
   await addReplyInternal(ctx.r.id, ctx.r.service_id, ctx.me.id, text.trim());
   revalidatePath(`/report/${ctx.r.public_no}`);
   return { ok: true, data: null };
@@ -331,20 +347,20 @@ export async function addReply(reportId: number, text: string): Promise<Result> 
 
 export async function castVerification(reportId: number, verdict: "fixed" | "not_fixed", comment?: string): Promise<Result<{ outcome: string }>> {
   const me = await getProfile();
-  if (!me) return fail("Нужно войти");
+  if (!me) return fail(await msg("login"));
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("id, author_id, status, reopen_count, public_no").eq("id", reportId).single();
-  if (!r) return fail("Обращение не найдено");
-  if (r.status !== "awaiting_confirmation") return fail("Голосование сейчас не идёт");
+  if (!r) return fail(await msg("notFound"));
+  if (r.status !== "awaiting_confirmation") return fail(await msg("noVoting"));
 
   const { data: conf } = await db.from("report_confirmations").select("user_id").eq("report_id", r.id);
   const involved = r.author_id === me.id || (conf ?? []).some((c) => c.user_id === me.id);
-  if (!involved) return fail("Голосуют автор и те, кто подтверждал проблему");
+  if (!involved) return fail(await msg("notVoter"));
 
   const { error } = await db.from("report_verifications").insert({
     report_id: r.id, user_id: me.id, verdict, comment: comment?.trim() || null, round: r.reopen_count,
   });
-  if (error) return fail(error.code === "23505" ? "Вы уже проголосовали" : error.message);
+  if (error) return fail(error.code === "23505" ? await msg("alreadyVoted") : error.message);
   await logEvent({ report_id: r.id, actor_id: me.id, type: "verification", comment: comment?.trim() || null, meta: { verdict } });
 
   const outcome = await settleVerification(r.id);
@@ -381,7 +397,7 @@ export async function settleVerification(reportId: number): Promise<string> {
     await logEvent({
       report_id: r.id, actor_id: null, type: "status_change", from_status: "awaiting_confirmation", to_status: "resolved",
       comment: expired && d.fixed === 0 ? "Окно 72 ч истекло без возражений" : "Жители подтвердили выполнение",
-      meta: d,
+      meta: { ...d, msg: expired && d.fixed === 0 ? "vote_expired" : "vote_fixed" },
     });
   } else {
     const newDue = slaDueAfterReopen(new Date(r.sla_due_at ?? now), now);
@@ -391,7 +407,7 @@ export async function settleVerification(reportId: number): Promise<string> {
       .eq("id", r.id);
     await logEvent({
       report_id: r.id, actor_id: null, type: "reopened", from_status: "awaiting_confirmation", to_status: "reopened",
-      comment: "Жители сообщили: не сделано. Обращение переоткрыто", meta: { ...d, new_sla_due_at: newDue.toISOString() },
+      comment: "Жители сообщили: не сделано. Обращение переоткрыто", meta: { ...d, msg: "vote_not_fixed", new_sla_due_at: newDue.toISOString() },
     });
   }
   await recomputeClustersAround(r.id);

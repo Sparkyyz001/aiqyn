@@ -79,7 +79,7 @@ for (const c of CASES) {
   if (error) throw error;
   await db.from("report_events").insert([
     { report_id: r.id, actor_id: op!.id, type: "created", to_status: "new", created_at: created.toISOString(), comment: "Заведено оператором по публикации СМИ", meta: { source: "press", source_url: c.url } },
-    { report_id: r.id, actor_id: null, type: "routed", from_status: "new", to_status: "routed", created_at: created.toISOString(), comment: `${svc.short_name}: служба по категории` },
+    { report_id: r.id, actor_id: null, type: "routed", from_status: "new", to_status: "routed", created_at: created.toISOString(), comment: `${svc.short_name}: служба по категории`, meta: { service: svc.code, rule: null } },
   ]);
   console.log(`${r.public_no}: ${c.address} · срок ${due.toISOString().slice(0, 10)}${breached ? " · ПРОСРОЧЕНО" : ""}`);
 }

@@ -5,17 +5,18 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SiteHeader } from "@/components/site-header";
 import { getLang } from "@/lib/i18n/server";
+import { DICTS } from "@/lib/i18n/dict";
 import "./globals.css";
 
 // cyrillic-ext нужен для казахских букв ә ғ қ ң ө ұ ү һ і
 const sans = Inter({ variable: "--font-sans", subsets: ["latin", "cyrillic", "cyrillic-ext"] });
 const mono = JetBrains_Mono({ variable: "--font-geist-mono", subsets: ["latin", "cyrillic"] });
 
-export const metadata: Metadata = {
-  title: { default: "AIQYN — прозрачность городских проблем Актау", template: "%s · AIQYN" },
-  description:
-    "Публичная карта обращений Актау: юридический SLA-таймер, склейка дубликатов, подтверждение выполнения жителями и эскалация в eOtinish.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  const { t } = { t: DICTS[lang] };
+  return { title: { default: t.meta.title, template: "%s · AIQYN" }, description: t.meta.description };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

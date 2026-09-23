@@ -1,5 +1,6 @@
 import { renderToBuffer } from "@react-pdf/renderer";
 import { getProfile } from "@/lib/auth";
+import { msg } from "@/lib/i18n/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { EscalationDoc } from "@/lib/pdf/escalation-doc";
 import type { EscalationPayload } from "@/lib/escalation";
@@ -10,11 +11,11 @@ export const runtime = "nodejs";
 export async function GET(_req: Request, ctx: RouteContext<"/api/documents/escalation/[id]">) {
   const { id } = await ctx.params;
   const me = await getProfile();
-  if (!me) return new Response("Нужно войти", { status: 401 });
+  if (!me) return new Response(await msg("login"), { status: 401 });
   const db = createAdminClient();
   const { data: e } = await db.from("escalations").select("id, created_by, payload").eq("id", Number(id)).single();
-  if (!e) return new Response("Не найдено", { status: 404 });
-  if (e.created_by !== me.id && !["akimat", "operator"].includes(me.role)) return new Response("Нет доступа", { status: 403 });
+  if (!e) return new Response(await msg("notFound"), { status: 404 });
+  if (e.created_by !== me.id && !["akimat", "operator"].includes(me.role)) return new Response(await msg("noAccess"), { status: 403 });
 
   const p = e.payload as EscalationPayload;
   const buf = await renderToBuffer(<EscalationDoc p={p} />);

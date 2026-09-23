@@ -3,12 +3,15 @@ import { getDict } from "@/lib/i18n/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
 import { pointInPolygon, type GeoPolygon } from "@/lib/geo";
-import { INCIDENT_TYPES } from "@/lib/incidents";
+import { fmt as tf, type Dict } from "@/lib/i18n/dict";
 import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import slim from "@/data/addresses.slim.json";
 
-export const metadata = { title: "Аварии" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.nav.incidents };
+}
 
 // Сколько домов затронуто: адресные точки OSM внутри зоны аварии (население районов в OSM не указано)
 function buildingsInside(poly: GeoPolygon) {
@@ -18,7 +21,7 @@ function buildingsInside(poly: GeoPolygon) {
 }
 
 export default async function IncidentsPage() {
-  const [{ lang, t }, ref] = await Promise.all([getDict(), getReference()]);
+  const [{ t }, ref] = await Promise.all([getDict(), getReference()]);
   const db = createAdminClient();
   const { data: incidents } = await db
     .from("incidents")
@@ -37,7 +40,7 @@ export default async function IncidentsPage() {
       <LiveRefresh table="incidents" />
       <h1 className="text-xl font-semibold">{t.nav.incidents}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Что отключено, где и когда обещают восстановить. Обращения из зоны аварии привязываются к ней автоматически.
+        {t.incident.pageIntro}
       </p>
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="overflow-hidden rounded-lg border">
@@ -47,7 +50,7 @@ export default async function IncidentsPage() {
           />
         </div>
         <div className="flex flex-col gap-3">
-          {active.length === 0 && <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Активных аварий нет</div>}
+          {active.length === 0 && <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">{t.incident.noActive}</div>}
           {active.map((i, idx) => {
             const overdue = i.eta_at && new Date(i.eta_at) < new Date();
             return (
@@ -57,26 +60,26 @@ export default async function IncidentsPage() {
                   <div className="min-w-0">
                     <div className="font-medium">{i.title}</div>
                     <div className="text-xs text-muted-foreground">
-                      {INCIDENT_TYPES.find((x) => x.code === i.type)?.[lang]} · {i.service_id ? ref.serviceById.get(i.service_id)?.short_name : ""}
+                      {t.incident.types[i.type as keyof Dict["incident"]["types"]]} · {i.service_id ? ref.serviceById.get(i.service_id)?.short_name : ""}
                     </div>
                   </div>
                 </div>
                 {i.description && <p className="mt-2 text-sm">{i.description}</p>}
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <dt className="text-xs text-muted-foreground">С</dt>
+                    <dt className="text-xs text-muted-foreground">{t.incident.from}</dt>
                     <dd className="tabular-nums">{fmt(i.started_at)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground">{t.card.restoreBy}</dt>
-                    <dd className={`tabular-nums ${overdue ? "font-semibold text-[color:var(--danger)]" : ""}`}>{i.eta_at ? fmt(i.eta_at) : "не указано"}</dd>
+                    <dd className={`tabular-nums ${overdue ? "font-semibold text-[color:var(--danger)]" : ""}`}>{i.eta_at ? fmt(i.eta_at) : t.incident.notSet}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Домов в зоне (OSM)</dt>
+                    <dt className="text-xs text-muted-foreground">{t.incident.houses}</dt>
                     <dd className="tabular-nums">{buildingsInside(i.polygon)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Обращений привязано</dt>
+                    <dt className="text-xs text-muted-foreground">{t.incident.linked}</dt>
                     <dd className="tabular-nums">{counts[idx]}</dd>
                   </div>
                 </dl>
@@ -85,7 +88,7 @@ export default async function IncidentsPage() {
           })}
           {past.length > 0 && (
             <details className="rounded-lg border p-3 text-sm">
-              <summary className="cursor-pointer">Устранённые ({past.length})</summary>
+              <summary className="cursor-pointer">{tf(t.incident.past, { n: past.length })}</summary>
               <ul className="mt-2 space-y-1">
                 {past.map((i) => (
                   <li key={i.id} className="text-muted-foreground">

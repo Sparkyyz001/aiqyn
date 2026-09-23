@@ -53,7 +53,7 @@ export default async function Home() {
             </Link>
           </div>
           <CityMap
-            points={all.filter((r) => r.status !== "resolved" && r.status !== "rejected").map(toMapPoint)}
+            points={all.filter((r) => r.status !== "resolved" && r.status !== "rejected").map((r) => toMapPoint(r, lang))}
             className="h-[380px] w-full md:h-[460px]"
             statusLabels={t.status}
             demoLabel={t.map.demo}

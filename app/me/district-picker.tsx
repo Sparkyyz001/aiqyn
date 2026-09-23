@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { setMyDistrict } from "@/lib/actions/profile";
 
-export function DistrictPicker({ value, options }: { value: number | null; options: { id: number; name: string }[] }) {
+export function DistrictPicker({ value, options, placeholder }: { value: number | null; options: { id: number; name: string }[]; placeholder: string }) {
   const [pending, start] = useTransition();
   return (
     <Select
@@ -18,7 +18,7 @@ export function DistrictPicker({ value, options }: { value: number | null; optio
         })
       }
     >
-      <SelectTrigger className="w-56"><SelectValue placeholder="Микрорайон" /></SelectTrigger>
+      <SelectTrigger className="w-56"><SelectValue placeholder={placeholder} /></SelectTrigger>
       <SelectContent className="z-[1300] max-h-80">
         {options.map((o) => (
           <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>

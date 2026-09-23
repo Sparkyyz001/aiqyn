@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { getDict } from "@/lib/i18n/server";
-import { flow } from "@/lib/data";
+import { fmt as tf } from "@/lib/i18n/dict";
+import { flow, titleOf } from "@/lib/data";
 import { flowClusters } from "@/lib/flow-clusters";
 import { CLUSTER_EPS_M, CLUSTER_MIN_PTS } from "@/lib/clustering";
 import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
 import { CityMap } from "@/components/map/map";
 
-export const metadata = { title: "Хронические точки" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.akimat.nav.clusters };
+}
 
 const color = (s: number) => (s >= 0.8 ? "#d0452f" : s >= 0.5 ? "#d69a1b" : "#2f6fa3");
 
 export default async function ClustersPage() {
-  const [{ lang }, { all }] = await Promise.all([getDict(), flow()]);
+  const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
   const clusters = flowClusters(all);
   const top = clusters.slice(0, 20);
   const fmt = (s: string) => new Date(s).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit" });
@@ -19,11 +23,9 @@ export default async function ClustersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Системные узлы — хронические точки города</h1>
+        <h1 className="text-xl font-semibold">{t.akimat.clusters.title}</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Акимату нужны не 47 отдельных жалоб, а «этот двор — хроническая точка». Группировка DBSCAN внутри категории:
-          соседство {CLUSTER_EPS_M} м, минимум {CLUSTER_MIN_PTS} обращения. Хроничность 0–1 растёт с числом жалоб, длительностью,
-          переоткрытиями и долей просрочек (формула — <code>lib/clustering.ts</code>).
+          {tf(t.akimat.clusters.intro, { eps: CLUSTER_EPS_M, min: CLUSTER_MIN_PTS })}
         </p>
       </div>
       <div className="overflow-hidden rounded-lg border">
@@ -31,23 +33,23 @@ export default async function ClustersPage() {
           className="h-[420px] w-full"
           circles={clusters.map((c) => ({
             lat: c.lat, lng: c.lng, radius: Math.max(50, c.radius_m) + c.count * 6, color: color(c.chronic_score),
-            label: `${c.label ?? ""} · ${nm(CATEGORY[c.category], lang)} · ${c.count} обр. · хроничность ${c.chronic_score}`,
+            label: tf(t.akimat.clusters.popup, { label: c.label ?? "", cat: nm(CATEGORY[c.category], lang), n: c.count, s: c.chronic_score }),
           }))}
         />
       </div>
       <section className="overflow-x-auto rounded-lg border">
-        <h2 className="border-b px-4 py-2.5 font-medium">Топ-20 хронических точек</h2>
+        <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.clusters.top}</h2>
         <table className="w-full min-w-[720px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr className="border-b">
-              <th className="px-4 py-2 font-normal">Точка</th>
-              <th className="px-2 py-2 font-normal">Категория</th>
-              <th className="px-2 py-2 text-right font-normal">Обращений</th>
-              <th className="px-2 py-2 text-right font-normal">Открыто</th>
-              <th className="px-2 py-2 text-right font-normal">Переоткрыто</th>
-              <th className="px-2 py-2 text-right font-normal">Простой, дн.</th>
-              <th className="px-2 py-2 font-normal">Период</th>
-              <th className="px-4 py-2 text-right font-normal">Хроничность</th>
+              <th className="px-4 py-2 font-normal">{t.akimat.clusters.point}</th>
+              <th className="px-2 py-2 font-normal">{t.akimat.clusters.category}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.clusters.reports}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.clusters.open}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.clusters.reopened}</th>
+              <th className="px-2 py-2 text-right font-normal">{t.akimat.clusters.downtime}</th>
+              <th className="px-2 py-2 font-normal">{t.akimat.clusters.period}</th>
+              <th className="px-4 py-2 text-right font-normal">{t.akimat.clusters.chronic}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -59,10 +61,10 @@ export default async function ClustersPage() {
                     <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                       {c.members.slice(0, 8).map((m) => (
                         <li key={m.id}>
-                          {m.demo ? m.no : <Link className="text-primary hover:underline" href={`/report/${m.no}`}>{m.no}</Link>} · {fmt(m.created_at)} · {m.title}
+                          {m.demo ? m.no : <Link className="text-primary hover:underline" href={`/report/${m.no}`}>{m.no}</Link>} · {fmt(m.created_at)} · {titleOf(m, lang)}
                         </li>
                       ))}
-                      {c.members.length > 8 && <li>… ещё {c.members.length - 8}</li>}
+                      {c.members.length > 8 && <li>{tf(t.akimat.clusters.more, { n: c.members.length - 8 })}</li>}
                     </ul>
                   </details>
                   <div className="text-xs text-muted-foreground">{nm(DISTRICT[c.district ?? ""], lang)}</div>

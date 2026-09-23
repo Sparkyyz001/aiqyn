@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { confirmReport, castVerification, staffTransition, submitCompletion, addReply } from "@/lib/actions/reports";
 import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
-import type { Dict } from "@/lib/i18n/dict";
+import { fmt, type Dict } from "@/lib/i18n/dict";
 
 type Props = {
   report: { id: number; status: string; public_no: string; verification_due_at: string | null };
@@ -19,7 +19,7 @@ type Props = {
   myVote: string | null;
   isStaff: boolean;
   canEscalate: boolean;
-  t: Pick<Dict, "card" | "common" | "nav">;
+  t: Pick<Dict, "card" | "common" | "nav" | "actions" | "photoReasons">;
 };
 
 export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, isStaff, canEscalate, t }: Props) {
@@ -35,7 +35,7 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
   const run = (fn: () => Promise<{ ok: boolean; error?: string } & Record<string, unknown>>, okText?: string) =>
     start(async () => {
       const res = await fn();
-      if (!res.ok) return void toast.error(res.error ?? "Ошибка");
+      if (!res.ok) return void toast.error(res.error ?? t.actions.error);
       if (okText) toast.success(okText);
       setComment("");
       router.refresh();
@@ -70,7 +70,7 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
           <p className="mt-3 text-sm font-medium">{t.card.voted}: {myVote === "fixed" ? t.card.voteYes : t.card.voteNo}</p>
         ) : (
           <>
-            <Textarea className="mt-3" rows={2} placeholder="Комментарий (необязательно)" value={comment} onChange={(e) => setComment(e.target.value)} />
+            <Textarea className="mt-3" rows={2} placeholder={t.actions.commentPh} value={comment} onChange={(e) => setComment(e.target.value)} />
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Button disabled={pending} onClick={() => run(() => castVerification(report.id, "fixed", comment), t.card.voted)} className="bg-[color:var(--ok)] text-white hover:bg-[color:var(--ok)]/90">
                 <ThumbsUp /> {t.card.voteYes}
@@ -88,7 +88,7 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
   // «Я тоже это вижу»
   if (open && viewer && !isAuthor && !isConfirmer && !isStaff) {
     blocks.push(
-      <Button key="confirm" variant="outline" size="lg" disabled={pending} onClick={() => run(() => confirmReport(report.id), t.card.iSeeToo)}>
+      <Button key="confirm" variant="outline" size="lg" disabled={pending} onClick={() => run(() => confirmReport(report.id), t.actions.iSeeTooOk)}>
         <Eye /> {t.card.iSeeToo}
       </Button>
     );
@@ -99,35 +99,35 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
     blocks.push(
       <div key="staff" className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4">
         <div className="text-sm font-medium">{t.nav.service}</div>
-        <Textarea rows={2} placeholder="Ответ жителю: что сделано, кем, когда" value={comment} onChange={(e) => setComment(e.target.value)} />
+        <Textarea rows={2} placeholder={t.actions.replyPh} value={comment} onChange={(e) => setComment(e.target.value)} />
         <div className="flex flex-wrap gap-2">
           {["new", "routed", "reopened"].includes(s) && (
-            <Button disabled={pending} onClick={() => run(() => staffTransition(report.id, "accept", comment), "Принято в работу")}>
-              <Check /> Принять
+            <Button disabled={pending} onClick={() => run(() => staffTransition(report.id, "accept", comment), t.actions.accepted)}>
+              <Check /> {t.actions.accept}
             </Button>
           )}
           {["accepted", "reopened"].includes(s) && (
             <Button disabled={pending} variant="secondary" onClick={() => run(() => staffTransition(report.id, "start", comment))}>
-              <Play /> В работу
+              <Play /> {t.actions.start}
             </Button>
           )}
           {comment.trim() && (
             <Button disabled={pending} variant="outline" onClick={() => run(() => addReply(report.id, comment))}>
-              <Send /> Ответить
+              <Send /> {t.actions.reply}
             </Button>
           )}
           {["new", "routed", "accepted"].includes(s) && (
-            <Button disabled={pending || !comment.trim()} variant="ghost" onClick={() => run(() => staffTransition(report.id, "reject", comment))} title="Нужна причина в комментарии">
-              <X /> Отклонить
+            <Button disabled={pending || !comment.trim()} variant="ghost" onClick={() => run(() => staffTransition(report.id, "reject", comment))} title={t.actions.rejectHint}>
+              <X /> {t.actions.reject}
             </Button>
           )}
         </div>
         {["accepted", "in_progress", "reopened"].includes(s) && (
           <div className="flex flex-col gap-2 border-t pt-3">
-            <div className="text-sm">Закрыть можно только с фото «после» — геометка и время съёмки сверяются автоматически.</div>
+            <div className="text-sm">{t.actions.afterHint}</div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" disabled={uploading} onClick={() => fileRef.current?.click()}>
-                {uploading ? <Loader2 className="animate-spin" /> : <Camera />} Фото «после»
+                {uploading ? <Loader2 className="animate-spin" /> : <Camera />} {t.actions.afterPhoto}
               </Button>
               <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onAfter(e.target.files?.[0])} />
               {afterPhoto && (
@@ -140,15 +140,20 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
                   start(async () => {
                     const res = await submitCompletion(report.id, afterPhoto!, comment);
                     if (!res.ok) return void toast.error(res.error);
-                    if (res.data.geo_verified) toast.success("Отправлено жителям на подтверждение. Геометка совпала");
-                    else toast.warning(`Отправлено жителям. Фото без геоподтверждения: ${res.data.reasons.join("; ")}`);
+                    if (res.data.geo_verified) toast.success(t.actions.sentOk);
+                    else
+                      toast.warning(
+                        fmt(t.actions.sentWarn, {
+                          r: res.data.reasons.map((x) => fmt(t.photoReasons[x.code as keyof Dict["photoReasons"]] ?? x.code, { d: x.d ?? "", max: x.max ?? "" })).join("; "),
+                        })
+                      );
                     setAfterPhoto(null);
                     setComment("");
                     router.refresh();
                   })
                 }
               >
-                <Check /> Работа выполнена
+                <Check /> {t.actions.done}
               </Button>
             </div>
           </div>
@@ -174,7 +179,7 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
   if (!viewer && open) {
     blocks.push(
       <Button key="login" asChild variant="outline">
-        <Link href={`/login?next=/report/${report.public_no}`}>{t.nav.login} → {t.card.iSeeToo}</Link>
+        <Link href={`/login?next=/report/${report.public_no}`}>{t.actions.loginToConfirm}</Link>
       </Button>
     );
   }

@@ -9,13 +9,16 @@ import { ReportRow } from "@/components/reports/report-row";
 import { LiveRefresh } from "@/components/live-refresh";
 import { Kpi } from "@/components/kpi";
 
-export const metadata = { title: "Очередь службы" };
+export async function generateMetadata() {
+  const { t } = await getDict();
+  return { title: t.service.title };
+}
 
 const TABS = [
-  { key: "new", label: "Новые", statuses: ["new", "routed", "reopened"] },
-  { key: "work", label: "В работе", statuses: ["accepted", "in_progress"] },
-  { key: "await", label: "У жителей", statuses: ["awaiting_confirmation"] },
-  { key: "done", label: "Закрытые", statuses: ["resolved", "rejected"] },
+  { key: "new", statuses: ["new", "routed", "reopened"] },
+  { key: "work", statuses: ["accepted", "in_progress"] },
+  { key: "await", statuses: ["awaiting_confirmation"] },
+  { key: "done", statuses: ["resolved", "rejected"] },
 ] as const;
 
 export default async function ServicePage({ searchParams }: PageProps<"/service">) {
@@ -24,7 +27,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
 
   // Акимат и оператор могут смотреть очередь любой службы (?s=kzhsa)
   const svc = me.role === "service" ? ref.serviceById.get(me.service_id!) : ref.serviceByCode.get(String(sp.s ?? "kzhsa"));
-  if (!svc) return <div className="p-6">Служба не найдена</div>;
+  if (!svc) return <div className="p-6">{t.service.notFound}</div>;
   const tab = TABS.find((x) => x.key === sp.tab) ?? TABS[0];
 
   const all = await listReports({ serviceId: svc.id });
@@ -38,7 +41,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
-      <LiveRefresh filter={`service_id=eq.${svc.id}`} toastText="Очередь обновилась" />
+      <LiveRefresh filter={`service_id=eq.${svc.id}`} toastText={t.service.updated} />
       <div className="text-sm text-muted-foreground">{t.nav.service}</div>
       <h1 className="text-xl font-semibold">{nm(svc, lang)}</h1>
       {me.role !== "service" && (
@@ -52,10 +55,10 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi label="Открыто" value={open.length} />
-        <Kpi label="Срок нарушен" value={breached} tone={breached ? "danger" : undefined} />
-        <Kpi label="Ждут подтверждения жителей" value={fresh.filter((r) => r.status === "awaiting_confirmation").length} tone="warn" />
-        <Kpi label="Переоткрыто" value={fresh.filter((r) => r.reopen_count > 0).length} />
+        <Kpi label={t.service.kpiOpen} value={open.length} />
+        <Kpi label={t.service.kpiBreached} value={breached} tone={breached ? "danger" : undefined} />
+        <Kpi label={t.service.kpiAwaiting} value={fresh.filter((r) => r.status === "awaiting_confirmation").length} tone="warn" />
+        <Kpi label={t.service.kpiReopened} value={fresh.filter((r) => r.reopen_count > 0).length} />
       </div>
 
       <nav className="mt-5 flex gap-1 overflow-x-auto border-b">
@@ -67,12 +70,12 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
               href={`/service?tab=${x.key}${me.role !== "service" ? `&s=${svc.code}` : ""}`}
               className={`-mb-px border-b-2 px-3 py-2 text-sm whitespace-nowrap ${x.key === tab.key ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
             >
-              {x.label} <span className="tabular-nums">{n}</span>
+              {t.service.tabs[x.key]} <span className="tabular-nums">{n}</span>
             </Link>
           );
         })}
       </nav>
-      <p className="mt-2 text-xs text-muted-foreground">Сортировка по приоритету — формула на карточке обращения («Из чего складывается приоритет»).</p>
+      <p className="mt-2 text-xs text-muted-foreground">{t.service.sortNote}</p>
       {list.length ? (
         <ul className="mt-2 divide-y rounded-lg border">
           {list.map((r) => (
@@ -82,7 +85,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
           ))}
         </ul>
       ) : (
-        <p className="mt-6 text-center text-sm text-muted-foreground">Пусто</p>
+        <p className="mt-6 text-center text-sm text-muted-foreground">{t.service.empty}</p>
       )}
     </div>
   );
