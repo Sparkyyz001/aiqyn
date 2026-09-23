@@ -47,3 +47,12 @@ export const AMENITY: Record<string, { ru: string; kz: string }> = {
   hospital: { ru: "больница", kz: "аурухана" },
   clinic: { ru: "поликлиника", kz: "емхана" },
 };
+
+/** Адрес из OSM-ярлыка «3А мкр, дом 111» → «3А шағын аудан, 111 үй» для казахского интерфейса */
+export function addressLabel(label: string | null, lang: Lang): string | null {
+  if (!label || lang === "ru") return label;
+  return label
+    .replace(/(\d+[А-ЯA-Z]?) мкр/g, (_, n: string) => `${n} шағын аудан${/[А-ЯA-Z]$/.test(n) ? "ы" : ""}`)
+    .replace(/(?:^|, )дом ([\w/А-Яа-я-]+)/g, (m: string, n: string) => `${m.startsWith(",") ? ", " : ""}${n} үй`)
+    .replace(/ мкр\b/g, " шағын ауданы");
+}

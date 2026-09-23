@@ -4,7 +4,7 @@ import { fmt as tf } from "@/lib/i18n/dict";
 import { flow, titleOf } from "@/lib/data";
 import { flowClusters } from "@/lib/flow-clusters";
 import { CLUSTER_EPS_M, CLUSTER_MIN_PTS } from "@/lib/clustering";
-import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, nm, addressLabel } from "@/lib/meta";
 import { CityMap } from "@/components/map/map";
 
 export async function generateMetadata() {
@@ -33,7 +33,7 @@ export default async function ClustersPage() {
           className="h-[420px] w-full"
           circles={clusters.map((c) => ({
             lat: c.lat, lng: c.lng, radius: Math.max(50, c.radius_m) + c.count * 6, color: color(c.chronic_score),
-            label: tf(t.akimat.clusters.popup, { label: c.label ?? "", cat: nm(CATEGORY[c.category], lang), n: c.count, s: c.chronic_score }),
+            label: tf(t.akimat.clusters.popup, { label: addressLabel(c.label, lang) ?? "", cat: nm(CATEGORY[c.category], lang), n: c.count, s: c.chronic_score }),
           }))}
         />
       </div>
@@ -44,7 +44,7 @@ export default async function ClustersPage() {
             <li key={c.key} className="px-4 py-3 text-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-medium">{c.label ?? nm(DISTRICT[c.district ?? ""], lang)}</div>
+                  <div className="font-medium">{addressLabel(c.label, lang) ?? nm(DISTRICT[c.district ?? ""], lang)}</div>
                   <div className="text-xs text-muted-foreground">{nm(CATEGORY[c.category], lang)} · {nm(DISTRICT[c.district ?? ""], lang)}</div>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1.5 font-medium tabular-nums">
@@ -84,7 +84,7 @@ export default async function ClustersPage() {
               <tr key={c.key} className="align-top">
                 <td className="px-4 py-2">
                   <details>
-                    <summary className="cursor-pointer font-medium">{c.label ?? nm(DISTRICT[c.district ?? ""], lang)}</summary>
+                    <summary className="cursor-pointer font-medium">{addressLabel(c.label, lang) ?? nm(DISTRICT[c.district ?? ""], lang)}</summary>
                     <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                       {c.members.slice(0, 8).map((m) => (
                         <li key={m.id}>
