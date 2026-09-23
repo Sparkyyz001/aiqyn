@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-type Final = {
+type Props = {
   eyebrow: string;
   lines: string[];
-  nav: [string, string][][];
-  copyright: string;
+  sub: string;
+  kicker: string;
   made: string;
+  nav: [string, string][][];
   cta: string;
   links: string;
 };
 
-// Финальный блок лендинга: иллюстрированный пейзаж (Pixabay, свободная лицензия), холмы, листья,
-// крупная фраза и подвал сайта на тёмно-бирюзовом переднем плане. Лёгкий параллакс за курсором.
-export function FinalBlock({ f }: { f: Final }) {
+// Первый экран лендинга: иллюстрированный пейзаж (Pixabay, свободная лицензия), холмы, листья,
+// крупная фраза, навигация и главная кнопка на тёмно-бирюзовом переднем плане. Лёгкий параллакс за курсором.
+export function LandscapeHero({ f }: { f: Props }) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export function FinalBlock({ f }: { f: Final }) {
       <div className="vf-sky" aria-hidden />
       <div className="vf-landscape" aria-hidden>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero/landscape.webp" alt="" draggable={false} loading="lazy" decoding="async" />
+        <img src="/hero/landscape.webp" alt="" draggable={false} fetchPriority="high" decoding="async" />
         <div className="vf-landscape-tint" />
       </div>
       <div className="vf-sun" aria-hidden />
@@ -77,17 +78,20 @@ export function FinalBlock({ f }: { f: Final }) {
         ))}
       </div>
 
+      <div className="vf-scrim" aria-hidden />
+
       <div className="vf-content">
         <div className="vf-headline">
           <p className="vf-eyebrow">{f.eyebrow}</p>
-          <h2 id="vf-title" className="vf-title">
+          <h1 id="vf-title" className="vf-title">
             {f.lines.map((l, i) => (
               <span key={i}>{l}</span>
             ))}
-          </h2>
+          </h1>
+          <p className="vf-sub">{f.sub}</p>
         </div>
 
-        <footer className="vf-footer">
+        <div className="vf-footer">
           <div className="vf-grid">
             <div className="vf-brandcol">
               <Link href="/" className="vf-brand">
@@ -100,7 +104,7 @@ export function FinalBlock({ f }: { f: Final }) {
                 <span>AIQYN</span>
               </Link>
               <div className="vf-copy">
-                <span>{f.copyright}</span>
+                <span>{f.kicker}</span>
                 <small>{f.made}</small>
               </div>
             </div>
@@ -150,7 +154,7 @@ export function FinalBlock({ f }: { f: Final }) {
               </li>
             </ul>
           </div>
-        </footer>
+        </div>
       </div>
     </section>
   );
@@ -178,7 +182,7 @@ const styles = `
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   width: 100%;
-  min-height: max(100svh, 760px);
+  min-height: max(calc(100svh - 3.5rem), 720px);
   overflow: hidden;
   isolation: isolate;
   background: #ffd9c4;
@@ -285,6 +289,12 @@ const styles = `
   animation-delay: var(--delay);
 }
 
+/* мягкое затемнение под фразой, чтобы текст читался поверх солнца и гор */
+.vf-scrim {
+  position: absolute; left: 0; bottom: 0; width: 72%; height: 82%; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 70% 60% at 18% 62%, rgba(6, 60, 64, 0.7) 0%, rgba(6, 60, 64, 0.38) 45%, rgba(6, 60, 64, 0) 75%);
+}
+
 /* контент: фраза и подвал идут потоком снизу — не могут наехать друг на друга */
 .vf-content {
   position: relative; z-index: 2;
@@ -293,7 +303,7 @@ const styles = `
 }
 .vf-headline {
   max-width: 700px; pointer-events: none;
-  margin-bottom: clamp(56px, 9vh, 96px);
+  margin-bottom: clamp(40px, 7vh, 80px);
   transform: translate3d(calc(var(--mouse-x) * 8px), calc(var(--mouse-y) * 5px), 0);
   transition: transform 900ms var(--ease);
 }
@@ -305,11 +315,16 @@ const styles = `
 .vf-eyebrow::before { content: ""; width: 32px; height: 2px; background: var(--green); flex: none; }
 .vf-title {
   display: flex; flex-direction: column; align-items: flex-start; margin: 0;
-  color: var(--cream); font-size: clamp(42px, 3.9vw, 70px); font-weight: 600;
+  color: var(--cream); font-size: clamp(40px, 3.6vw, 64px); font-weight: 600;
   line-height: 0.98; letter-spacing: -0.045em;
-  text-shadow: 0 2px 24px rgba(6, 73, 77, 0.35);
+  text-shadow: 0 2px 30px rgba(6, 60, 64, 0.55);
 }
 .vf-title span { white-space: nowrap; }
+.vf-sub {
+  margin: 22px 0 0; max-width: 520px;
+  font-size: clamp(15px, 1.15vw, 18px); line-height: 1.5; color: rgba(246, 241, 221, 0.82);
+  text-shadow: 0 1px 14px rgba(6, 73, 77, 0.45);
+}
 
 .vf-grid {
   display: grid; align-items: end;
@@ -414,31 +429,36 @@ const styles = `
 }
 
 @media (max-width: 600px) {
-  .vf-page { min-height: 1220px; --pad: 24px; }
-  .vf-landscape { height: 38%; }
-  .vf-landscape img { object-position: 58% 55%; }
-  .vf-sky { inset: 0 0 60% 0; }
-  .vf-sun { top: calc(38% * 0.24); width: 420px; }
-  .vf-birds { left: 30%; top: 10%; }
-  .vf-mist-l { top: 16%; }
-  .vf-mist-r { top: 23%; }
-  .vf-hill-back { top: 22%; height: 14%; }
-  .vf-hill-mid { top: 25%; height: 13%; }
-  .vf-hill-front { top: 30%; clip-path: polygon(0 5%, 22% 3%, 45% 6%, 70% 2%, 100% 4%, 100% 100%, 0 100%); }
-  .vf-headline { margin-bottom: 64px; }
-  .vf-title { font-size: clamp(40px, 12vw, 54px); line-height: 1.02; }
+  .vf-page { min-height: 0; justify-content: flex-start; --pad: 24px; }
+  .vf-content { padding-top: 236px; }
+  .vf-landscape { height: 300px; }
+  .vf-landscape img { object-position: 58% 40%; }
+  .vf-sky { inset: 0 0 auto 0; height: 300px; }
+  .vf-sun { top: 70px; width: 340px; }
+  .vf-birds { left: 30%; top: 40px; }
+  .vf-mist-l { top: 80px; }
+  .vf-mist-r { top: 130px; }
+  .vf-hill-back { top: 160px; height: 110px; }
+  .vf-hill-mid { top: 180px; height: 100px; }
+  .vf-hill-front { top: 205px; clip-path: polygon(0 1.5%, 22% 0.8%, 45% 1.8%, 70% 0.4%, 100% 1.2%, 100% 100%, 0 100%); }
+  .vf-scrim { display: none; }
+  .vf-headline { margin-bottom: 28px; }
+  .vf-title { font-size: clamp(36px, 10.5vw, 48px); line-height: 1.02; }
+  .vf-sub { margin-top: 16px; font-size: 16px; }
   .vf-grid { grid-template-columns: 1fr; gap: 36px; }
+  .vf-cta { order: -1; grid-column: auto; grid-row: auto; width: 100%; font-size: 12px; }
   .vf-nav { grid-column: auto; grid-row: auto; grid-template-columns: 1fr 1fr; row-gap: 17px; }
   .vf-navgroup:last-child { grid-column: 1 / -1; flex-direction: row; gap: 28px; }
-  .vf-cta { grid-column: auto; grid-row: auto; width: 100%; }
+  .vf-brandcol { order: 1; }
   .vf-bottom { flex-direction: column; align-items: stretch; gap: 20px; }
   .vf-social { justify-content: flex-end; }
-  .vf-leaf:nth-child(2), .vf-leaf:nth-child(5) { display: none; }
+  .vf-leaf { display: none; }
+}
 }
 
 @media (max-width: 380px) {
-  .vf-page { min-height: 1260px; }
-  .vf-title { font-size: 39px; }
+  .vf-page { min-height: 0; }
+  .vf-title { font-size: 34px; }
   .vf-nav { grid-template-columns: 1fr; }
   .vf-navgroup:last-child { grid-column: auto; flex-direction: column; gap: 17px; }
 }

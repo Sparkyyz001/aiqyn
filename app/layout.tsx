@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { FooterGate } from "@/components/footer-gate";
 import { getLang } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dict";
 import "./globals.css";
@@ -38,9 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <TooltipProvider>
             <SiteHeader />
             <main className="flex-1 flex flex-col">{children}</main>
-            <FooterGate>
-              <SiteFooter />
-            </FooterGate>
+            <SiteFooter />
             <Toaster position="top-center" />
           </TooltipProvider>
         </ThemeProvider>

@@ -1,72 +1,42 @@
 import Link from "next/link";
-import { ArrowRight, Camera, ChevronDown, ExternalLink, Landmark, Plus, Scale, ShieldCheck, UserRound, Users, Wrench } from "lucide-react";
+import { ArrowRight, Building2, Camera, ExternalLink, Landmark, Plus, Scale, ShieldCheck, UserRound, Users, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/status-badge";
-import { HeroMap } from "@/components/landing/hero-map";
-import { HeroVideo } from "@/components/landing/hero-video";
-import { FinalBlock } from "@/components/landing/final-block";
+import { LandscapeHero } from "@/components/landing/landscape-hero";
 import { CountUp, Reveal } from "@/components/landing/motion";
 import { getDict } from "@/lib/i18n/server";
 import { flow, toMapPoint } from "@/lib/data";
 import { kpis } from "@/lib/stats";
-import { getReference } from "@/lib/reference";
-import { heroGeometry } from "@/lib/hero-geo";
 import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
 
 const STEP_ICONS = [Camera, Scale, ShieldCheck, Users];
 const ROLE_ICONS = [UserRound, Wrench, Landmark];
 
 export default async function Home() {
-  const [{ lang, t }, { all, real }, ref] = await Promise.all([getDict(), flow(), getReference()]);
+  const [{ lang, t }, { all, real }] = await Promise.all([getDict(), flow()]);
   const k = kpis(all);
   const h = t.home;
-  const geo = heroGeometry(ref.districts, all, lang);
   const recent = real.slice(0, 5);
 
   return (
     <>
       <LiveRefresh />
 
-      {/* 1. Первый экран — видео Актау + живая карточка «путь жалобы» */}
-      <section className="relative isolate flex min-h-[calc(100svh-3.5rem)] flex-col overflow-hidden bg-[#07131d] text-white">
-        <HeroVideo />
-        {/* лёгкое затемнение, чтобы видео не спорило с текстом */}
-        <div className="pointer-events-none absolute inset-0 bg-[#07131d]/25" />
-        <HeroMap
-          cardOnly
-          {...geo}
-          areas={[]}
-          coast={[]}
-          lang={lang}
-          labels={{ sent: h.heroSent, sla: h.heroSla, days: h.heroDays, done: h.heroDone, confirmed: h.heroConfirmed }}
-        />
-        {/* затемнение под текстом: слева на десктопе, снизу на телефоне */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07131d]/95 via-[#07131d]/55 to-[#07131d]/10 md:bg-gradient-to-r md:from-[#07131d]/90 md:via-[#07131d]/55 md:to-transparent" />
-
-        <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pt-56 pb-10 md:justify-center md:pt-24 md:pb-24">
-          <p className="text-sm font-medium tracking-wide text-[#9fd0ff]">{h.kicker}</p>
-          <h1 className="mt-3 max-w-2xl text-4xl leading-[1.05] font-semibold tracking-tight whitespace-pre-line text-balance md:text-6xl">{h.h1}</h1>
-          <p className="mt-5 max-w-xl text-base text-white/75 text-pretty md:text-lg">{h.sub}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="h-12 bg-[#e8f4ff] px-6 text-[#07131d] hover:bg-white">
-              <Link href="/report/new">
-                <Plus /> {h.ctaReport}
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 border-white/25 bg-white/5 px-6 text-white hover:bg-white/10 hover:text-white">
-              <Link href="/map">
-                {h.ctaMap} <ArrowRight />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <a href="#how" className="relative mx-auto mb-6 hidden items-center gap-1 text-xs text-white/50 hover:text-white/80 md:flex">
-          {h.scroll} <ChevronDown className="size-4" />
-        </a>
-      </section>
+      {/* 1. Первый экран — иллюстрированный пейзаж, главная фраза и навигация */}
+      <LandscapeHero
+        f={{
+          eyebrow: h.final.eyebrow,
+          lines: h.h1,
+          sub: h.sub,
+          kicker: h.kicker,
+          made: h.final.made,
+          nav: h.final.nav,
+          cta: h.ctaReport,
+          links: h.final.links,
+        }}
+      />
 
       {/* 2. Живые цифры */}
       <section className="border-b bg-card">
@@ -208,8 +178,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 7. Финал: пейзаж, фраза и подвал */}
-      <FinalBlock f={h.final} />
+      {/* 7. Призыв */}
+      <section className="bg-[#075458] text-[#f6f1dd]">
+        <div className="mx-auto flex max-w-7xl flex-col items-start gap-6 px-4 py-16 md:flex-row md:items-center md:justify-between md:py-20">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">{h.final.lines.join(" ")}</h2>
+            <p className="mt-3 max-w-xl text-[#f6f1dd]/75 text-pretty">{h.ctaSub}</p>
+            <p className="mt-4 flex items-center gap-2 text-sm text-[#f6f1dd]/55">
+              <Building2 className="size-4" /> {h.notReplace}
+            </p>
+          </div>
+          <Button asChild size="lg" className="h-14 shrink-0 bg-[#ff907d] px-7 font-semibold text-[#075458] hover:bg-[#ffa493]">
+            <Link href="/report/new">
+              <Plus /> {h.ctaReport}
+            </Link>
+          </Button>
+        </div>
+      </section>
     </>
   );
 }
