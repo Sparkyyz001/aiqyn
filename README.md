@@ -53,6 +53,8 @@ AIQYN не заменяет контакт-центр 109, «Smart Aktau» и eO
 | Источник запаха: обратная трассировка по реальному ветру Open-Meteo | `lib/wind.ts` |
 | Индекс риска дорог: жалобы, класс, длина, переходы через 0 °C | `lib/road-risk.ts` |
 | Режим аварии: зона, автопривязка обращений, массовое закрытие через жителей | `lib/actions/incidents.ts` |
+| Индекс боли микрорайона: приоритеты открытых + 0.3 × закрытых за 30 дней, на 1000 жителей, 0–100 | `lib/pain-index.ts` |
+| Оценка населения микрорайонов по жилой площади зданий OSM | `scripts/estimate-population.mjs` |
 | Пакет eOtinish и PDF | `lib/escalation.ts`, `lib/pdf/escalation-doc.tsx` |
 
 Тесты механик: `npm test`.
@@ -94,6 +96,9 @@ node scripts/import-procurements.mjs data/procurements.csv   # контракт�
 - **Open-Meteo** (CC BY 4.0): почасовой ветер за 90 дней, суточные температуры за 3 года.
 - **Реестр служб**: goszakup.gov.kz (реестр поставщиков), mrek.kz, lada.kz, 2ГИС — у каждой записи ссылка.
 - **Кейсы жителей**: lada.kz, inaktau.kz, newsroom.kz, tengrinews.kz, time.kz.
+- **Население**: 303 752 жителя Актау (декабрь 2025, [lada.kz](https://www.lada.kz/society/society/146714-chislennost-naseleniia-aktau-prevysila-300-tysiach-chelovek.html))
+  распределены по микрорайонам пропорционально жилой площади зданий OSM (площадь × этажность) —
+  официальной численности по микрорайонам в открытом доступе нет. Результат — `data/population.json`.
 - **Госзакупки**: goszakup.gov.kz. API OWS требует токен ЦЭФ по заявке; до его получения — ручная выгрузка
   реестра договоров. Номера и суммы только с портала.
 
