@@ -77,12 +77,13 @@ export default function LeafletMap({
 
   return (
     <MapContainer center={[center.lat, center.lng]} zoom={zoom} className={className} scrollWheelZoom preferCanvas>
+      {/* Тайлы OpenStreetMap (без ключа, с атрибуцией). Тёмная тема — CSS-инверсия только подложки */}
       <TileLayer
         key={dark ? "dark" : "light"}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url={`https://{s}.basemaps.cartocdn.com/${dark ? "dark_all" : "light_all"}/{z}/{x}/{y}{r}.png`}
-        subdomains="abcd"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={19}
+        className={dark ? "aiqyn-dark-tiles" : undefined}
       />
       {polygons.map((p, i) => (
         <GeoJSON key={i} data={p.geojson} style={{ color: p.color, weight: 1.5, fillOpacity: 0.15 }}>
