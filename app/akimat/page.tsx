@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlarmClock, ArrowRight, CheckCheck, Inbox, Layers, Map as MapIcon, ShieldAlert } from "lucide-react";
+import { AlarmClock, ArrowRight, CheckCheck, FileText, Inbox, Layers, Map as MapIcon, ShieldAlert } from "lucide-react";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
@@ -77,6 +77,11 @@ export default async function AkimatPage() {
           <Button asChild variant="outline" size="sm" className="border-[color:var(--danger)]/40 text-[color:var(--danger)] hover:text-[color:var(--danger)]">
             <Link href="/akimat/risk">
               <ShieldAlert /> {o.toRisk} · {atRisk}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/akimat/digest">
+              <FileText /> {t.digest.nav}
             </Link>
           </Button>
           <Button asChild size="sm">

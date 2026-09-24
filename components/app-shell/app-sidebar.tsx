@@ -8,6 +8,7 @@ import {
   Building2,
   BookUser,
   ChevronsUpDown,
+  FileText,
   CircleDollarSign,
   Flame,
   Headset,
@@ -54,6 +55,7 @@ export type ShellLabels = {
   services: string;
   districts: string;
   initiatives: string;
+  digest: string;
   nav: { map: string; incidents: string; openData: string; me: string; service: string; operator: string; login: string; logout: string };
   akimatNav: { overview: string; risk: string; pain: string; clusters: string; quality: string; money: string; forecast: string; air: string; light: string };
   roles: Record<Role, string>;
@@ -93,6 +95,7 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
       ? [
           { title: l.akimatNav.overview, url: "/akimat", icon: LayoutDashboard },
           { title: l.akimatNav.risk, url: "/akimat/risk", icon: ShieldAlert },
+          { title: l.digest, url: "/akimat/digest", icon: FileText },
           { title: l.akimatNav.pain, url: "/akimat/pain", icon: Flame },
           { title: l.akimatNav.clusters, url: "/akimat/clusters", icon: Building2 },
           { title: l.akimatNav.quality, url: "/akimat/quality", icon: BarChart3 },
