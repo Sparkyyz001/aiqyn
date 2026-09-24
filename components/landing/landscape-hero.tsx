@@ -9,12 +9,17 @@ type Props = {
   sub: string;
   cta: string;
   ctaMap: string;
+  ctaHref?: string;
+  ghostHref?: string;
+  /** первый экран — h1; если пейзаж стоит ниже по странице — h2 */
+  heading?: "h1" | "h2";
 };
 
 // Первый экран лендинга: иллюстрированный пейзаж (Pixabay, свободная лицензия), холмы, листья,
 // крупная фраза и кнопки на тёмно-бирюзовом переднем плане. Лёгкий параллакс за курсором.
 export function LandscapeHero({ f }: { f: Props }) {
   const ref = useRef<HTMLElement>(null);
+  const Heading = f.heading ?? "h1";
 
   useEffect(() => {
     const el = ref.current;
@@ -80,24 +85,24 @@ export function LandscapeHero({ f }: { f: Props }) {
       <div className="vf-content">
         <div className="vf-headline">
           <p className="vf-eyebrow vf-intro" style={{ "--d": "150ms" } as React.CSSProperties}>{f.eyebrow}</p>
-          <h1 id="vf-title" className="vf-title">
+          <Heading id="vf-title" className="vf-title">
             {f.lines.map((l, i) => (
               <span key={i} className="vf-intro" style={{ "--d": `${320 + i * 130}ms` } as React.CSSProperties}>
                 {l}
               </span>
             ))}
-          </h1>
+          </Heading>
           <p className="vf-sub vf-intro" style={{ "--d": "760ms" } as React.CSSProperties}>{f.sub}</p>
         </div>
 
         <div className="vf-actions vf-intro" style={{ "--d": "950ms" } as React.CSSProperties}>
-          <Link href="/report/new" className="vf-cta">
+          <Link href={f.ctaHref ?? "/report/new"} className="vf-cta">
             <span>{f.cta}</span>
             <span className="vf-arrow" aria-hidden>
               ↗
             </span>
           </Link>
-          <Link href="/map" className="vf-ghost">
+          <Link href={f.ghostHref ?? "/map"} className="vf-ghost">
             {f.ctaMap}
           </Link>
         </div>
