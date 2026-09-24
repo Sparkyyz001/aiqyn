@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
 import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
 import { Kpi } from "@/components/kpi";
-import { MoneyScatter } from "@/components/akimat/money-scatter";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata() {
@@ -50,6 +49,13 @@ export default async function MoneyPage() {
   const mx = med(points.map((p) => p.mln));
   const my = med(points.map((p) => p.reports));
   const gap = points.filter((p) => p.mln > mx && p.reports > my).length;
+  const everyone = byDistrict
+    .filter((r) => DISTRICT[r.key])
+    .map((r) => ({ name: nm(DISTRICT[r.key], lang), mln: Math.round((sums.get(r.key)?.sum ?? 0) / 1e6), reports: r.total }));
+  const gapList = everyone.filter((p) => p.mln > mx && p.reports > my).sort((a, b) => b.reports / b.mln - a.reports / a.mln).slice(0, 6);
+  const needList = everyone.filter((p) => p.mln < mx && p.reports > my).sort((a, b) => b.reports - a.reports).slice(0, 6);
+  const maxMln = Math.max(1, ...everyone.map((p) => p.mln));
+  const maxRep = Math.max(1, ...everyone.map((p) => p.reports));
   const cityReports = rows.filter((r) => r.money).reduce((s, r) => s + r.total, 0);
 
   return (
@@ -67,14 +73,42 @@ export default async function MoneyPage() {
         <Kpi label={m.kpiGap} value={gap} tone="warn" icon={<TriangleAlert />} />
       </div>
 
-      {points.length > 0 && (
-        <section className="rounded-xl border bg-card p-4">
-          <h2 className="font-semibold">{m.chart}</h2>
-          <p className="mb-2 text-sm text-muted-foreground text-pretty">{m.chartSub}</p>
-          <MoneyScatter data={points} l={{ x: m.x, y: m.y, breached: m.breached, mln: m.mln }} />
-        </section>
-      )}
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5"><span className="h-2 w-5 rounded-full bg-[#1f7a8c]" />{m.legendMoney}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2 w-5 rounded-full bg-[color:var(--danger)]" />{m.legendReports}</span>
+      </div>
 
+      <div className="grid gap-4 lg:grid-cols-2">
+        {[
+          { title: m.gapTitle, sub: m.gapSub, list: gapList, tone: "border-[color:var(--warn)]/40" },
+          { title: m.needTitle, sub: m.needSub, list: needList, tone: "border-[color:var(--danger)]/35" },
+        ].map((box) => (
+          <section key={box.title} className={cn("rounded-xl border-2 bg-card p-4", box.tone)}>
+            <h2 className="font-semibold">{box.title}</h2>
+            <p className="mb-4 text-xs text-muted-foreground text-pretty">{box.sub}</p>
+            <ol className="flex flex-col gap-3">
+              {box.list.map((p) => (
+                <li key={p.name} className="grid grid-cols-[6.5rem_1fr] items-center gap-3 text-sm">
+                  <span className="truncate font-medium">{p.name}</span>
+                  <span className="flex flex-col gap-1">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 rounded-full bg-[#1f7a8c] transition-[width] duration-700" style={{ width: `${Math.max(2, (p.mln / maxMln) * 100)}%` }} />
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{fmt.format(p.mln)}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 rounded-full bg-[color:var(--danger)] transition-[width] duration-700" style={{ width: `${Math.max(2, (p.reports / maxRep) * 100)}%` }} />
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{p.reports}</span>
+                    </span>
+                  </span>
+                </li>
+              ))}
+              {box.list.length === 0 && <li className="text-sm text-muted-foreground">—</li>}
+            </ol>
+          </section>
+        ))}
+      </div>
+
+      <h2 className="-mb-3 font-semibold">{m.allTitle}</h2>
       <section className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-muted/40 text-left text-xs text-muted-foreground">

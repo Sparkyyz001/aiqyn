@@ -25,7 +25,8 @@ export type RoadSeg = {
   mine: keyof Votes | null;
 };
 
-const riskColor = (r: number) => (r >= 0.85 ? "#b42318" : r >= 0.7 ? "#d0452f" : r >= 0.55 ? "#e08a1e" : "#d6b21b");
+// цвета как у слоя пробок: тёмно-красный — критично, красный, оранжевый, жёлтый
+const riskColor = (r: number) => (r >= 0.85 ? "#a50e0e" : r >= 0.7 ? "#e53935" : r >= 0.55 ? "#f57c00" : "#f9a825");
 const VERDICTS = ["potholes", "cracks", "ok", "repaired"] as const;
 const mid = (c: [number, number][]) => {
   const p = c[Math.floor(c.length / 2)];
@@ -77,14 +78,16 @@ export function RoadExplorer({ segs, ft, loggedIn, t }: { segs: RoadSeg[]; ft: n
           <CityMap
             className="h-[520px] w-full"
             flyTo={fly}
-            polygons={segs.map((x) => ({
-              key: `${x.osm_id}-${x.osm_id === sel}`,
-              geojson: { type: "LineString", coordinates: x.coords } as GeoJSON.LineString,
-              color: x.osm_id === sel ? "#0b3b40" : riskColor(x.risk),
-              weight: x.osm_id === sel ? 7 : 3.5,
-              tooltip: `${x.name ?? t.unnamed} · ${fmt(t.share, { p: Math.round(x.risk * 100) })}`,
-              onClick: () => choose(x.osm_id),
-            }))}
+            polygons={segs.flatMap((x) => {
+              // как слой пробок в картографических сервисах: светлая «обочина» + цветная полоса по самой улице
+              const on = x.osm_id === sel;
+              const geojson = { type: "LineString", coordinates: x.coords } as GeoJSON.LineString;
+              const tooltip = `${x.name ?? t.unnamed} · ${fmt(t.share, { p: Math.round(x.risk * 100) })}`;
+              return [
+                { key: `${x.osm_id}-c-${on}`, geojson, color: on ? "#0b3b40" : "#ffffff", weight: on ? 10 : 6.5, opacity: on ? 0.95 : 0.9, tooltip, onClick: () => choose(x.osm_id) },
+                { key: `${x.osm_id}-l-${on}`, geojson, color: riskColor(x.risk), weight: on ? 5 : 3.5, opacity: 0.95, tooltip, onClick: () => choose(x.osm_id) },
+              ];
+            })}
           />
         </div>
         <ol className="max-h-[520px] overflow-y-auto rounded-xl border bg-card">

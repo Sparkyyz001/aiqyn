@@ -1,8 +1,9 @@
+import { Compass, Info, Search } from "lucide-react";
 import { flow, toMapPoint } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
-import { backtrace, overlaps, SECTOR_DEG, MAX_DIST_M, CELL_M, type WindObs } from "@/lib/wind";
-import { AKTAU_CENTER, haversine, type GeoPolygon } from "@/lib/geo";
+import { backtrace, overlaps, windAt, SECTOR_DEG, MAX_DIST_M, CELL_M, type WindObs } from "@/lib/wind";
+import { AKTAU_CENTER, type GeoPolygon } from "@/lib/geo";
 import { CityMap } from "@/components/map/map";
 import weather from "@/data/weather_history.json";
 import industrial from "@/data/industrial.json";
@@ -19,123 +20,144 @@ const OBS: WindObs[] = (weather.items as { t: string; wind_deg: number; wind_spe
 
 type Obj = { name: string | null; kind: string | null; polygon: GeoPolygon | null; lat: number; lng: number };
 
-// Типы объектов OSM по-человечески
-const KIND: Record<string, { ru: string; kz: string }> = {
-  industrial: { ru: "промышленная зона", kz: "өнеркәсіп аймағы" },
-  wastewater_plant: { ru: "очистные сооружения", kz: "тазарту құрылғылары" },
-  landfill: { ru: "полигон отходов", kz: "қалдықтар полигоны" },
-  works: { ru: "предприятие", kz: "кәсіпорын" },
-  chimney: { ru: "дымовая труба", kz: "түтін құбыры" },
-  harbour: { ru: "порт", kz: "порт" },
-  heating_station: { ru: "котельная / ТЭЦ", kz: "қазандық / ЖЭО" },
-};
-// Шкала «вероятность источника»: светло-жёлтый → оранжевый → тёмно-красный
-const RAMP = ["#fde68a", "#fbbf24", "#f59e0b", "#ea580c", "#c2410c", "#7c2d12"];
-const rampColor = (v: number) => RAMP[Math.min(RAMP.length - 1, Math.floor(v * RAMP.length))];
+/** Выпуклая оболочка точек (монотонная цепь) — контур зоны вероятного источника */
+function hull(pts: [number, number][]) {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  if (p.length < 3) return p;
+  const cross = (o: number[], a: number[], b: number[]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower: [number, number][] = [];
+  for (const q of p) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop();
+    lower.push(q);
+  }
+  const upper: [number, number][] = [];
+  for (const q of [...p].reverse()) {
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop();
+    upper.push(q);
+  }
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
 
+// Где источник запаха: роза ветров в моменты жалоб + одна понятная зона, куда указывает ветер
 export default async function AirPage() {
   const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
   const a = t.akimat.air;
   const smell = all.filter((r) => r.category === "smell");
+
+  // роза ветров: с какой стороны дул ветер в час каждой жалобы (8 направлений)
+  const rose = Array(8).fill(0) as number[];
+  for (const r of smell) {
+    const w = windAt(OBS, new Date(r.created_at).getTime());
+    if (w) rose[Math.round((((w.deg % 360) + 360) % 360) / 45) % 8]++;
+  }
+  const roseTotal = rose.reduce((s, x) => s + x, 0) || 1;
+  const top = rose.indexOf(Math.max(...rose));
+  const topShare = Math.round((rose[top] / roseTotal) * 100);
+
+  // зона: выпуклая оболочка ячеек с наибольшим совпадением направлений
   const { cells, used } = backtrace(
     smell.map((r) => ({ lat: r.lat, lng: r.lng, time: new Date(r.created_at).getTime() })),
     OBS,
     AKTAU_CENTER
   );
+  const core = cells.filter((c) => c.votes >= 0.7);
+  const ring = hull(core.map((c) => [c.lng, c.lat]));
   const objects = (industrial.items as Obj[]).filter((o) => o.name);
-  const hits = overlaps(cells, objects).slice(0, 6);
-  const maxScore = Math.max(1e-9, ...hits.map((h) => h.score));
+  const hits = overlaps(cells, objects, 0.7).slice(0, 3);
+  const peak = core.reduce<(typeof core)[number] | null>((m, c) => (!m || c.votes > m.votes ? c : m), null);
+  const zone =
+    ring.length >= 3
+      ? [{ geojson: { type: "Polygon", coordinates: [[...ring, ring[0]]] } as unknown as GeoJSON.GeoJsonObject, color: "#c2410c", fill: "#f97316", fillOpacity: 0.18, weight: 2.5, tooltip: `${a.zone}\n${a.zoneTip}` }]
+      : [];
 
-  // Ячейки сетки как квадраты 200×200 м, цвет и прозрачность — по вероятности; подсказка при наведении
-  // показываем только ядро зоны (от 65% максимума) — слабые «хвосты» секторов закрывают весь город
-  const hot = cells.filter((c) => c.votes >= 0.65);
-  const dLat = CELL_M / 111_320;
-  const cellPolys = hot.map((c) => {
-    const dLng = CELL_M / (111_320 * Math.cos((c.lat * Math.PI) / 180));
-    const nearest = objects.reduce<{ o: Obj | null; d: number }>((best, o) => {
-      const d = haversine(c, o);
-      return d < best.d ? { o, d } : best;
-    }, { o: null, d: Infinity });
-    const tip = [tf(a.cellTip, { p: Math.round(c.votes * 100) }), nearest.o ? tf(a.nearest, { name: nearest.o.name ?? "", km: (nearest.d / 1000).toFixed(1) }) : ""].filter(Boolean).join("\n");
-    return {
-      geojson: {
-        type: "Polygon",
-        coordinates: [[[c.lng - dLng / 2, c.lat - dLat / 2], [c.lng + dLng / 2, c.lat - dLat / 2], [c.lng + dLng / 2, c.lat + dLat / 2], [c.lng - dLng / 2, c.lat + dLat / 2], [c.lng - dLng / 2, c.lat - dLat / 2]]],
-      } as unknown as GeoJSON.GeoJsonObject,
-      color: rampColor((c.votes - 0.65) / 0.35),
-      fill: rampColor((c.votes - 0.65) / 0.35),
-      fillOpacity: 0.15 + 0.6 * c.votes,
-      weight: 0,
-      tooltip: tip,
-    };
+  // SVG-роза: 8 лепестков, длина — доля жалоб
+  const R = 80;
+  const maxRose = Math.max(...rose, 1);
+  const petals = rose.map((v, i) => {
+    const len = 18 + (v / maxRose) * (R - 18);
+    const ang = (i * 45 - 90) * (Math.PI / 180);
+    const w = 0.33;
+    const p1 = [100 + Math.cos(ang - w) * len, 100 + Math.sin(ang - w) * len];
+    const p2 = [100 + Math.cos(ang + w) * len, 100 + Math.sin(ang + w) * len];
+    return { d: `M100 100 L${p1[0]} ${p1[1]} A${len} ${len} 0 0 1 ${p2[0]} ${p2[1]} Z`, lx: 100 + Math.cos(ang) * (R + 12), ly: 100 + Math.sin(ang) * (R + 12), v, i };
   });
-  const objPolys = objects
-    .filter((o) => o.polygon)
-    .map((o) => ({ geojson: o.polygon as unknown as GeoJSON.GeoJsonObject, color: "#475569", fillOpacity: 0.08, weight: 1.2, tooltip: `${o.name}${o.kind ? ` · ${KIND[o.kind]?.[lang] ?? o.kind}` : ""}` }));
-
-  // центр карты — самая вероятная ячейка (центр тяжести уводят длинные «хвосты» секторов)
-  const peak = hot.reduce<(typeof hot)[number] | null>((m, c) => (!m || c.votes > m.votes ? c : m), null);
-  const center = peak ? { lat: peak.lat, lng: peak.lng } : AKTAU_CENTER;
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{a.title}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">
-          {tf(a.intro, { n: used, deg: SECTOR_DEG, km: MAX_DIST_M / 1000, cell: CELL_M })}
-        </p>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">{tf(a.intro, { n: used, deg: SECTOR_DEG, km: MAX_DIST_M / 1000, cell: CELL_M })}</p>
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="overflow-hidden rounded-xl border">
-          <CityMap className="h-[520px] w-full" zoom={13} center={center} points={smell.map((r) => toMapPoint(r, lang))} polygons={[...objPolys, ...cellPolys]} />
-          <div className="flex flex-wrap items-center gap-3 border-t px-4 py-2.5 text-xs text-muted-foreground">
-            <span>{a.legend}</span>
-            <span>{a.low}</span>
-            <span className="flex h-2 w-40 overflow-hidden rounded-full">
-              {RAMP.map((c) => (
-                <span key={c} className="h-full flex-1" style={{ background: c }} />
-              ))}
-            </span>
-            <span>{a.high}</span>
-          </div>
+
+      <section className="flex items-start gap-3 rounded-2xl border-2 border-[#f97316]/40 bg-[#f97316]/[0.06] p-4">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f97316]/15 text-[#c2410c]">
+          <Search className="size-5" />
+        </span>
+        <div>
+          <div className="text-xs font-semibold tracking-[0.12em] text-[#c2410c] uppercase">{a.verdict}</div>
+          <p className="mt-1 text-pretty">
+            {hits.length
+              ? tf(a.verdictText, { p: topShare, dir: a.dirs[top], obj: hits.map((h) => h.name).join(", ") })
+              : tf(a.verdictNoObj, { p: topShare, dir: a.dirs[top] })}
+          </p>
         </div>
-        <div className="flex flex-col gap-3">
-          <div className="rounded-xl border bg-card p-4 text-sm">
-            <div className="font-semibold">{a.objects}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{a.objectsNote}</p>
-            {hits.length ? (
-              <ol className="mt-3 flex flex-col gap-3">
-                {hits.map((h, i) => {
-                  const p = Math.round((h.score / maxScore) * 100);
-                  return (
-                    <li key={i}>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="font-medium">{h.name}</span>
-                        <span className="text-xs text-muted-foreground tabular-nums">{tf(a.share, { p })}</span>
-                      </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full" style={{ width: `${p}%`, background: rampColor(p / 100) }} />
-                      </div>
-                      {h.kind && <div className="mt-0.5 text-xs text-muted-foreground">{KIND[h.kind]?.[lang] ?? h.kind}</div>}
-                    </li>
-                  );
-                })}
-              </ol>
-            ) : (
-              <p className="mt-2 text-muted-foreground">{a.noObjects}</p>
-            )}
-          </div>
-          <div className="rounded-xl border bg-card p-4 text-sm">
-            <div className="font-semibold">{a.reports}</div>
-            <div className="mt-1 text-3xl font-bold tabular-nums">{smell.length}</div>
-          </div>
-          <div className="rounded-xl border p-4 text-xs text-muted-foreground">
-            {a.check}{" "}
-            <a className="text-primary hover:underline" href="https://tengrinews.kz/kazakhstan_news/jiteli-aktau-jaluyutsya-himicheskiy-zapah-ekologi-proveli-588154/" target="_blank" rel="noopener noreferrer">
-              tengrinews.kz
-            </a>
-            .
-          </div>
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+        <div className="overflow-hidden rounded-2xl border">
+          <CityMap
+            className="h-[520px] w-full"
+            zoom={12}
+            center={peak ? { lat: (peak.lat + AKTAU_CENTER.lat) / 2, lng: (peak.lng + AKTAU_CENTER.lng) / 2 } : AKTAU_CENTER}
+            points={smell.map((r) => toMapPoint(r, lang))}
+            polygons={zone}
+          />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <section className="rounded-2xl border bg-card p-4">
+            <h2 className="flex items-center gap-1.5 font-semibold">
+              <Compass className="size-4 text-primary" /> {a.roseTitle}
+            </h2>
+            <p className="text-xs text-muted-foreground text-pretty">{a.roseSub}</p>
+            <svg viewBox="0 0 200 200" className="mx-auto mt-2 w-full max-w-[260px]">
+              {[0.33, 0.66, 1].map((k) => (
+                <circle key={k} cx="100" cy="100" r={R * k} fill="none" stroke="var(--border)" strokeDasharray="2 3" />
+              ))}
+              {petals.map((p) => (
+                <path key={p.i} d={p.d} fill={p.i === top ? "#f97316" : "#94a3b8"} fillOpacity={p.i === top ? 0.9 : 0.45} stroke="var(--background)" strokeWidth="1">
+                  <title>{`${a.dirs[p.i]}: ${p.v}`}</title>
+                </path>
+              ))}
+              {petals.map((p) => (
+                <text key={`l${p.i}`} x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight={p.i === top ? 700 : 500} fill={p.i === top ? "#c2410c" : "var(--muted-foreground)"}>
+                  {a.short[p.i]}
+                </text>
+              ))}
+            </svg>
+          </section>
+
+          <section className="rounded-2xl border bg-card p-4 text-sm">
+            <div className="flex items-baseline justify-between">
+              <span className="font-semibold">{a.reports}</span>
+              <span className="text-2xl font-bold tabular-nums">{smell.length}</span>
+            </div>
+          </section>
+
+          <section className="flex gap-2 rounded-2xl border p-4 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-4 shrink-0" />
+            <div>
+              <div className="font-semibold text-foreground">{a.howTitle}</div>
+              <p className="mt-0.5 text-pretty">{a.how}</p>
+              <p className="mt-2">
+                {a.check}{" "}
+                <a className="text-primary hover:underline" href="https://tengrinews.kz/kazakhstan_news/jiteli-aktau-jaluyutsya-himicheskiy-zapah-ekologi-proveli-588154/" target="_blank" rel="noopener noreferrer">
+                  tengrinews.kz
+                </a>
+                .
+              </p>
+            </div>
+          </section>
         </div>
       </div>
     </div>

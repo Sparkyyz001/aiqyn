@@ -13,7 +13,7 @@ import { painColor } from "@/lib/pain-index";
 import type { MapPoint } from "@/lib/data";
 
 export type MapOverlayCircle = { lat: number; lng: number; radius: number; color: string; label?: string; href?: string };
-export type MapOverlayPolygon = { geojson: GeoJSON.GeoJsonObject; color: string; label?: string; fill?: string; fillOpacity?: number; weight?: number; tooltip?: string; key?: string; onClick?: () => void };
+export type MapOverlayPolygon = { geojson: GeoJSON.GeoJsonObject; color: string; label?: string; fill?: string; fillOpacity?: number; weight?: number; tooltip?: string; key?: string; onClick?: () => void; opacity?: number };
 // Заливка районов по индексу 0–100 (цвет по проверенной шкале, своей для светлой и тёмной темы)
 export type MapChoropleth = { geojson: GeoJSON.GeoJsonObject; index: number | null; label: string; href?: string };
 
@@ -138,7 +138,7 @@ export default function LeafletMap({
         <GeoJSON
           key={p.key ?? i}
           data={p.geojson}
-          style={{ color: p.color, weight: p.weight ?? 1.5, fillColor: p.fill ?? p.color, fillOpacity: p.fillOpacity ?? 0.15 }}
+          style={{ color: p.color, weight: p.weight ?? 1.5, opacity: p.opacity ?? 1, fillColor: p.fill ?? p.color, fillOpacity: p.fillOpacity ?? 0.15, lineCap: "round", lineJoin: "round" }}
           eventHandlers={p.onClick ? { click: p.onClick } : undefined}
         >
           {p.tooltip && (
