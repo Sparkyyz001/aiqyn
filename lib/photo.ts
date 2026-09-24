@@ -30,28 +30,60 @@ async function readExif(file: File): Promise<{ lat: number | null; lng: number |
   }
 }
 
+// Декодируем через <img>: он учитывает EXIF-поворот во всех браузерах (Safari на iPhone
+// через createImageBitmap иногда кладёт кадр набок). Safari сам читает HEIC.
+function decode(file: Blob): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    const done = (ok: boolean) => {
+      clearTimeout(timer);
+      URL.revokeObjectURL(url);
+      if (ok) res(img);
+      else rej(new Error("decode"));
+    };
+    const timer = setTimeout(() => done(false), 15000);
+    img.onload = () => done(true);
+    img.onerror = () => done(false);
+    img.src = url;
+  });
+}
+
 async function compress(file: File, max = 1600): Promise<Blob> {
   try {
-    const bmp = await createImageBitmap(file);
-    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const img = await decode(file);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const scale = Math.min(1, max / Math.max(w, h));
     const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale);
-    canvas.height = Math.round(bmp.height * scale);
-    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    return await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej()), "image/jpeg", 0.82));
+    canvas.width = Math.max(1, Math.round(w * scale));
+    canvas.height = Math.max(1, Math.round(h * scale));
+    canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.82));
+    if (blob && blob.size > 0) return blob;
   } catch {
-    return file; // браузер не умеет этот формат (напр. HEIC) — грузим как есть
+    /* браузер не умеет этот формат — ниже грузим как есть */
   }
+  return file;
+}
+
+// тип файла: iPhone иногда отдаёт HEIC с пустым file.type
+function mimeOf(blob: Blob, name: string) {
+  if (blob.type) return blob.type;
+  const ext = name.split(".").pop()?.toLowerCase();
+  return ext === "heic" || ext === "heif" ? "image/heic" : ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
 }
 
 export async function uploadPhoto(file: File, userId: string): Promise<UploadedPhoto> {
   const exif = await readExif(file);
   const blob = await compress(file);
-  const ext = blob.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "jpg").toLowerCase();
+  const type = mimeOf(blob, file.name);
+  if (blob.size > 10 * 1024 * 1024) throw new Error("Фото больше 10 МБ — выберите другое или сделайте снимок камерой");
+  const ext = type === "image/jpeg" ? "jpg" : type === "image/heic" ? "heic" : type.split("/")[1];
   const path = `${userId}/${crypto.randomUUID()}.${ext}`;
   const supabase = createClient();
   const { error } = await supabase.storage.from("report-photos").upload(path, blob, {
-    contentType: blob.type || file.type,
+    contentType: type,
     upsert: false,
   });
   if (error) throw new Error(error.message);

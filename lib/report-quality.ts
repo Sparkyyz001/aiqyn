@@ -98,8 +98,9 @@ export async function measurePhoto(blob: Blob): Promise<PhotoStats | null> {
     const bmp = await createImageBitmap(blob);
     const W = 160;
     const H = Math.max(1, Math.round((bmp.height / bmp.width) * W));
-    const cv = new OffscreenCanvas(W, H);
-    const ctx = cv.getContext("2d");
+    // OffscreenCanvas в Safari только с iOS 16.4 — на старых айфонах обычный canvas
+    const cv: OffscreenCanvas | HTMLCanvasElement = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(W, H) : Object.assign(document.createElement("canvas"), { width: W, height: H });
+    const ctx = cv.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
     if (!ctx) return null;
     ctx.drawImage(bmp, 0, 0, W, H);
     const d = ctx.getImageData(0, 0, W, H).data;
