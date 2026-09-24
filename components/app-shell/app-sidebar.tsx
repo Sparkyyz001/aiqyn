@@ -14,6 +14,7 @@ import {
   Headset,
   Lightbulb,
   Inbox,
+  Landmark,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -55,6 +56,7 @@ export type ShellLabels = {
   services: string;
   districts: string;
   initiatives: string;
+  budget: string;
   digest: string;
   nav: { map: string; incidents: string; openData: string; me: string; service: string; operator: string; login: string; logout: string };
   akimatNav: { overview: string; risk: string; pain: string; clusters: string; quality: string; money: string; forecast: string; air: string; light: string };
@@ -74,6 +76,7 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
     { title: l.nav.map, url: "/map", icon: MapIcon },
     { title: l.nav.incidents, url: "/incidents", icon: Siren },
     { title: l.initiatives, url: "/initiatives", icon: Lightbulb },
+    { title: l.budget, url: "/budget", icon: Landmark },
     { title: l.districts, url: "/district", icon: MapPinned },
     { title: l.services, url: "/services", icon: BookUser },
   ];

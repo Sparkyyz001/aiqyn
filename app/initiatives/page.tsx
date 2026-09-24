@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Landmark } from "lucide-react";
+import { ArrowUpRight, Landmark } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dict";
 import { getProfile } from "@/lib/auth";
@@ -23,6 +23,7 @@ const STATUS_TONE: Record<string, string> = {
   declined: "bg-muted text-muted-foreground",
 };
 const ORDER = ["voting", "review", "planned", "done", "declined"];
+const BNU_AKTAU = "https://www.gov.kz/memleket/entities/akimat-goroda-aktau/bnu/157?lang=ru";
 
 // Инициативы жителей — «что сделать лучше», а не только «что сломалось».
 export default async function InitiativesPage({ searchParams }: PageProps<"/initiatives">) {
@@ -51,6 +52,12 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
           <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{tt.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground text-pretty">{tt.sub}</p>
           <p className="mt-2 text-xs font-medium text-primary">{fmt(tt.threshold, { n: INITIATIVE_THRESHOLD })}</p>
+          <p className="mt-1 text-xs text-muted-foreground text-pretty">
+            {tt.bnuNote}{" "}
+            <Link href="/budget" className="text-primary hover:underline">
+              {t.budget.title} →
+            </Link>
+          </p>
         </div>
         {me ? (
           <ProposeForm t={tt} districts={districts} />
@@ -83,6 +90,11 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
                 <span className={cn("rounded-full px-2.5 py-0.5 font-medium", STATUS_TONE[i.status])}>{tt.status[i.status as keyof typeof tt.status]}</span>
                 <span className="text-muted-foreground">{tt.kind[i.kind as keyof typeof tt.kind]}</span>
                 {d && <span className="text-muted-foreground">· {lang === "kz" ? d.name_kz : d.name_ru}</span>}
+                {i.report_no && (
+                  <Link href={`/report/${i.report_no}`} className="text-primary hover:underline">
+                    · {fmt(tt.fromReport, { no: i.report_no })}
+                  </Link>
+                )}
               </div>
               <h2 className="mt-2 text-lg font-semibold leading-snug text-balance">{lang === "kz" && i.title_kz ? i.title_kz : i.title}</h2>
               {(i.description || i.description_kz) && <p className="mt-1 text-sm text-muted-foreground text-pretty">{lang === "kz" && i.description_kz ? i.description_kz : i.description}</p>}
@@ -104,6 +116,12 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
                     )}
                   </div>
                 </div>
+              )}
+
+              {(i.status === "review" || i.status === "planned") && (
+                <a href={BNU_AKTAU} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                  {tt.bnuLink} <ArrowUpRight className="size-4" />
+                </a>
               )}
 
               {staff && <DecideForm id={i.id} status={i.status} reply={i.akimat_reply ?? ""} budget={i.budget_kzt} t={tt} />}

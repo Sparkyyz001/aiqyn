@@ -1,6 +1,7 @@
 import { MapPin, Users, RotateCcw } from "lucide-react";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
+import { BudgetButton } from "@/components/reports/budget-button";
 import type { HonestForecast } from "@/lib/honest-deadline";
 import { SlaTimer } from "@/components/reports/sla-timer";
 import { StatusBadge } from "@/components/status-badge";
@@ -17,7 +18,7 @@ const dt = (s: string) =>
 const plus = (s: string, minutes: number) => new Date(new Date(s).getTime() + minutes * 60_000).toISOString();
 
 // Карточка демо-обращения: те же блоки, что у реального, но только для чтения и с явной пометкой
-export function DemoCard({ r, lang, t, honest }: { r: BaseReport; lang: Lang; t: Dict; honest: HonestForecast }) {
+export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: Lang; t: Dict; honest: HonestForecast; budget?: { existing: number | null; loggedIn: boolean } }) {
   const o = t.outcome;
   const svc = SERVICE[r.service];
   const { description, resolution } = demoDetails(r, lang);
@@ -63,7 +64,10 @@ export function DemoCard({ r, lang, t, honest }: { r: BaseReport; lang: Lang; t:
           <p className="text-pretty">{description}</p>
 
           {!closed && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
-          <ShareButton no={r.public_no} lang={lang} t={t.share} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ShareButton no={r.public_no} lang={lang} t={t.share} />
+            {!closed && budget && <BudgetButton no={r.public_no} existing={budget.existing} loggedIn={budget.loggedIn} t={t.initiatives} />}
+          </div>
 
           <Outcome status={r.status} createdAt={r.created_at} resolvedAt={r.resolved_at} slaDueAt={r.sla_due_at} resolution={resolution} serviceName={nm(svc, lang)} t={o} />
 

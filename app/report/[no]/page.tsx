@@ -22,6 +22,7 @@ import { Outcome } from "@/components/reports/outcome";
 import { PainContribution } from "@/components/reports/pain-contribution";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
+import { BudgetButton } from "@/components/reports/budget-button";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { flow } from "@/lib/data";
 
@@ -44,9 +45,14 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   if (isDemoNo(no)) {
     const demo = demoBaseline().find((x) => x.public_no === no);
     if (!demo) notFound();
-    const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
+    const [{ lang, t }, { all }, me, { data: init }] = await Promise.all([
+      getDict(),
+      flow(),
+      getProfile(),
+      createAdminClient().from("initiatives").select("id").eq("report_no", no).maybeSingle(),
+    ]);
     const honest = honestForecast(demo, honestContext(all));
-    return <DemoCard r={demo} lang={lang} t={t} honest={honest} />;
+    return <DemoCard r={demo} lang={lang} t={t} honest={honest} budget={{ existing: init?.id ?? null, loggedIn: !!me }} />;
   }
   const db = createAdminClient();
   const { data: head } = await db.from("reports").select("id, status").eq("public_no", no).maybeSingle();
@@ -54,7 +60,12 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   // Ленивое подведение итога голосования, если окно 72 ч истекло
   if (head.status === "awaiting_confirmation") await settleVerification(head.id);
 
-  const [{ lang, t }, me, ref] = await Promise.all([getDict(), getProfile(), getReference()]);
+  const [{ lang, t }, me, ref, { data: budgetInit }] = await Promise.all([
+    getDict(),
+    getProfile(),
+    getReference(),
+    db.from("initiatives").select("id").eq("report_no", no).maybeSingle(),
+  ]);
   const [{ data: r }, { data: photos }, { data: events }, { data: replies }, { data: conf }, { data: votes }] = await Promise.all([
     db.from("reports").select("*").eq("id", head.id).single(),
     db.from("report_photos").select("*").eq("report_id", head.id).order("created_at"),
@@ -173,8 +184,9 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <ShareButton no={no} lang={lang} t={t.share} />
+        {!closed && <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} />}
       </div>
 
       {/* Телефон: главное — сколько осталось по закону и сколько людей видят проблему — сразу под заголовком */}

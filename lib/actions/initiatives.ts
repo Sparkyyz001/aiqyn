@@ -8,6 +8,7 @@ import { msg } from "@/lib/i18n/server";
 import { DICTS, fmt } from "@/lib/i18n/dict";
 import { textChecks } from "@/lib/report-quality";
 import { INITIATIVE_THRESHOLD } from "@/lib/initiatives";
+import { demoBaseline, isDemoNo } from "@/lib/demo-baseline";
 
 // Инициативы жителей: предложить улучшение, поддержать голосом, решение акимата.
 // Порог голосов — идея автоматически уходит на рассмотрение акимата (и приходит уведомление).
@@ -104,4 +105,55 @@ export async function decideInitiative(id: number, input: { status: string; repl
   );
   revalidatePath("/initiatives");
   return { ok: true, data: null };
+}
+
+// тема инициативы по категории обращения
+const KIND_BY_CAT: Record<string, (typeof KINDS)[number]> = { yard: "yard", lighting: "lighting", power_outage: "lighting", transport: "transport", beach: "beach" };
+
+/** Обращение, которое не решается, — в инициативу для бюджета (одна на обращение) */
+export async function initiativeFromReport(no: string): Promise<Result<{ id: number; created: boolean }>> {
+  const me = await getProfile();
+  if (!me) return fail(await msg("login"));
+  const db = createAdminClient();
+  const { data: exists } = await db.from("initiatives").select("id").eq("report_no", no).maybeSingle();
+  if (exists) return { ok: true, data: { id: exists.id, created: false } };
+
+  const ref = await getReference();
+  let src: { title: string; title_kz: string | null; category: string; district: string | null } | null = null;
+  if (isDemoNo(no)) {
+    const r = demoBaseline().find((x) => x.public_no === no);
+    if (r) src = { title: r.title, title_kz: r.title_kz, category: r.category, district: r.district };
+  } else {
+    const { data: r } = await db.from("reports").select("title, category_id, district_id").eq("public_no", no).maybeSingle();
+    if (r) src = { title: r.title, title_kz: null, category: ref.categoryById.get(r.category_id)?.code ?? "other", district: r.district_id ? ref.districtById.get(r.district_id)?.code ?? null : null };
+  }
+  if (!src) return fail(await msg("notFound"));
+  const district = src.district ? ref.districts.find((d) => d.code === src.district) : null;
+
+  const { data, error } = await db
+    .from("initiatives")
+    .insert({
+      author_id: me.id,
+      district_id: district?.id ?? null,
+      kind: KIND_BY_CAT[src.category] ?? "improvement",
+      title: src.title.slice(0, 140),
+      title_kz: src.title_kz?.slice(0, 140) ?? null,
+      description: fmt(RU.reportIdea, { no, title: src.title }),
+      description_kz: fmt(KZ.reportIdea, { no, title: src.title_kz ?? src.title }),
+      votes_count: 1,
+      report_no: no,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    // гонка: инициативу по этому обращению только что создал кто-то другой
+    const { data: again } = await db.from("initiatives").select("id").eq("report_no", no).maybeSingle();
+    if (again) return { ok: true, data: { id: again.id, created: false } };
+    return fail(error?.message ?? "error");
+  }
+  await db.from("initiative_votes").insert({ initiative_id: data.id, user_id: me.id });
+  await notify(await akimatUsers(), [fmt(RU.nNew, { title: src.title }), fmt(KZ.nNew, { title: src.title_kz ?? src.title })], [null, null], data.id);
+  revalidatePath("/initiatives");
+  revalidatePath("/budget");
+  return { ok: true, data: { id: data.id, created: true } };
 }
