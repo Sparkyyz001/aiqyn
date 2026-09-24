@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ExternalLink, MapPin, Phone, Plus } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
+import { getProfile } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getReference } from "@/lib/reference";
+import { StarRating } from "@/components/star-rating";
 import { flow } from "@/lib/data";
 import { serviceQuality } from "@/lib/stats";
 import { CATEGORIES, SERVICES, nm } from "@/lib/meta";
@@ -18,7 +22,16 @@ const OPEN = ["routed", "accepted", "in_progress", "reopened", "awaiting_confirm
 // «Службы города» — справочник для жителя: кто за что отвечает, где находится, куда звонить
 // в экстренном случае и как служба работает на самом деле (по потоку обращений).
 export default async function ServicesPage() {
-  const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);
+  const [{ lang, t }, { all }, me, ref] = await Promise.all([getDict(), flow(), getProfile(), getReference()]);
+  const { data: ratings } = await createAdminClient().from("service_ratings").select("service_id, user_id, stars");
+  const rate = new Map<number, { sum: number; n: number; mine: number | null }>();
+  for (const r of ratings ?? []) {
+    const a = rate.get(r.service_id) ?? { sum: 0, n: 0, mine: null };
+    a.sum += r.stars;
+    a.n++;
+    if (me && r.user_id === me.id) a.mine = r.stars;
+    rate.set(r.service_id, a);
+  }
   const s = t.services;
   const q = new Map(serviceQuality(all).map((r) => [r.service, r]));
   const openBy = new Map<string, number>();
@@ -111,6 +124,23 @@ export default async function ServicesPage() {
                   </a>
                 )}
               </div>
+
+              {(() => {
+                const id = ref.serviceByCode.get(svc.code)?.id;
+                const r = id ? rate.get(id) : undefined;
+                return (
+                  <div className="mt-4 border-t pt-4">
+                    <StarRating
+                      code={svc.code}
+                      avg={r ? r.sum / r.n : 0}
+                      count={r?.n ?? 0}
+                      mine={r?.mine ?? null}
+                      canRate={!!me}
+                      l={{ rate: s.rate, yours: s.yours, votes: s.votes, login: s.loginRate, thanks: s.thanks }}
+                    />
+                  </div>
+                );
+              })()}
 
               <Button asChild variant="outline" size="sm" className="mt-4 self-start">
                 <Link href="/report/new">

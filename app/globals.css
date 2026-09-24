@@ -382,3 +382,10 @@
   --sidebar-border: rgb(246 241 221 / 0.1);
   --sidebar-ring: #ff907d;
 }
+
+/* оценка звёздами: короткий «прыжок» при выборе */
+@keyframes star-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.45) rotate(-12deg); }
+  100% { transform: scale(1); }
+}

@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import "leaflet.heat";
-import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap, Circle, Marker, useMapEvents } from "react-leaflet";
+import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, Tooltip, useMap, Circle, Marker, useMapEvents } from "react-leaflet";
 import { useTheme } from "next-themes";
 import { AKTAU_CENTER } from "@/lib/geo";
 import { CATEGORY, DISTRICT, SERVICE, nm, pointColor } from "@/lib/meta";
@@ -13,7 +13,7 @@ import { painColor } from "@/lib/pain-index";
 import type { MapPoint } from "@/lib/data";
 
 export type MapOverlayCircle = { lat: number; lng: number; radius: number; color: string; label?: string; href?: string };
-export type MapOverlayPolygon = { geojson: GeoJSON.GeoJsonObject; color: string; label?: string };
+export type MapOverlayPolygon = { geojson: GeoJSON.GeoJsonObject; color: string; label?: string; fill?: string; fillOpacity?: number; weight?: number; tooltip?: string; key?: string; onClick?: () => void };
 // Заливка районов по индексу 0–100 (цвет по проверенной шкале, своей для светлой и тёмной темы)
 export type MapChoropleth = { geojson: GeoJSON.GeoJsonObject; index: number | null; label: string; href?: string };
 
@@ -135,7 +135,17 @@ export default function LeafletMap({
         </GeoJSON>
       ))}
       {polygons.map((p, i) => (
-        <GeoJSON key={i} data={p.geojson} style={{ color: p.color, weight: 1.5, fillOpacity: 0.15 }}>
+        <GeoJSON
+          key={p.key ?? i}
+          data={p.geojson}
+          style={{ color: p.color, weight: p.weight ?? 1.5, fillColor: p.fill ?? p.color, fillOpacity: p.fillOpacity ?? 0.15 }}
+          eventHandlers={p.onClick ? { click: p.onClick } : undefined}
+        >
+          {p.tooltip && (
+            <Tooltip sticky direction="top" opacity={0.95}>
+              <span className="whitespace-pre-line">{p.tooltip}</span>
+            </Tooltip>
+          )}
           {p.label && <Popup>{p.label}</Popup>}
         </GeoJSON>
       ))}

@@ -47,7 +47,9 @@ export function roadRisk(segments: Seg[], complaints: LatLng[], freezeThaw: numb
       const km = lengthKm(c);
       const load = CLASS_LOAD[s.highway] ?? 0.3;
       const x = 0.35 * near + 0.6 * load + 0.25 * km + 0.4 * (freezeThaw / 60);
-      return { osm_id: s.osm_id, name: s.name, highway: s.highway, km: Math.round(km * 100) / 100, complaints: near, risk: Math.round((1 - Math.exp(-x)) * 100) / 100, coords: c };
+      // вклад каждого признака в x — для объяснения «почему этот участок» на экране акимата
+      const parts = { complaints: 0.35 * near, load: 0.6 * load, length: 0.25 * km, frost: 0.4 * (freezeThaw / 60) };
+      return { osm_id: s.osm_id, name: s.name, highway: s.highway, km: Math.round(km * 100) / 100, complaints: near, risk: Math.round((1 - Math.exp(-x)) * 100) / 100, coords: c, parts };
     })
     .sort((a, b) => b.risk - a.risk);
 }
