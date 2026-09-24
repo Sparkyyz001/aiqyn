@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // ИИ-зрение (PROMPTS_AI_VISION.md, промпт 1): по фото жителя понять, есть ли городская проблема,
 // предложить категорию, заголовок и серьёзность. ИИ ничего не решает окончательно — житель
 // видит подсказку и может поправить. Без ключа ANTHROPIC_API_KEY модуль молча выключен:
-// подача обращения от ИИ не зависит (таймаут 8 с → форма работает на собственных проверках).
+// подача обращения от ИИ не зависит (таймаут 15 с → форма работает на собственных проверках).
 
 export const aiEnabled = () => !!process.env.ANTHROPIC_API_KEY;
 
@@ -82,11 +82,11 @@ export type Vision = {
   photo_quality: string;
 };
 
-/** Разбор фото. null — ИИ выключен, не ответил за 8 с или вернул что-то не по схеме */
+/** Разбор фото. null — ИИ выключен, не ответил за 15 с или вернул что-то не по схеме */
 export async function analyzePhotoUrl(url: string, context: { text?: string; district?: string | null; takenAt?: string | null }): Promise<Vision | null> {
   if (!aiEnabled()) return null;
   try {
-    const client = new Anthropic({ timeout: 8000, maxRetries: 0 });
+    const client = new Anthropic({ timeout: 15000, maxRetries: 1 });
     const res = await client.messages.create({
       model: MODEL,
       max_tokens: 1500,
