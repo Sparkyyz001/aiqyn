@@ -8,7 +8,8 @@ import Anthropic from "@anthropic-ai/sdk";
 // молча выключен: подача обращения от ИИ не зависит (таймаут 15 с → работают собственные проверки).
 
 export const aiEnabled = () => !!(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.ANTHROPIC_API_KEY);
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// бесплатные модели перегружаются в часы пик — при 503/429/404 пробуем следующую
+const GEMINI_MODELS = [process.env.GEMINI_MODEL, "gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"].filter(Boolean) as string[];
 const GROQ_MODEL = process.env.GROQ_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct";
 
 const MODEL = "claude-sonnet-5"; // быстрый ответ на сцене; качество на классификации достаточное
@@ -124,19 +125,36 @@ async function fetchImage(url: string) {
 
 async function viaGemini(url: string, c: Parameters<typeof userText>[0]) {
   const img = await fetchImage(url);
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
-    signal: AbortSignal.timeout(15000),
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents: [{ role: "user", parts: [{ inlineData: { mimeType: img.mime, data: img.b64 } }, { text: userText(c) }] }],
-      generationConfig: { responseMimeType: "application/json", responseSchema: GEMINI_SCHEMA, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
-    }),
-  });
-  if (!r.ok) throw new Error(`gemini ${r.status} ${(await r.text()).slice(0, 200)}`);
-  const j = await r.json();
-  return (j.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+  const deadline = Date.now() + 18000;
+  let last = "";
+  for (const model of GEMINI_MODELS) {
+    const left = deadline - Date.now();
+    if (left < 2000) break;
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
+      signal: AbortSignal.timeout(Math.min(12000, left)),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM }] },
+        contents: [{ role: "user", parts: [{ inlineData: { mimeType: img.mime, data: img.b64 } }, { text: userText(c) }] }],
+        generationConfig: { responseMimeType: "application/json", responseSchema: GEMINI_SCHEMA, temperature: 0.2 },
+      }),
+    }).catch((e: Error) => e);
+    if (r instanceof Error) {
+      last = `${model}: ${r.message}`;
+      continue;
+    }
+    if (r.ok) {
+      const j = await r.json();
+      const text = (j.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+      if (text) return text;
+      last = `${model}: пустой ответ`;
+      continue;
+    }
+    last = `${model} ${r.status}`;
+    if (![404, 429, 500, 503].includes(r.status)) break;
+  }
+  throw new Error(`gemini: ${last}`);
 }
 
 async function viaGroq(url: string, c: Parameters<typeof userText>[0]) {

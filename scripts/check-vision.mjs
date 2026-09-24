@@ -12,11 +12,11 @@ const t0 = Date.now();
 let who, text;
 
 if (env.GEMINI_API_KEY) {
-  who = `Gemini ${env.GEMINI_MODEL || "gemini-2.5-flash"}`;
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent`, {
+  who = `Gemini ${env.GEMINI_MODEL || "gemini-3.6-flash"}`;
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-3.6-flash"}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({ contents: [{ parts: [{ inlineData: { mimeType: mime, data: b64 } }, { text: ask }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }),
+    body: JSON.stringify({ contents: [{ parts: [{ inlineData: { mimeType: mime, data: b64 } }, { text: ask }] }], generationConfig: { thinkingConfig: { thinkingLevel: "low" } } }),
   });
   const j = await r.json();
   if (!r.ok) throw new Error(`${r.status}: ${JSON.stringify(j.error ?? j)}`);
