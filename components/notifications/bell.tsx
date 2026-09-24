@@ -78,7 +78,6 @@ export function NotificationBell({
   }, []);
 
   useEffect(() => {
-    load();
     const supabase = createClient();
     let ch: ReturnType<typeof supabase.channel> | null = null;
     let alive = true;
@@ -87,6 +86,7 @@ export function NotificationBell({
       const { data } = await supabase.auth.getSession();
       if (data.session) supabase.realtime.setAuth(data.session.access_token);
       if (!alive) return;
+      await load();
       ch = supabase
         .channel(`notes-${userId}`)
         .on(

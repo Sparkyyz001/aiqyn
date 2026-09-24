@@ -12,7 +12,7 @@ export function LiveRefresh({
   filter,
   toastText,
 }: {
-  table?: "reports" | "report_events" | "incidents" | "notifications";
+  table?: "reports" | "report_events" | "incidents" | "notifications" | "initiatives";
   filter?: string;
   toastText?: string;
 }) {

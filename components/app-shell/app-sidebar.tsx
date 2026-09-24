@@ -6,15 +6,18 @@ import {
   BarChart3,
   Bell,
   Building2,
+  BookUser,
   ChevronsUpDown,
   CircleDollarSign,
   Flame,
   Headset,
+  Lightbulb,
   Inbox,
   LayoutDashboard,
   LogIn,
   LogOut,
   Map as MapIcon,
+  MapPinned,
   MoonStar,
   Plus,
   Route,
@@ -49,6 +52,9 @@ export type ShellLabels = {
   guestHint: string;
   report: string;
   notifications: string;
+  services: string;
+  districts: string;
+  initiatives: string;
   nav: { map: string; incidents: string; openData: string; me: string; service: string; operator: string; login: string; logout: string };
   akimatNav: { overview: string; risk: string; pain: string; clusters: string; quality: string; money: string; forecast: string; air: string; light: string };
   roles: Record<Role, string>;
@@ -66,6 +72,9 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
   const city: Item[] = [
     { title: l.nav.map, url: "/map", icon: MapIcon },
     { title: l.nav.incidents, url: "/incidents", icon: Siren },
+    { title: l.initiatives, url: "/initiatives", icon: Lightbulb },
+    { title: l.districts, url: "/district", icon: MapPinned },
+    { title: l.services, url: "/services", icon: BookUser },
   ];
   const bell: Item = { title: l.notifications, url: "/notifications", icon: Bell };
   const cabinet: Item[] = !user
