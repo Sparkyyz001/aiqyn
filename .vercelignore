@@ -1,0 +1,7 @@
+# не отправлять на Vercel: окружение Python и сырые данные для обучения модели сроков
+ml/.venv/
+ml/honest_deadline/raw/
+__pycache__/
+.claude/
+CLAUDE.md
+AGENTS.md
