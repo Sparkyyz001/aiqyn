@@ -1,37 +1,41 @@
 import "server-only";
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
-import { demoBaseline, type BaseReport } from "@/lib/demo-baseline";
+import type { BaseReport } from "@/lib/demo-baseline";
 
-// Единый поток для статистики и карт: [...ДЕМО-ПОДЛОЖКА, ...реальные обращения из БД].
-// Дашборд никогда не пуст, а обращение, созданное на демо, сразу двигает цифры (ТЗ, раздел 11).
+// Единый поток для статистики и карт — всё из базы: реальные обращения и модельный поток
+// (is_synthetic = true, номера AQ-2026-9xxxx). Дашборд никогда не пуст, а обращение,
+// созданное на демо, сразу двигает цифры (ТЗ, раздел 11).
 
 export type FlowReport = BaseReport;
 
-export async function realReports(): Promise<FlowReport[]> {
+// один запрос к базе на рендер, даже если поток нужен нескольким блокам страницы
+export const realReports = cache(async (): Promise<FlowReport[]> => {
   const db = createAdminClient();
   const ref = await getReference();
   const { data } = await db
     .from("reports")
     .select(
-      "id, public_no, category_id, service_id, district_id, title, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
+      "id, public_no, is_synthetic, synthetic, category_id, service_id, district_id, title, title_kz, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
     )
     .order("created_at", { ascending: false })
-    .limit(2000);
+    .limit(5000);
   const now = Date.now();
   return (data ?? []).map((r) => {
     const after = (r.report_photos ?? []).filter((p: { kind: string }) => p.kind === "after");
     const replies = (r.service_replies ?? []) as { boilerplate_score: number | null }[];
     const open = !["resolved", "rejected"].includes(r.status);
+    const syn = r.is_synthetic ? ((r.synthetic ?? {}) as { after_geo_verified?: boolean | null; reply_boilerplate?: number | null }) : null;
     return {
       id: r.id,
       public_no: r.public_no,
-      demo: false,
+      demo: !!r.is_synthetic,
       category: ref.categoryById.get(r.category_id)?.code ?? "other",
       service: r.service_id ? ref.serviceById.get(r.service_id)?.code ?? "akimat" : "akimat",
       district: r.district_id ? ref.districtById.get(r.district_id)?.code ?? null : null,
       title: r.title,
-      title_kz: null,
+      title_kz: r.title_kz ?? null,
       lat: r.lat,
       lng: r.lng,
       status: r.status,
@@ -43,16 +47,16 @@ export async function realReports(): Promise<FlowReport[]> {
       reopen_count: r.reopen_count,
       confirmations: r.confirmations_count,
       priority: r.priority_score,
-      after_geo_verified: after.length ? after.some((p: { geo_verified: boolean }) => p.geo_verified) : null,
-      reply_boilerplate: replies.length ? Math.max(...replies.map((x) => x.boilerplate_score ?? 0)) : null,
+      after_geo_verified: syn ? syn.after_geo_verified ?? null : after.length ? after.some((p: { geo_verified: boolean }) => p.geo_verified) : null,
+      reply_boilerplate: syn ? syn.reply_boilerplate ?? null : replies.length ? Math.max(...replies.map((x) => x.boilerplate_score ?? 0)) : null,
       source: r.source,
     };
   });
-}
+});
 
 export async function flow(): Promise<{ all: FlowReport[]; real: FlowReport[] }> {
-  const real = await realReports();
-  return { all: [...real, ...demoBaseline()], real };
+  const all = await realReports();
+  return { all, real: all.filter((r) => !r.demo) };
 }
 
 /** Облегчённые точки для карты (на клиент уходит только необходимое) */

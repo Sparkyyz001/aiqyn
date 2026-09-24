@@ -63,7 +63,8 @@ export async function createIncident(input: Input) {
     .select("id, lat, lng")
     .in("category_id", catIds)
     .in("status", ["new", "routed", "accepted", "in_progress", "reopened"])
-    .is("incident_id", null);
+    .is("incident_id", null)
+    .eq("is_synthetic", false);
   const inside = (open ?? []).filter((r) => pointInPolygon(r, polygon));
   if (inside.length) {
     await db.from("reports").update({ incident_id: inc.id }).in("id", inside.map((r) => r.id));

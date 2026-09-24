@@ -69,6 +69,7 @@ export async function previewReport(input: { text: string; lat: number; lng: num
     .from("reports")
     .select("id, public_no, title, status, lat, lng, category_id, confirmations_count, sla_due_at, created_at, report_photos(url, kind)")
     .eq("category_id", cat.id)
+    .eq("is_synthetic", false)
     .gte("lat", bb.minLat).lte("lat", bb.maxLat)
     .gte("lng", bb.minLng).lte("lng", bb.maxLng)
     .gte("created_at", new Date(Date.now() - DEDUPE_WINDOW_DAYS * 86400_000).toISOString());

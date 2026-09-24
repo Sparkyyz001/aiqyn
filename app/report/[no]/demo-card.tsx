@@ -64,7 +64,7 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
           <p className="text-pretty">{description}</p>
 
           {!closed && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <ShareButton no={r.public_no} lang={lang} t={t.share} />
             {!closed && budget && <BudgetButton no={r.public_no} existing={budget.existing} loggedIn={budget.loggedIn} t={t.initiatives} />}
           </div>

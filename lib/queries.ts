@@ -11,7 +11,7 @@ type Filter = { serviceId?: number; authorId?: string; ids?: number[]; districtI
 export async function listReports(f: Filter): Promise<RowReport[]> {
   const db = createAdminClient();
   const ref = await getReference();
-  let q = db.from("reports").select(SELECT);
+  let q = db.from("reports").select(SELECT).eq("is_synthetic", false);
   if (f.serviceId) q = q.eq("service_id", f.serviceId);
   if (f.authorId) q = q.eq("author_id", f.authorId);
   if (f.ids) q = q.in("id", f.ids.length ? f.ids : [-1]);

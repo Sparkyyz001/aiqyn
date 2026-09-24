@@ -16,7 +16,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { CityMap } from "@/components/map/map";
 import { ReportActions } from "./report-actions";
 import { DemoCard } from "./demo-card";
-import { demoBaseline, isDemoNo, legacyDemoNo } from "@/lib/demo-baseline";
+import { isDemoNo, legacyDemoNo } from "@/lib/demo-baseline";
 import { redirect } from "next/navigation";
 import { Outcome } from "@/components/reports/outcome";
 import { PainContribution } from "@/components/reports/pain-contribution";
@@ -43,14 +43,14 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   const legacy = legacyDemoNo(no);
   if (legacy) redirect(`/report/${legacy}`);
   if (isDemoNo(no)) {
-    const demo = demoBaseline().find((x) => x.public_no === no);
-    if (!demo) notFound();
     const [{ lang, t }, { all }, me, { data: init }] = await Promise.all([
       getDict(),
       flow(),
       getProfile(),
       createAdminClient().from("initiatives").select("id").eq("report_no", no).maybeSingle(),
     ]);
+    const demo = all.find((x) => x.public_no === no);
+    if (!demo) notFound();
     const honest = honestForecast(demo, honestContext(all));
     return <DemoCard r={demo} lang={lang} t={t} honest={honest} budget={{ existing: init?.id ?? null, loggedIn: !!me }} />;
   }
@@ -184,7 +184,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-start gap-2">
         <ShareButton no={no} lang={lang} t={t.share} />
         {!closed && <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} />}
       </div>

@@ -15,6 +15,7 @@ export async function recomputeClusters(categoryId: number) {
     .select("id, lat, lng, created_at, reopen_count, sla_breached_at, status")
     .eq("category_id", categoryId)
     .neq("status", "rejected")
+    .eq("is_synthetic", false)
     .gte("created_at", since);
   const points = (rows ?? []).map((r) => ({ ...r, breached: !!r.sla_breached_at }));
   const clusters = dbscan(points);

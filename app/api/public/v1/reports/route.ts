@@ -14,6 +14,7 @@ export async function GET(req: Request) {
   let q = db
     .from("reports")
     .select("public_no, category_id, service_id, district_id, title, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source")
+    .eq("is_synthetic", false)
     .order("created_at", { ascending: false })
     .limit(limit);
 

@@ -8,7 +8,6 @@ import { msg } from "@/lib/i18n/server";
 import { DICTS, fmt } from "@/lib/i18n/dict";
 import { textChecks } from "@/lib/report-quality";
 import { INITIATIVE_THRESHOLD } from "@/lib/initiatives";
-import { demoBaseline, isDemoNo } from "@/lib/demo-baseline";
 
 // Инициативы жителей: предложить улучшение, поддержать голосом, решение акимата.
 // Порог голосов — идея автоматически уходит на рассмотрение акимата (и приходит уведомление).
@@ -120,13 +119,8 @@ export async function initiativeFromReport(no: string): Promise<Result<{ id: num
 
   const ref = await getReference();
   let src: { title: string; title_kz: string | null; category: string; district: string | null } | null = null;
-  if (isDemoNo(no)) {
-    const r = demoBaseline().find((x) => x.public_no === no);
-    if (r) src = { title: r.title, title_kz: r.title_kz, category: r.category, district: r.district };
-  } else {
-    const { data: r } = await db.from("reports").select("title, category_id, district_id").eq("public_no", no).maybeSingle();
-    if (r) src = { title: r.title, title_kz: null, category: ref.categoryById.get(r.category_id)?.code ?? "other", district: r.district_id ? ref.districtById.get(r.district_id)?.code ?? null : null };
-  }
+  const { data: r } = await db.from("reports").select("title, title_kz, category_id, district_id").eq("public_no", no).maybeSingle();
+  if (r) src = { title: r.title, title_kz: r.title_kz, category: ref.categoryById.get(r.category_id)?.code ?? "other", district: r.district_id ? ref.districtById.get(r.district_id)?.code ?? null : null };
   if (!src) return fail(await msg("notFound"));
   const district = src.district ? ref.districts.find((d) => d.code === src.district) : null;
 
