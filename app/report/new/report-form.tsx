@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, Check, CircleAlert, CircleX, Crosshair, Loader2, MapPin, ShieldAlert, Sparkles, ThumbsUp, X } from "lucide-react";
+import { Camera, Check, ImageUp, CircleAlert, CircleX, Crosshair, Loader2, MapPin, ShieldAlert, Sparkles, ThumbsUp, X } from "lucide-react";
 import { CityMap } from "@/components/map/map";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,9 @@ export function ReportForm({
   const [source, setSource] = useState<Source>(operator ? "call109" : "app");
   const [sourceUrl, setSourceUrl] = useState("");
   const [pending, start] = useTransition();
+  // камера и галерея — два разных поля: с capture Android открывает только камеру
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   // «Сканирование» последнего фото: что удалось прочитать из EXIF
@@ -133,6 +135,7 @@ export function ReportForm({
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
+      if (galleryRef.current) galleryRef.current.value = "";
     }
   };
 
@@ -244,18 +247,31 @@ export function ReportForm({
               </div>
             ))}
             {photos.length === 0 && (
-              <Button type="button" className="btn-shine h-28 w-full flex-col gap-2 text-base" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                {uploading ? <Loader2 className="size-6 animate-spin" /> : <Camera className="size-6" />}
-                {t.report.photoCta}
-              </Button>
+              <div className="grid w-full grid-cols-2 gap-2">
+                <Button type="button" className="btn-shine h-28 flex-col gap-2 text-base" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 className="size-6 animate-spin" /> : <Camera className="size-6" />}
+                  {t.report.photoCamera}
+                </Button>
+                <Button type="button" variant="outline" className="h-28 flex-col gap-2 text-base" onClick={() => galleryRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 className="size-6 animate-spin" /> : <ImageUp className="size-6" />}
+                  {t.report.photoGallery}
+                </Button>
+              </div>
             )}
             {photos.length > 0 && photos.length < 5 && (
-              <Button type="button" variant="outline" className="h-20 min-w-20 flex-col gap-1 px-3 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
-                {t.report.addPhoto}
-              </Button>
+              <>
+                <Button type="button" variant="outline" className="h-20 min-w-20 flex-col gap-1 px-3 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
+                  {t.report.photoCamera}
+                </Button>
+                <Button type="button" variant="outline" className="h-20 min-w-20 flex-col gap-1 px-3 text-xs" onClick={() => galleryRef.current?.click()} disabled={uploading}>
+                  {uploading ? <Loader2 className="animate-spin" /> : <ImageUp />}
+                  {t.report.photoGallery}
+                </Button>
+              </>
             )}
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple hidden onChange={(e) => onFiles(e.target.files)} />
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onFiles(e.target.files)} />
+            <input ref={galleryRef} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
           </div>
           {scan && (
             <div className="rounded-md border bg-muted/30 p-2.5 text-xs">

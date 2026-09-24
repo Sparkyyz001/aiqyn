@@ -324,6 +324,8 @@ export const kz: Dict = {
     descLabel: "Толығырақ (міндетті емес)",
     photo: "Фото",
     addPhoto: "Фото қосу",
+    photoCamera: "Камера",
+    photoGallery: "Галереядан",
     photoGeo: "геобелгі бар",
     photoNoGeo: "геобелгісіз",
     detected: "Жүйе анықтады",

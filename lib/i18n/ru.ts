@@ -323,6 +323,8 @@ export const ru = {
     descLabel: "Подробнее (необязательно)",
     photo: "Фото",
     addPhoto: "Добавить фото",
+    photoCamera: "Камера",
+    photoGallery: "Из галереи",
     photoGeo: "геометка есть",
     photoNoGeo: "без геометки",
     detected: "Система определила",
