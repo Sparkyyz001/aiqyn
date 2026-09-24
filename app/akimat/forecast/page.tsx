@@ -1,7 +1,8 @@
 import { flow, titleOf } from "@/lib/data";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
-import { roadRisk, distToLine } from "@/lib/road-risk";
+import { roadRisk, distToLine, type RoadVotes } from "@/lib/road-risk";
+import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference, districtAt } from "@/lib/reference";
 import daily from "@/data/weather_daily.json";
@@ -23,14 +24,24 @@ function lastWinterFreezeThaw() {
 }
 
 export default async function ForecastPage() {
-  const [{ lang, t }, { all }, ref] = await Promise.all([getDict(), flow(), getReference()]);
+  const [{ lang, t }, { all }, ref, me] = await Promise.all([getDict(), flow(), getReference(), getProfile()]);
   // значимые сегменты (именованные + primary…tertiary) залиты seed-скриптом из OSM
   const { data } = await createAdminClient().from("road_segments").select("osm_id, name, highway_class, geometry").limit(2000);
   const segs: Seg[] = (data ?? []).map((r) => ({ osm_id: r.osm_id, name: r.name, highway: r.highway_class, geometry: r.geometry }));
   const now = new Date().getTime();
   const complaints = all.filter((r) => ["road_pit", "excavation"].includes(r.category) && now - new Date(r.created_at).getTime() < 90 * 86400_000);
   const ft = lastWinterFreezeThaw();
-  const top = roadRisk(segs, complaints, ft).slice(0, 40);
+  // отзывы о состоянии с места — входят в риск и показываются в карточке участка
+  const { data: fbRows } = await createAdminClient().from("road_feedback").select("osm_id, user_id, verdict");
+  const votes = new Map<string, RoadVotes>();
+  const mine = new Map<string, keyof RoadVotes>();
+  for (const f of fbRows ?? []) {
+    const v = votes.get(f.osm_id) ?? { potholes: 0, cracks: 0, ok: 0, repaired: 0 };
+    v[f.verdict as keyof RoadVotes]++;
+    votes.set(f.osm_id, v);
+    if (me && f.user_id === me.id) mine.set(f.osm_id, f.verdict as keyof RoadVotes);
+  }
+  const top = roadRisk(segs, complaints, ft, votes).slice(0, 30);
   const d = (iso: string) => new Date(iso).toLocaleDateString(lang === "kz" ? "kk-KZ" : "ru-RU", { day: "numeric", month: "short", timeZone: "Asia/Aqtau" });
 
   // у многих магистралей в OSM нет названия — подписываем классом дороги и микрорайоном
@@ -49,6 +60,8 @@ export default async function ForecastPage() {
   const view: RoadSeg[] = top.map((s) => ({
     ...s,
     name: label(s),
+    votes: votes.get(s.osm_id) ?? { potholes: 0, cracks: 0, ok: 0, repaired: 0 },
+    mine: mine.get(s.osm_id) ?? null,
     nearby: complaints
       .filter((r) => distToLine(r, s.coords) <= 40)
       .slice(0, 6)
@@ -62,7 +75,7 @@ export default async function ForecastPage() {
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">{tf(t.akimat.forecast.intro, { n: segs.length, ft })}</p>
         <p className="mt-2 text-xs font-medium text-primary">{t.akimat.forecast.pick}</p>
       </div>
-      <RoadExplorer segs={view} ft={ft} t={t.akimat.forecast} />
+      <RoadExplorer segs={view} ft={ft} loggedIn={!!me} t={t.akimat.forecast} />
     </div>
   );
 }

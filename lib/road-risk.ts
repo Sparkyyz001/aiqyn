@@ -1,8 +1,10 @@
 // Модуль 8.1: индекс риска разрушения дорожных сегментов (прозрачная формула, не «чёрный ящик»).
 //
-// risk = 1 − exp(−x),  x = 0.35·жалоб_рядом(≤40 м, 90 дн.) + 0.6·класс_нагрузки + 0.25·длина_км
+// risk = 1 − exp(−x),  x = 0.45·жалоб_рядом(≤40 м, 90 дн.) + 0.5·класс_нагрузки + 0.15·min(длина_км, 1.5)
 //                         + 0.4·(переходов через 0 °C за последний холодный сезон / 60)
-// Жалобы — главный сигнал; класс дороги (primary/trunk сильнее нагружены) и длина — экспозиция;
+//                         + 0.35·отзывов «ямы/трещины» − 0.8·отзывов «отремонтировали»
+// Жалобы и отзывы с места — главный сигнал; класс дороги (primary/trunk сильнее нагружены) и длина —
+// экспозиция (длина ограничена, иначе длинные магистрали без единой жалобы выходят в топ);
 // переходы через 0 °C по данным Open-Meteo — главный климатический разрушитель покрытия.
 //
 // Почему не ML: для обучения нужна реальная история ремонтов и жалоб по сегментам. На синтетике
@@ -37,7 +39,9 @@ export function lengthKm(coords: [number, number][]) {
   return s / 1000;
 }
 
-export function roadRisk(segments: Seg[], complaints: LatLng[], freezeThaw: number) {
+export type RoadVotes = { potholes: number; cracks: number; ok: number; repaired: number };
+
+export function roadRisk(segments: Seg[], complaints: LatLng[], freezeThaw: number, votes: Map<string, RoadVotes> = new Map()) {
   return segments
     .map((s) => {
       const c = s.geometry.coordinates;
@@ -46,9 +50,12 @@ export function roadRisk(segments: Seg[], complaints: LatLng[], freezeThaw: numb
       const near = complaints.filter((p) => p.lat >= minLat && p.lat <= maxLat && p.lng >= minLng && p.lng <= maxLng && distToLine(p, c) <= 40).length;
       const km = lengthKm(c);
       const load = CLASS_LOAD[s.highway] ?? 0.3;
-      const x = 0.35 * near + 0.6 * load + 0.25 * km + 0.4 * (freezeThaw / 60);
+      const v = votes.get(s.osm_id);
+      const bad = v ? v.potholes + v.cracks : 0;
+      const fixed = v ? v.repaired : 0;
       // вклад каждого признака в x — для объяснения «почему этот участок» на экране акимата
-      const parts = { complaints: 0.35 * near, load: 0.6 * load, length: 0.25 * km, frost: 0.4 * (freezeThaw / 60) };
+      const parts = { complaints: 0.45 * near, load: 0.5 * load, length: 0.15 * Math.min(km, 1.5), frost: 0.4 * (freezeThaw / 60), feedback: 0.35 * bad };
+      const x = Math.max(0, parts.complaints + parts.load + parts.length + parts.frost + parts.feedback - 0.8 * fixed);
       return { osm_id: s.osm_id, name: s.name, highway: s.highway, km: Math.round(km * 100) / 100, complaints: near, risk: Math.round((1 - Math.exp(-x)) * 100) / 100, coords: c, parts };
     })
     .sort((a, b) => b.risk - a.risk);
