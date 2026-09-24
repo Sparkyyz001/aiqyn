@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
+import { VoiceButton, type VoiceResult } from "@/components/reports/voice-button";
 import { previewReport, createReport, confirmReport, analyzePhoto, type Preview } from "@/lib/actions/reports";
 import { textChecks, photoChecks, worst, type Check as QCheck } from "@/lib/report-quality";
 import type { Vision } from "@/lib/ai-vision";
@@ -100,6 +101,21 @@ export function ReportForm({
       setDescription((cur) => cur.trim() || (lang === "kz" ? v.description_kz : v.description_ru));
       setCategory((cur) => cur ?? (v.category as CategoryCode));
     }
+  };
+
+  // Голос: ИИ расшифровал рассказ и заполнил карточку; названный микрорайон — точка на карте
+  const onVoice = (v: VoiceResult) => {
+    if (!v.is_city_problem) toast.warning(t.report.voice.notProblem);
+    else toast.success(t.report.voice.filled);
+    setTitle(lang === "kz" ? v.title_kz : v.title_ru);
+    setDescription(lang === "kz" ? v.description_kz : v.description_ru);
+    if (v.is_city_problem) setCategory(v.category as CategoryCode);
+    if (v.district && !point) {
+      const p = { lat: v.district.lat, lng: v.district.lng };
+      setPoint(p);
+      setFlyTo({ ...p, zoom: 15 });
+    }
+    if (v.place_hint) toast.info(fmt(t.report.voice.place, { p: v.place_hint }));
   };
 
   const pick = (p: { lat: number; lng: number }) => {
@@ -330,6 +346,7 @@ export function ReportForm({
         {/* 3. Что случилось */}
         <section className="flex flex-col gap-3 rounded-2xl border p-4">
           {stepHead(3, t.report.stepText, undefined, title.trim().length >= 3)}
+          <VoiceButton l={t.report.voice} onResult={onVoice} />
           <div className="grid gap-2">
             <Label htmlFor="title">{t.report.titleLabel}</Label>
             <Input ref={titleRef} id="title" aria-invalid={showMissing && title.trim().length < 3} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.report.titlePh} maxLength={140} />
