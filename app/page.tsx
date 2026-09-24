@@ -5,7 +5,6 @@ import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/status-badge";
 import { LandscapeHero } from "@/components/landing/landscape-hero";
-import { VideoHero } from "@/components/landing/video-hero";
 import { ScrollWords } from "@/components/landing/scroll-words";
 import { Accent } from "@/components/landing/accent";
 import { SpotlightTracker } from "@/components/landing/spotlight";
@@ -54,30 +53,14 @@ export default async function Home() {
       <SpotlightTracker />
       <div className="scroll-progress" aria-hidden />
 
-      {/* 1. Первый экран — живое видео набережной Актау, главная фраза и кнопки */}
-      <VideoHero
+      {/* 1. Первый экран — иллюстрированный пейзаж, главная фраза и кнопки */}
+      <LandscapeHero
         f={{
-          eyebrow: h.video.eyebrow,
+          eyebrow: h.final.eyebrow,
           lines: h.h1,
           sub: h.sub,
           cta: h.ctaReport,
           ctaMap: h.ctaMap,
-          place: h.video.place,
-          scroll: h.video.scroll,
-        }}
-      />
-
-      {/* 1б. Иллюстрированный пейзаж — каким может быть город */}
-      <LandscapeHero
-        f={{
-          eyebrow: h.final.eyebrow,
-          lines: h.vision.lines,
-          sub: h.vision.sub,
-          cta: h.vision.cta,
-          ctaMap: h.vision.ghost,
-          ctaHref: "/initiatives",
-          ghostHref: "/budget",
-          heading: "h2",
         }}
       />
 
