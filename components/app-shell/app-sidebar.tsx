@@ -18,7 +18,6 @@ import {
   LogOut,
   Map as MapIcon,
   MapPinned,
-  MoonStar,
   Plus,
   Route,
   ShieldAlert,
@@ -100,7 +99,6 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
           { title: l.akimatNav.money, url: "/akimat/money", icon: CircleDollarSign },
           { title: l.akimatNav.forecast, url: "/akimat/forecast", icon: Route },
           { title: l.akimatNav.air, url: "/akimat/air", icon: Wind },
-          { title: l.akimatNav.light, url: "/akimat/light", icon: MoonStar },
         ]
       : [];
 

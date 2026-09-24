@@ -32,7 +32,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     ["/akimat/money", a.money],
     ["/akimat/forecast", a.forecast],
     ["/akimat/air", a.air],
-    ["/akimat/light", a.light],
   ];
 
   return (

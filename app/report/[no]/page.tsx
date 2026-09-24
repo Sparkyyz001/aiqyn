@@ -16,7 +16,8 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { CityMap } from "@/components/map/map";
 import { ReportActions } from "./report-actions";
 import { DemoCard } from "./demo-card";
-import { demoBaseline } from "@/lib/demo-baseline";
+import { demoBaseline, isDemoNo, legacyDemoNo } from "@/lib/demo-baseline";
+import { redirect } from "next/navigation";
 import { Outcome } from "@/components/reports/outcome";
 import { PainContribution } from "@/components/reports/pain-contribution";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
@@ -38,7 +39,9 @@ const fmt = (s: string) =>
 export default async function ReportPage({ params }: PageProps<"/report/[no]">) {
   const { no } = await params;
   // Демо-записи подложки: отдельная карточка только для чтения
-  if (no.startsWith("DEMO-")) {
+  const legacy = legacyDemoNo(no);
+  if (legacy) redirect(`/report/${legacy}`);
+  if (isDemoNo(no)) {
     const demo = demoBaseline().find((x) => x.public_no === no);
     if (!demo) notFound();
     const [{ lang, t }, { all }] = await Promise.all([getDict(), flow()]);

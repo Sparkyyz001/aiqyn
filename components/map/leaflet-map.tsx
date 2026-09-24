@@ -182,7 +182,6 @@ export default function LeafletMap({
                     {popupLabels?.more ?? openLabel} →
                   </a>
                 )}
-                {p.demo && <div className="text-[11px] text-muted-foreground">{demoLabel}</div>}
               </div>
             </Popup>
           </CircleMarker>

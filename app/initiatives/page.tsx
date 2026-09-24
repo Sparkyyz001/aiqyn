@@ -83,7 +83,6 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
                 <span className={cn("rounded-full px-2.5 py-0.5 font-medium", STATUS_TONE[i.status])}>{tt.status[i.status as keyof typeof tt.status]}</span>
                 <span className="text-muted-foreground">{tt.kind[i.kind as keyof typeof tt.kind]}</span>
                 {d && <span className="text-muted-foreground">· {lang === "kz" ? d.name_kz : d.name_ru}</span>}
-                {i.demo && <span className="rounded border px-1.5 text-[10px] text-muted-foreground uppercase">{tt.demo}</span>}
               </div>
               <h2 className="mt-2 text-lg font-semibold leading-snug text-balance">{lang === "kz" && i.title_kz ? i.title_kz : i.title}</h2>
               {(i.description || i.description_kz) && <p className="mt-1 text-sm text-muted-foreground text-pretty">{lang === "kz" && i.description_kz ? i.description_kz : i.description}</p>}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlarmClock, ArrowRight, CheckCheck, Inbox, Layers, RotateCcw, ShieldAlert, Timer } from "lucide-react";
+import { AlarmClock, ArrowRight, CheckCheck, Inbox, Layers, Map as MapIcon, ShieldAlert } from "lucide-react";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
@@ -9,10 +9,11 @@ import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
 import { Kpi } from "@/components/kpi";
 import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
-import { DailyChart } from "@/components/akimat/daily-chart";
+import { AreaInteractive } from "@/components/akimat/area-interactive";
+import { ReportsTable, type TableRow } from "@/components/akimat/reports-table";
 import { BarList } from "@/components/akimat/bar-list";
-import { StatusBadge } from "@/components/status-badge";
 import { PainRanking } from "@/components/akimat/pain-parts";
+import { Button } from "@/components/ui/button";
 import { painData } from "@/lib/pain-data";
 
 export async function generateMetadata() {
@@ -20,41 +21,77 @@ export async function generateMetadata() {
   return { title: t.nav.akimat };
 }
 
+const DAY = 86_400_000;
+const OPEN = ["routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
+
+// Обзор акимата: плитки с трендом, динамика с переключателем периода, индекс боли и тепловая
+// карта, разрезы по категориям и районам, таблица всех открытых обращений с риском срыва.
 export default async function AkimatPage() {
   const [{ lang, t }, { all, real }, pain] = await Promise.all([getDict(), flow(), painData()]);
+  const o = t.akimat.overview;
+  const now = new Date();
   const k = kpis(all);
   const series = daily(all, 90);
-  const cats = byKey(all, (r) => r.category).slice(0, 10);
-  const dists = byKey(all, (r) => r.district).slice(0, 12);
-  const overdue = all
-    .filter((r) => r.sla_breached && !["resolved", "rejected"].includes(r.status))
-    .sort((a, b) => b.priority - a.priority)
-    .slice(0, 10);
-  const fmt = new Intl.NumberFormat("ru-RU");
-  // Раннее предупреждение: сколько открытых заявок, по прогнозу, не уложится в законный срок
+  const cats = byKey(all, (r) => r.category).slice(0, 8);
+  const dists = byKey(all, (r) => r.district).slice(0, 8);
+  const n = new Intl.NumberFormat("ru-RU");
+
+  // тренд: последние 7 дней к предыдущим 7
+  const inWeek = (iso: string | null, from: number) => !!iso && now.getTime() - new Date(iso).getTime() >= from * DAY && now.getTime() - new Date(iso).getTime() < (from + 7) * DAY;
+  const pct = (a: number, b: number) => (b ? Math.round(((a - b) / b) * 100) : 0);
+  const created = [all.filter((r) => inWeek(r.created_at, 0)).length, all.filter((r) => inWeek(r.created_at, 7)).length];
+  const resolved = [all.filter((r) => inWeek(r.resolved_at, 0)).length, all.filter((r) => inWeek(r.resolved_at, 7)).length];
+
+  // честный прогноз для всех открытых — риск срыва в таблице и число «под угрозой»
   const hctx = honestContext(all);
-  const now = new Date();
-  const atRisk = all.filter((r) => {
-    if (!["routed", "accepted", "in_progress", "reopened"].includes(r.status) || !r.sla_due_at || new Date(r.sla_due_at) < now) return false;
-    const f = honestForecast(r, hctx, now);
-    return f.ok && (f.pBreach ?? 0) >= 0.5;
-  }).length;
+  const open = all.filter((r) => OPEN.includes(r.status));
+  const rows: TableRow[] = open.map((r) => {
+    const f = r.sla_breached ? null : honestForecast(r, hctx, now);
+    return {
+      no: r.public_no,
+      title: titleOf(r, lang),
+      cat: nm(CATEGORY[r.category], lang),
+      district: r.district && DISTRICT[r.district] ? nm(DISTRICT[r.district], lang) : "—",
+      service: SERVICE[r.service]?.short ?? r.service,
+      status: r.status,
+      statusLabel: t.status[r.status as keyof typeof t.status] ?? r.status,
+      due: r.sla_due_at,
+      breached: r.sla_breached,
+      risk: r.sla_breached ? 1 : f && f.ok ? f.pBreach : null,
+      priority: r.priority,
+    };
+  });
+  const atRisk = rows.filter((r) => !r.breached && (r.risk ?? 0) >= 0.5).length;
 
   return (
     <div className="flex flex-col gap-6">
       <LiveRefresh />
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{t.nav.akimat}</h1>
-        <p className="text-sm text-muted-foreground">{tf(t.akimat.overview.sub, { n: real.length })}</p>
+
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">{o.kicker}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">{t.nav.akimat}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{tf(o.sub, { n: real.length })}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm" className="border-[color:var(--danger)]/40 text-[color:var(--danger)] hover:text-[color:var(--danger)]">
+            <Link href="/akimat/risk">
+              <ShieldAlert /> {o.toRisk} · {atRisk}
+            </Link>
+          </Button>
+          <Button asChild size="sm">
+            <Link href="/map">
+              <MapIcon /> {o.toMap}
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <Kpi label={t.akimat.overview.kpiTotal} value={fmt.format(k.total)} hint={tf(t.akimat.overview.last7, { n: k.last7 })} icon={<Layers />} />
-        <Kpi label={t.akimat.overview.kpiOpen} value={fmt.format(k.open)} icon={<Inbox />} />
-        <Kpi label={t.akimat.overview.kpiBreached} value={fmt.format(k.breachedOpen)} tone="danger" icon={<AlarmClock />} />
-        <Kpi label={t.akimat.overview.kpiAwaiting} value={fmt.format(k.awaiting)} tone="warn" icon={<CheckCheck />} />
-        <Kpi label={t.akimat.overview.kpiReopened} value={fmt.format(k.reopened)} icon={<RotateCcw />} />
-        <Kpi label={t.akimat.overview.kpiMedian} value={k.medianDays} icon={<Timer />} />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Kpi label={o.kpiTotal} value={n.format(k.total)} hint={o.hintTotal} icon={<Layers />} trend={{ pct: pct(created[0], created[1]), good: false, label: o.trendWeek }} />
+        <Kpi label={o.kpiOpen} value={n.format(k.open)} hint={o.hintOpen} icon={<Inbox />} />
+        <Kpi label={o.kpiBreached} value={n.format(k.breachedOpen)} hint={o.hintBreached} tone="danger" icon={<AlarmClock />} />
+        <Kpi label={o.kpiResolved} value={n.format(k.resolved)} hint={tf(o.hintResolved, { n: k.medianDays })} tone="ok" icon={<CheckCheck />} trend={{ pct: pct(resolved[0], resolved[1]), good: true, label: o.trendWeek }} />
       </div>
 
       <Link
@@ -66,70 +103,46 @@ export default async function AkimatPage() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">
-            <span className="text-[color:var(--danger)] tabular-nums">{fmt.format(atRisk)}</span> · {t.akimat.risk.kpiRisk.toLowerCase()}
+            <span className="text-[color:var(--danger)] tabular-nums">{n.format(atRisk)}</span> · {t.akimat.risk.kpiRisk.toLowerCase()}
           </span>
-          <span className="block text-sm text-muted-foreground">{t.akimat.risk.title}</span>
+          <span className="block text-sm text-muted-foreground">{t.akimat.risk.sub}</span>
         </span>
         <ArrowRight className="size-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
       </Link>
 
-      <section className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-medium">{t.pain.title}</h2>
-          <Link href="/akimat/pain" className="text-sm text-primary hover:underline">{t.pain.all} →</Link>
-        </div>
-        <p className="text-sm text-muted-foreground">{t.pain.pitch}</p>
-        <PainRanking rows={pain.rows} delta={pain.delta} lang={lang} t={t.pain} limit={5} />
-      </section>
+      <AreaInteractive data={series} labels={{ title: o.chartTitle, sub: o.chartSub, created: o.created, resolved: o.resolved, range: o.range }} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-3 font-medium">{t.akimat.overview.dynamics}</h2>
-          <DailyChart data={series} labels={{ created: t.akimat.overview.created, resolved: t.akimat.overview.resolved }} />
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_1fr]">
+        <section className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-semibold">{t.pain.title}</h2>
+            <Link href="/akimat/pain" className="text-sm text-primary hover:underline">{t.pain.all} →</Link>
+          </div>
+          <PainRanking rows={pain.rows} delta={pain.delta} lang={lang} t={t.pain} limit={6} />
         </section>
-        <section className="overflow-hidden rounded-lg border">
-          <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.overview.heat}</h2>
-          <CityMap
-            mode="heat"
-            className="h-[300px] w-full"
-            points={all.filter((r) => !["resolved", "rejected"].includes(r.status)).map((r) => toMapPoint(r, lang))}
-          />
+        <section className="overflow-hidden rounded-xl border bg-card">
+          <h2 className="border-b px-4 py-2.5 font-semibold">{o.heat}</h2>
+          <CityMap mode="heat" className="h-[340px] w-full" points={open.map((r) => toMapPoint(r, lang))} />
         </section>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border p-4">
-          <h2 className="font-medium">{t.akimat.overview.byCat}</h2>
-          <p className="mb-3 text-xs text-muted-foreground">{t.akimat.overview.legendTotal} · <span className="text-[color:var(--danger)]">{t.akimat.overview.legendBreached}</span></p>
-          <BarList breachedLabel={t.akimat.overview.breached} rows={cats.map((c) => ({ label: nm(CATEGORY[c.key], lang), total: c.total, breached: c.breached }))} />
+        <section className="rounded-xl border bg-card p-4">
+          <h2 className="font-semibold">{o.byCat}</h2>
+          <p className="mb-3 text-xs text-muted-foreground">{o.legendTotal} · <span className="text-[color:var(--danger)]">{o.legendBreached}</span></p>
+          <BarList breachedLabel={o.breached} rows={cats.map((c) => ({ label: nm(CATEGORY[c.key], lang), total: c.total, breached: c.breached }))} />
         </section>
-        <section className="rounded-lg border p-4">
-          <h2 className="font-medium">{t.akimat.overview.byDist}</h2>
-          <p className="mb-3 text-xs text-muted-foreground">{t.akimat.overview.legendTotal} · <span className="text-[color:var(--danger)]">{t.akimat.overview.legendBreached}</span></p>
-          <BarList breachedLabel={t.akimat.overview.breached} rows={dists.map((d) => ({ label: nm(DISTRICT[d.key], lang), total: d.total, breached: d.breached }))} />
+        <section className="rounded-xl border bg-card p-4">
+          <h2 className="font-semibold">{o.byDist}</h2>
+          <p className="mb-3 text-xs text-muted-foreground">{o.legendTotal} · <span className="text-[color:var(--danger)]">{o.legendBreached}</span></p>
+          <BarList breachedLabel={o.breached} rows={dists.map((d) => ({ label: nm(DISTRICT[d.key], lang), total: d.total, breached: d.breached }))} />
         </section>
       </div>
 
-      <section className="rounded-lg border">
-        <h2 className="border-b px-4 py-2.5 font-medium">{t.akimat.overview.topOverdue}</h2>
-        <ul className="divide-y">
-          {overdue.map((r) => (
-            <li key={r.id} className="grid grid-cols-[2.5rem_1fr] items-start gap-x-3 gap-y-1 px-4 py-2.5 text-sm sm:grid-cols-[2.5rem_1fr_auto_auto] sm:items-center">
-              <span className="row-span-2 font-semibold tabular-nums sm:row-span-1">{Math.round(r.priority)}</span>
-              {r.demo ? (
-                <span className="line-clamp-2 min-w-0">{titleOf(r, lang)}</span>
-              ) : (
-                <Link href={`/report/${r.public_no}`} className="line-clamp-2 min-w-0 text-primary hover:underline">{r.title}</Link>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {nm(DISTRICT[r.district ?? ""], lang)} · {SERVICE[r.service]?.short}
-                {r.demo && ` · ${t.akimat.demo}`}
-              </span>
-              <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status]} className="col-start-2 w-fit sm:col-start-auto" />
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="flex flex-col gap-2">
+        <h2 className="font-semibold">{o.tableTitle}</h2>
+        <ReportsTable rows={rows} lang={lang} l={{ tabs: o.tabs, search: o.search, cols: o.cols, empty: o.empty, page: o.page }} />
+      </div>
     </div>
   );
 }

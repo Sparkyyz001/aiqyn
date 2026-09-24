@@ -9,13 +9,10 @@ import { signIn, signUp, signInWithGoogle } from "@/lib/actions/session";
 import { useTransition } from "react";
 import type { Dict } from "@/lib/i18n/dict";
 
-// Тестовые аккаунты всех 4 ролей — жюри должно зайти и потыкать само (ТЗ, раздел 11)
+// Демо-аккаунты для жюри: житель подаёт обращение, акимат видит всё (ТЗ, раздел 11)
 const DEMO = [
   { email: "citizen@aiqyn.kz", role: "citizen" },
-  { email: "kzhsa@aiqyn.kz", role: "service", note: "КЖСА" },
-  { email: "roads@aiqyn.kz", role: "service", note: "ПТиАД" },
   { email: "akimat@aiqyn.kz", role: "akimat" },
-  { email: "operator@aiqyn.kz", role: "operator" },
 ] as const;
 
 export function LoginForm({ t, next, mode, google, oauthError }: { t: Dict; next: string; mode: "signin" | "signup"; google: boolean; oauthError: boolean }) {

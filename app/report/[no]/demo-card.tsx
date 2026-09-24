@@ -1,4 +1,4 @@
-import { FlaskConical, MapPin, Users, RotateCcw } from "lucide-react";
+import { MapPin, Users, RotateCcw } from "lucide-react";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
 import type { HonestForecast } from "@/lib/honest-deadline";
@@ -39,12 +39,6 @@ export function DemoCard({ r, lang, t, honest }: { r: BaseReport; lang: Lang; t:
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
-      <div className="mb-3 flex items-start gap-2 rounded-lg border border-dashed p-3 text-sm">
-        <FlaskConical className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-        <div>
-          <span className="font-medium">{o.demoBadge}.</span> <span className="text-muted-foreground">{o.demoNote}</span>
-        </div>
-      </div>
 
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <span className="font-mono">{r.public_no}</span>

@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { DICTS, fmt, type Lang } from "@/lib/i18n/dict";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
-import { demoBaseline } from "@/lib/demo-baseline";
+import { demoBaseline, isDemoNo } from "@/lib/demo-baseline";
 import { flow, titleOf } from "@/lib/data";
 import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
 import { slaState } from "@/lib/sla";
@@ -41,7 +41,7 @@ export async function GET(req: Request, ctx: RouteContext<"/api/og/report/[no]">
   let card: Card | null = null;
   const { all } = await flow();
   const hctx = honestContext(all);
-  if (no.startsWith("DEMO-")) {
+  if (isDemoNo(no)) {
     const d = demoBaseline().find((x) => x.public_no === no);
     if (d) card = { title: titleOf(d, lang), category: d.category, district: d.district, status: d.status, sla_due_at: d.sla_due_at, confirmations: d.confirmations, honest: honestForecast(d, hctx) };
   } else {

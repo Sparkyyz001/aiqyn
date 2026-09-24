@@ -31,12 +31,15 @@ export function Kpi({
   tone,
   hint,
   icon,
+  trend,
 }: {
   label: string;
   value: string | number;
   tone?: "danger" | "ok" | "warn";
   hint?: string;
   icon?: React.ReactNode;
+  /** изменение за неделю к предыдущей: good — рост это хорошо (для «решено») */
+  trend?: { pct: number; good: boolean; label: string } | null;
 }) {
   const a = ACCENT[tone ?? "base"];
   return (
@@ -45,7 +48,21 @@ export function Kpi({
         <div className="text-sm leading-snug text-muted-foreground">{label}</div>
         {icon ? <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg [&_svg]:size-4", a.icon)}>{icon}</span> : null}
       </div>
-      <div className={cn("mt-auto pt-3 text-3xl font-bold tracking-tight tabular-nums", a.value)}>{value}</div>
+      <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+        <div className={cn("text-3xl font-bold tracking-tight tabular-nums", a.value)}>{value}</div>
+        {trend && Number.isFinite(trend.pct) && (
+          <span
+            title={trend.label}
+            className={cn(
+              "mb-1 inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[11px] font-medium tabular-nums",
+              trend.pct === 0 ? "text-muted-foreground" : (trend.pct > 0) === trend.good ? "border-[color:var(--ok)]/40 text-[color:var(--ok)]" : "border-[color:var(--danger)]/40 text-[color:var(--danger)]"
+            )}
+          >
+            {trend.pct > 0 ? "↗" : trend.pct < 0 ? "↘" : "→"} {trend.pct > 0 ? "+" : ""}
+            {trend.pct}%
+          </span>
+        )}
+      </div>
       {hint && <div className="mt-1.5 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
