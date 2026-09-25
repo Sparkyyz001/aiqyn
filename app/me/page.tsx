@@ -11,6 +11,7 @@ import { ReportRow } from "@/components/reports/report-row";
 import { LiveRefresh } from "@/components/live-refresh";
 import { DistrictPicker } from "./district-picker";
 import { Contribution, type RepEvent } from "@/components/me/contribution";
+import { TodayAktau } from "@/components/me/today-aktau";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -94,6 +95,8 @@ export default async function MePage() {
           ))}
         </div>
       </div>
+
+      {me.role === "citizen" && <TodayAktau districtId={me.district_id} mine={mine} lang={lang} t={t.today} />}
 
       {me.role === "citizen" && (
         <Contribution
