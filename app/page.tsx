@@ -1,17 +1,35 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Camera, ExternalLink, Landmark, LogIn, Plus, Scale, ShieldCheck, UserRound, Users, Wrench } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Camera,
+  ExternalLink,
+  Landmark,
+  LogIn,
+  Plus,
+  Scale,
+  ShieldCheck,
+  UserRound,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/status-badge";
 import { LandscapeHero } from "@/components/landing/landscape-hero";
 import { FeaturesBento } from "@/components/landing/features-bento";
+import { ProblemCost } from "@/components/landing/problem-cost";
 import { buildDemand } from "@/lib/budget-demand";
 import { ScrollWords } from "@/components/landing/scroll-words";
 import { Accent } from "@/components/landing/accent";
 import { SpotlightTracker } from "@/components/landing/spotlight";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
-import { honestContext, honestForecast, honestMetrics } from "@/lib/honest-deadline";
+import {
+  honestContext,
+  honestForecast,
+  honestMetrics,
+} from "@/lib/honest-deadline";
 import { fmt as tf } from "@/lib/i18n/dict";
 import { CountUp, Reveal } from "@/components/landing/motion";
 import { getDict } from "@/lib/i18n/server";
@@ -35,7 +53,11 @@ function Kicker({ children }: { children: React.ReactNode }) {
 
 export default async function Home() {
   const lang0 = (await getDict()).lang;
-  const [{ lang, t }, { all, real }, demand] = await Promise.all([getDict(), flow(), buildDemand(lang0)]);
+  const [{ lang, t }, { all, real }, demand] = await Promise.all([
+    getDict(),
+    flow(),
+    buildDemand(lang0),
+  ]);
   const k = kpis(all);
   const h = t.home;
   const recent = real.slice(0, 5);
@@ -43,11 +65,20 @@ export default async function Home() {
   const hctx = honestContext(all);
   const now = new Date();
   const example = all
-    .filter((r) => ["routed", "accepted", "in_progress"].includes(r.status) && r.sla_due_at && new Date(r.sla_due_at) > now)
+    .filter(
+      (r) =>
+        ["routed", "accepted", "in_progress"].includes(r.status) &&
+        r.sla_due_at &&
+        new Date(r.sla_due_at) > now,
+    )
     .map((r) => ({ r, f: honestForecast(r, hctx, now) }))
     .filter((v) => v.f.ok)
-    .sort((a, b) => (b.f.ok && a.f.ok ? (b.f.lateBy ?? 0) - (a.f.lateBy ?? 0) : 0))[0];
-  const hRows = new Intl.NumberFormat("ru-RU").format(honestMetrics.train_rows + honestMetrics.test_rows);
+    .sort((a, b) =>
+      b.f.ok && a.f.ok ? (b.f.lateBy ?? 0) - (a.f.lateBy ?? 0) : 0,
+    )[0];
+  const hRows = new Intl.NumberFormat("ru-RU").format(
+    honestMetrics.train_rows + honestMetrics.test_rows,
+  );
   const hPct = Math.round(honestMetrics.improvement_vs_official_pct);
 
   return (
@@ -67,6 +98,14 @@ export default async function Home() {
         }}
       />
 
+      {/* 1а. Сколько стоит проблема — реальные деньги и открытые жалобы, бегущие цифры */}
+      <ProblemCost
+        c={h.cost}
+        bn={demand.kpi.mln / 1000}
+        lots={demand.kpi.lots}
+        stats={[k.open, k.breachedOpen, demand.stuck.total]}
+      />
+
       {/* Дальше весь лендинг — в палитре переднего плана пейзажа */}
       <div className="dark theme-lagoon bg-background text-foreground">
         {/* 2. Манифест: слова загораются по мере прокрутки */}
@@ -74,32 +113,43 @@ export default async function Home() {
           <Reveal>
             <Kicker>{h.statementKicker}</Kicker>
           </Reveal>
-          <ScrollWords text={h.statement} className="mt-8 max-w-5xl text-3xl leading-[1.15] font-semibold tracking-tight text-balance md:text-5xl lg:text-6xl" />
+          <ScrollWords
+            text={h.statement}
+            className="mt-8 max-w-5xl text-3xl leading-[1.15] font-semibold tracking-tight text-balance md:text-5xl lg:text-6xl"
+          />
         </section>
 
         {/* 2б. Главная фишка — «Честный срок»: два срока вместо одного */}
         <section className="border-t">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 md:py-28 lg:grid-cols-[1fr_1.05fr] lg:items-center">
-            <Reveal>
+            <Reveal from="left">
               <Kicker>{h.honestKicker}</Kicker>
               <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance md:text-5xl">
                 <Accent text={h.honestTitle} />
               </h2>
-              <p className="mt-4 max-w-xl text-muted-foreground text-pretty">{h.honestSub}</p>
+              <p className="mt-4 max-w-xl text-muted-foreground text-pretty">
+                {h.honestSub}
+              </p>
               <ul className="mt-8 flex flex-col gap-5">
                 {h.honestPoints.map(([title, text], i) => (
-                  <li key={i} className="flex gap-4">
-                    <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-lt-coral/15 text-xs font-semibold text-lt-coral tabular-nums">{i + 1}</span>
-                    <span>
-                      <span className="block font-semibold">{title}</span>
-                      <span className="mt-1 block text-sm text-muted-foreground text-pretty">{tf(text, { rows: hRows, pct: hPct })}</span>
-                    </span>
-                  </li>
+                  <Reveal key={i} delay={200 + i * 150}>
+                    <li className="flex gap-4">
+                      <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-lt-coral/15 text-xs font-semibold text-lt-coral tabular-nums">
+                        {i + 1}
+                      </span>
+                      <span>
+                        <span className="block font-semibold">{title}</span>
+                        <span className="mt-1 block text-sm text-muted-foreground text-pretty">
+                          {tf(text, { rows: hRows, pct: hPct })}
+                        </span>
+                      </span>
+                    </li>
+                  </Reveal>
                 ))}
               </ul>
             </Reveal>
             {example && (
-              <Reveal delay={150}>
+              <Reveal delay={150} from="right">
                 <div className="spot rounded-[28px] border bg-foreground/[0.03] p-4 md:p-6">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-lt-green uppercase">
@@ -109,18 +159,32 @@ export default async function Home() {
                       </span>
                       {h.honestExample}
                     </span>
-                    <Link href={`/report/${example.r.public_no}`} className="inline-flex items-center gap-1 text-sm text-lt-coral hover:underline">
+                    <Link
+                      href={`/report/${example.r.public_no}`}
+                      className="inline-flex items-center gap-1 text-sm text-lt-coral hover:underline"
+                    >
                       {h.honestOpen} <ArrowRight className="size-3.5" />
                     </Link>
                   </div>
                   <div className="mb-4">
-                    <div className="line-clamp-2 text-lg font-semibold">{lang === "kz" && example.r.title_kz ? example.r.title_kz : example.r.title}</div>
+                    <div className="line-clamp-2 text-lg font-semibold">
+                      {lang === "kz" && example.r.title_kz
+                        ? example.r.title_kz
+                        : example.r.title}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {nm(CATEGORY[example.r.category], lang)}
-                      {example.r.district && DISTRICT[example.r.district] ? ` · ${nm(DISTRICT[example.r.district], lang)}` : ""}
+                      {example.r.district && DISTRICT[example.r.district]
+                        ? ` · ${nm(DISTRICT[example.r.district], lang)}`
+                        : ""}
                     </div>
                   </div>
-                  <HonestDeadline f={example.f} dueAt={example.r.sla_due_at} t={t.honest} lang={lang} />
+                  <HonestDeadline
+                    f={example.f}
+                    dueAt={example.r.sla_due_at}
+                    t={t.honest}
+                    lang={lang}
+                  />
                 </div>
               </Reveal>
             )}
@@ -134,9 +198,22 @@ export default async function Home() {
             lots: demand.kpi.lots,
             bn: demand.kpi.mln / 1000,
             stuck: demand.stuck.total,
-            need: demand.need[0] ? { d: demand.need[0].name, n: demand.need[0].n, m: String(Math.round(demand.need[0].mln)) } : null,
-            directions: demand.directions.slice(0, 4).map((x) => ({ name: x.name, n: x.n })),
-            initiative: demand.initiatives[0] ? { title: demand.initiatives[0].title, votes: demand.initiatives[0].votes } : null,
+            need: demand.need[0]
+              ? {
+                  d: demand.need[0].name,
+                  n: demand.need[0].n,
+                  m: String(Math.round(demand.need[0].mln)),
+                }
+              : null,
+            directions: demand.directions
+              .slice(0, 4)
+              .map((x) => ({ name: x.name, n: x.n })),
+            initiative: demand.initiatives[0]
+              ? {
+                  title: demand.initiatives[0].title,
+                  votes: demand.initiatives[0].votes,
+                }
+              : null,
           }}
         />
 
@@ -158,10 +235,18 @@ export default async function Home() {
                 { v: k.medianDays, l: h.sMedian, d: 1 },
               ].map((s, i) => (
                 <Reveal key={i} delay={i * 90}>
-                  <div className={`font-serif text-5xl leading-none tracking-tight md:text-7xl ${s.tone ?? ""}`}>
-                    <CountUp value={s.v} decimals={s.d ?? 0} delay={250 + i * 180} />
+                  <div
+                    className={`font-serif text-5xl leading-none tracking-tight md:text-7xl ${s.tone ?? ""}`}
+                  >
+                    <CountUp
+                      value={s.v}
+                      decimals={s.d ?? 0}
+                      delay={250 + i * 180}
+                    />
                   </div>
-                  <div className="mt-3 max-w-[16rem] text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{s.l}</div>
+                  <div className="mt-3 max-w-[16rem] text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                    {s.l}
+                  </div>
                 </Reveal>
               ))}
             </div>
@@ -175,18 +260,22 @@ export default async function Home() {
             <h2 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight text-balance md:text-5xl">
               <Accent text={h.whyTitle} />
             </h2>
-            <p className="mt-4 max-w-2xl text-muted-foreground text-pretty">{h.whySub}</p>
+            <p className="mt-4 max-w-2xl text-muted-foreground text-pretty">
+              {h.whySub}
+            </p>
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-3">
             {h.why.map(([big, text, src, url], i) => (
-              <Reveal key={i} delay={i * 110} className="h-full">
+              <Reveal key={i} delay={i * 130} from="scale" className="h-full">
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="spot group flex h-full flex-col rounded-3xl border bg-foreground/[0.03] p-7 transition-[transform,border-color,background-color] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-1.5 hover:border-lt-coral/40 hover:bg-foreground/[0.06]"
                 >
-                  <div className="font-serif text-4xl leading-tight text-lt-coral">{big}</div>
+                  <div className="font-serif text-4xl leading-tight text-lt-coral">
+                    {big}
+                  </div>
                   <p className="mt-4 flex-1 text-pretty">{text}</p>
                   <span className="mt-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
                     {src} <ExternalLink className="size-3" />
@@ -198,7 +287,10 @@ export default async function Home() {
         </section>
 
         {/* 5. Как это работает — одна большая карточка с шагами */}
-        <section id="how" className="mx-auto w-full max-w-7xl scroll-mt-16 px-4 pb-20 md:pb-28">
+        <section
+          id="how"
+          className="mx-auto w-full max-w-7xl scroll-mt-16 px-4 pb-20 md:pb-28"
+        >
           <Reveal>
             <div className="rounded-[28px] border bg-foreground/[0.03] p-6 md:p-12">
               <Kicker>{h.howKicker}</Kicker>
@@ -206,19 +298,32 @@ export default async function Home() {
                 <Accent text={h.howTitle} />
               </h2>
               <ol className="relative mt-10 grid overflow-hidden rounded-2xl border md:grid-cols-4">
-                <span className="step-line absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-lt-green via-lt-cream to-lt-coral" aria-hidden />
+                <span
+                  className="step-line absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-lt-green via-lt-cream to-lt-coral"
+                  aria-hidden
+                />
                 {h.how.map(([title, text], i) => {
                   const Icon = STEP_ICONS[i];
                   return (
-                    <li key={i} className="spot border-b p-6 transition-colors duration-300 last:border-b-0 hover:bg-foreground/[0.04] md:border-r md:border-b-0 md:last:border-r-0">
+                    <li
+                      key={i}
+                      className="spot border-b p-6 transition-colors duration-300 last:border-b-0 hover:bg-foreground/[0.04] md:border-r md:border-b-0 md:last:border-r-0"
+                    >
                       <div className="flex items-start justify-between">
-                        <span className="step-icon grid size-11 place-items-center rounded-xl bg-lt-cream text-lt-teal" style={{ "--i": i } as React.CSSProperties}>
+                        <span
+                          className="step-icon grid size-11 place-items-center rounded-xl bg-lt-cream text-lt-teal"
+                          style={{ "--i": i } as React.CSSProperties}
+                        >
                           <Icon className="size-5" />
                         </span>
-                        <span className="text-3xl font-semibold text-foreground/15 tabular-nums">0{i + 1}</span>
+                        <span className="text-3xl font-semibold text-foreground/15 tabular-nums">
+                          0{i + 1}
+                        </span>
                       </div>
                       <div className="mt-6 text-lg font-semibold">{title}</div>
-                      <p className="mt-2 text-sm text-muted-foreground text-pretty">{text}</p>
+                      <p className="mt-2 text-sm text-muted-foreground text-pretty">
+                        {text}
+                      </p>
                     </li>
                   );
                 })}
@@ -239,8 +344,11 @@ export default async function Home() {
             {h.roles.map(([title, text, href], i) => {
               const Icon = ROLE_ICONS[i];
               return (
-                <Reveal key={i} delay={i * 110} className="h-full">
-                  <Link href={href} className="spot group relative isolate flex h-full min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl border p-7">
+                <Reveal key={i} delay={i * 130} from="scale" className="h-full">
+                  <Link
+                    href={href}
+                    className="spot group relative isolate flex h-full min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl border p-7"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <div className="absolute inset-0 -z-10 overflow-hidden">
                       <img
@@ -248,7 +356,10 @@ export default async function Home() {
                         alt=""
                         loading="lazy"
                         className="size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] [filter:hue-rotate(318deg)_saturate(0.72)_brightness(1.1)_contrast(0.9)] scale-[1.6] group-hover:scale-[1.68]"
-                        style={{ objectPosition: ROLE_ART[i], transformOrigin: ROLE_ART[i] }}
+                        style={{
+                          objectPosition: ROLE_ART[i],
+                          transformOrigin: ROLE_ART[i],
+                        }}
                       />
                     </div>
                     <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#053e42] via-[#053e42]/80 to-[#053e42]/10" />
@@ -258,8 +369,12 @@ export default async function Home() {
                     <span className="grid size-11 place-items-center rounded-xl bg-lt-cream/10 text-lt-cream backdrop-blur">
                       <Icon className="size-5" />
                     </span>
-                    <div className="mt-5 text-2xl font-semibold tracking-tight">{title}</div>
-                    <p className="mt-2 text-sm text-foreground/75 text-pretty">{text}</p>
+                    <div className="mt-5 text-2xl font-semibold tracking-tight">
+                      {title}
+                    </div>
+                    <p className="mt-2 text-sm text-foreground/75 text-pretty">
+                      {text}
+                    </p>
                   </Link>
                 </Reveal>
               );
@@ -270,42 +385,70 @@ export default async function Home() {
         {/* 7. Живая карта и новые обращения */}
         <section className="border-t bg-foreground/[0.03]">
           <div className="mx-auto grid max-w-7xl gap-4 px-4 py-20 md:py-24 lg:grid-cols-[1fr_380px]">
-            <Reveal>
+            <Reveal from="left">
               <div className="overflow-hidden rounded-3xl border bg-card">
                 <div className="flex items-center justify-between border-b px-5 py-4">
                   <h2 className="font-semibold">{h.liveTitle}</h2>
-                  <Link href="/map" className="inline-flex items-center gap-1 text-sm text-lt-coral hover:underline">
+                  <Link
+                    href="/map"
+                    className="inline-flex items-center gap-1 text-sm text-lt-coral hover:underline"
+                  >
                     {t.nav.map} <ArrowRight className="size-3.5" />
                   </Link>
                 </div>
                 <CityMap
-                  points={all.filter((r) => r.status !== "resolved" && r.status !== "rejected").map((r) => toMapPoint(r, lang))}
+                  points={all
+                    .filter(
+                      (r) => r.status !== "resolved" && r.status !== "rejected",
+                    )
+                    .map((r) => toMapPoint(r, lang))}
                   className="h-[380px] w-full md:h-[480px]"
                   statusLabels={t.status}
                   lang={lang}
-                  popupLabels={{ created: t.outcome.created, resolved: t.status.resolved, confirmations: t.outcome.confirmations, more: t.outcome.openCard }}
+                  popupLabels={{
+                    created: t.outcome.created,
+                    resolved: t.status.resolved,
+                    confirmations: t.outcome.confirmations,
+                    more: t.outcome.openCard,
+                  }}
                   demoLabel={t.map.demo}
                   openLabel={t.map.open}
                 />
               </div>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal delay={120} from="right">
               <div className="h-full rounded-3xl border bg-card">
-                <h2 className="border-b px-5 py-4 font-semibold">{t.landing.recent}</h2>
+                <h2 className="border-b px-5 py-4 font-semibold">
+                  {t.landing.recent}
+                </h2>
                 <ul className="divide-y">
-                  {recent.map((r) => (
-                    <li key={r.id}>
-                      <Link href={`/report/${r.public_no}`} className="block px-5 py-3.5 transition-colors duration-200 hover:bg-accent/60">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="line-clamp-2 text-sm font-medium">{r.title}</span>
-                          <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status]} />
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {nm(CATEGORY[r.category], lang)}
-                          {r.district ? ` · ${nm(DISTRICT[r.district], lang)}` : ""}
-                        </div>
-                      </Link>
-                    </li>
+                  {recent.map((r, i) => (
+                    <Reveal key={r.id} delay={300 + i * 110} from="right">
+                      <li>
+                        <Link
+                          href={`/report/${r.public_no}`}
+                          className="block px-5 py-3.5 transition-colors duration-200 hover:bg-accent/60"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="line-clamp-2 text-sm font-medium">
+                              {r.title}
+                            </span>
+                            <StatusBadge
+                              status={r.status}
+                              label={
+                                t.status[r.status as keyof typeof t.status]
+                              }
+                            />
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {nm(CATEGORY[r.category], lang)}
+                            {r.district
+                              ? ` · ${nm(DISTRICT[r.district], lang)}`
+                              : ""}
+                          </div>
+                        </Link>
+                      </li>
+                    </Reveal>
                   ))}
                 </ul>
               </div>
@@ -319,14 +462,25 @@ export default async function Home() {
             <h2 className="max-w-4xl text-4xl leading-[1.05] font-semibold tracking-tight text-balance md:text-6xl">
               <Accent text={h.final.lines.join(" ")} />
             </h2>
-            <p className="mt-5 max-w-xl text-muted-foreground text-pretty">{h.ctaSub}</p>
+            <p className="mt-5 max-w-xl text-muted-foreground text-pretty">
+              {h.ctaSub}
+            </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="btn-shine h-12 rounded-full px-6 font-semibold transition-transform duration-300 hover:-translate-y-0.5">
+              <Button
+                asChild
+                size="lg"
+                className="btn-shine h-12 rounded-full px-6 font-semibold transition-transform duration-300 hover:-translate-y-0.5"
+              >
                 <Link href="/report/new">
                   <Plus /> {h.ctaReport}
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 rounded-full bg-transparent px-6">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-12 rounded-full bg-transparent px-6"
+              >
                 <Link href="/login">
                   <LogIn /> {h.ctaLogin}
                 </Link>

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Блок плавно появляется, когда доходит до экрана (уважает prefers-reduced-motion через CSS) */
-export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+/** Блок плавно появляется, когда доходит до экрана (уважает prefers-reduced-motion через CSS).
+ *  from: откуда выходит — снизу (по умолчанию), слева, справа или с увеличением */
+export function Reveal({ children, className = "", delay = 0, from = "up" }: { children: React.ReactNode; className?: string; delay?: number; from?: "up" | "left" | "right" | "scale" }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -16,7 +17,7 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
     return () => io.disconnect();
   }, []);
   return (
-    <div ref={ref} className={`reveal ${inView ? "in" : ""} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div ref={ref} className={`reveal reveal-${from} ${inView ? "in" : ""} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </div>
   );

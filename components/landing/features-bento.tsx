@@ -8,7 +8,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { CountUp, Reveal } from "@/components/landing/motion";
+import { Reveal } from "@/components/landing/motion";
 import { fmt, type Dict } from "@/lib/i18n/dict";
 
 type F = Dict["home"]["features"];
@@ -51,7 +51,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
 
         <div className="mt-12 grid gap-4 lg:grid-cols-6">
           {/* ИИ по фото — большая карточка с «телефоном» */}
-          <Reveal className="lg:col-span-3 lg:row-span-2">
+          <Reveal from="left" className="lg:col-span-3 lg:row-span-2">
             <Card href="/report/new" open={f.open} className="h-full">
               <Head
                 icon={<Sparkles />}
@@ -109,7 +109,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
           </Reveal>
 
           {/* Голос */}
-          <Reveal delay={80} className="lg:col-span-3">
+          <Reveal delay={120} from="right" className="lg:col-span-3">
             <Card href="/report/new" open={f.open}>
               <Head
                 icon={<Mic />}
@@ -147,7 +147,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
           </Reveal>
 
           {/* До / после */}
-          <Reveal delay={140} className="lg:col-span-3">
+          <Reveal delay={240} from="right" className="lg:col-span-3">
             <Card href="/map" open={f.open}>
               <Head
                 icon={<Check />}
@@ -194,7 +194,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
           </Reveal>
 
           {/* Деньги и жалобы — реальные закупки */}
-          <Reveal delay={80} className="lg:col-span-2">
+          <Reveal delay={80} from="scale" className="lg:col-span-2">
             <Card href="/budget" open={f.open} className="h-full">
               <Head
                 icon={<Landmark />}
@@ -248,7 +248,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
           </Reveal>
 
           {/* Отчёт акиму */}
-          <Reveal delay={140} className="lg:col-span-2">
+          <Reveal delay={200} from="scale" className="lg:col-span-2">
             <Card href="/akimat/digest" open={f.open} className="h-full">
               <Head
                 icon={<FileText />}
@@ -292,7 +292,7 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
           </Reveal>
 
           {/* Бюджет народного участия */}
-          <Reveal delay={200} className="lg:col-span-2">
+          <Reveal delay={320} from="scale" className="lg:col-span-2">
             <Card href="/initiatives" open={f.open} className="h-full">
               <Head
                 icon={<Landmark />}
@@ -326,38 +326,6 @@ export function FeaturesBento({ f, d }: { f: F; d: BentoData }) {
               )}
             </Card>
           </Reveal>
-        </div>
-
-        {/* Полоса реальных цифр */}
-        <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-8 border-t border-lt-deep/15 pt-10 md:grid-cols-4">
-          {f.facts.map(([v, l], i) => {
-            // число из шаблона: {lots}/{bn} — из базы, иначе цифры из самого текста; остальное — подпись («млрд ₸»)
-            const n = v.includes("{lots}")
-              ? d.lots
-              : v.includes("{bn}")
-                ? d.bn
-                : Number(v.replace(/\D/g, ""));
-            const suffix = v
-              .replace(/\{\w+\}/g, "")
-              .replace(/[\d\s ]+/g, " ")
-              .trim();
-            return (
-              <Reveal key={l} delay={i * 90}>
-                <div className="font-serif text-4xl leading-none tracking-tight text-lt-teal tabular-nums md:text-5xl">
-                  <CountUp
-                    value={n}
-                    decimals={v.includes("{bn}") ? 1 : 0}
-                    delay={200 + i * 160}
-                    duration={2200}
-                  />
-                  {suffix && <span className="ml-1.5">{suffix}</span>}
-                </div>
-                <div className="mt-2 max-w-[14rem] text-[11px] font-semibold tracking-[0.12em] text-lt-deep/60 uppercase">
-                  {l}
-                </div>
-              </Reveal>
-            );
-          })}
         </div>
       </div>
     </section>
@@ -436,5 +404,6 @@ const styles = `
 @keyframes fbWave { 0%, 100% { height: 18%; } 25% { height: 85%; } 50% { height: 40%; } 75% { height: 70%; } }
 @keyframes fbPing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes fbStamp { 0%, 60%, 100% { transform: scale(1) rotate(0); } 70% { transform: scale(1.18) rotate(-8deg); } 80% { transform: scale(1) rotate(0); } }
+.reveal:not(.in) .fb-sev, .reveal:not(.in) .fb-grow, .reveal:not(.in) .fb-stamp { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .fb-scan, .fb-bar, .fb-ping, .fb-stamp, .fb-sev, .fb-grow { animation: none !important; } .fb-bar { height: 50%; } }
 `;
