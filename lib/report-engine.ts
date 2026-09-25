@@ -1,4 +1,5 @@
 import "server-only";
+import { touchReports } from "@/lib/cache-tags";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference, nearestSocial } from "@/lib/reference";
 import { computePriority } from "@/lib/priority";
@@ -58,6 +59,7 @@ export async function logEvent(e: {
 }) {
   const db = createAdminClient();
   await db.from("report_events").insert(e);
+  touchReports();
   // уведомления — вторично: их сбой не должен ломать подачу или смену статуса
   try {
     const { notifyEvent } = await import("@/lib/notify");

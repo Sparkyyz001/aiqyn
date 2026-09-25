@@ -1,5 +1,7 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { REPORTS_TAG } from "@/lib/cache-tags";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
 import type { BaseReport } from "@/lib/demo-baseline";
@@ -10,17 +12,27 @@ import type { BaseReport } from "@/lib/demo-baseline";
 
 export type FlowReport = BaseReport;
 
-// один запрос к базе на рендер, даже если поток нужен нескольким блокам страницы
+// Сырые строки из базы — в серверном кеше на 30 с; любое изменение обращения сбрасывает
+// кеш сразу (touchReports в logEvent), поэтому свежая жалоба видна без задержки.
+const fetchRows = unstable_cache(
+  async () => {
+    const { data, error } = await createAdminClient()
+      .from("reports")
+      .select(
+        "id, public_no, is_synthetic, synthetic, category_id, service_id, district_id, title, title_kz, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
+      )
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (error) throw new Error(error.message); // ошибку не кешируем
+    return data ?? [];
+  },
+  ["reports-flow-v1"],
+  { revalidate: 30, tags: [REPORTS_TAG] }
+);
+
+// один разбор на рендер, даже если поток нужен нескольким блокам страницы
 export const realReports = cache(async (): Promise<FlowReport[]> => {
-  const db = createAdminClient();
-  const ref = await getReference();
-  const { data } = await db
-    .from("reports")
-    .select(
-      "id, public_no, is_synthetic, synthetic, category_id, service_id, district_id, title, title_kz, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
-    )
-    .order("created_at", { ascending: false })
-    .limit(5000);
+  const [ref, data] = await Promise.all([getReference(), fetchRows()]);
   const now = Date.now();
   return (data ?? []).map((r) => {
     const after = (r.report_photos ?? []).filter((p: { kind: string }) => p.kind === "after");
