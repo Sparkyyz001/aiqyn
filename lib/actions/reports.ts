@@ -114,7 +114,9 @@ export type CreateInput = {
   ai?: Vision | null;
 };
 
-export async function createReport(input: CreateInput): Promise<Result<{ public_no: string }>> {
+export type Created = { public_no: string; sla_due_at: string; service: { name_ru: string; name_kz: string }; district: { name_ru: string; name_kz: string } | null; incident: string | null };
+
+export async function createReport(input: CreateInput): Promise<Result<Created>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
   const title = input.title?.trim();
@@ -174,7 +176,7 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
       source,
       source_url: input.source_url?.trim() || null,
     })
-    .select("id, public_no")
+    .select("id, public_no, sla_due_at")
     .single();
   if (error || !report) return fail(error?.message ?? await msg("createFailed"));
 
@@ -213,7 +215,16 @@ export async function createReport(input: CreateInput): Promise<Result<{ public_
   await recomputeReport(report.id);
   revalidatePath("/");
   revalidatePath("/map");
-  return { ok: true, data: { public_no: report.public_no } };
+  return {
+    ok: true,
+    data: {
+      public_no: report.public_no,
+      sla_due_at: report.sla_due_at,
+      service: { name_ru: svc.name_ru, name_kz: svc.name_kz },
+      district: district ? { name_ru: district.name_ru, name_kz: district.name_kz } : null,
+      incident: incident?.title ?? null,
+    },
+  };
 }
 
 async function matchIncident(categoryCode: string, p: { lat: number; lng: number }) {

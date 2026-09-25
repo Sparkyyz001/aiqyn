@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
 import { VoiceButton, type VoiceResult } from "@/components/reports/voice-button";
-import { previewReport, createReport, confirmReport, analyzePhoto, type Preview } from "@/lib/actions/reports";
+import { previewReport, createReport, confirmReport, analyzePhoto, type Preview, type Created } from "@/lib/actions/reports";
+import { ReportSuccess } from "@/components/reports/report-success";
 import { textChecks, photoChecks, worst, type Check as QCheck } from "@/lib/report-quality";
 import type { Vision } from "@/lib/ai-vision";
 import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
@@ -28,7 +29,7 @@ export function ReportForm({
 }: {
   userId: string;
   lang: Lang;
-  t: Pick<Dict, "report" | "common" | "card" | "status" | "operator" | "routing" | "quality">;
+  t: Pick<Dict, "report" | "common" | "card" | "status" | "operator" | "routing" | "quality" | "share">;
   operator?: boolean;
 }) {
   const router = useRouter();
@@ -43,6 +44,8 @@ export function ReportForm({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [skipDup, setSkipDup] = useState(false);
   const [confirmedId, setConfirmedId] = useState<number | null>(null);
+  // после отправки — экран «Обращение принято» вместо мгновенного перехода
+  const [created, setCreated] = useState<Created | null>(null);
   const [source, setSource] = useState<Source>(operator ? "call109" : "app");
   const [sourceUrl, setSourceUrl] = useState("");
   const [pending, start] = useTransition();
@@ -198,8 +201,12 @@ export function ReportForm({
         source, source_url: sourceUrl || undefined,
       });
       if (!res.ok) return void toast.error(res.error);
-      toast.success(`${t.report.created}: ${res.data.public_no}`);
-      router.push(`/report/${res.data.public_no}`);
+      if (operator) {
+        toast.success(`${t.report.created}: ${res.data.public_no}`);
+        return void router.push(`/report/${res.data.public_no}`);
+      }
+      setCreated(res.data);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
   const confirmDup = (id: number) =>
@@ -215,7 +222,8 @@ export function ReportForm({
 
   const stepHead = (n: number, title: string, hint?: string, done?: boolean) => (
     <div className="flex items-start gap-3">
-      <span className={`grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold ${done ? "bg-[color:var(--ok)] text-white" : "bg-primary/10 text-primary"}`}>{done ? <Check className="size-4" /> : n}</span>
+      {/* key меняется — галочка «выпрыгивает» заново, когда шаг готов */}
+      <span key={done ? "done" : "todo"} className={`grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold transition-colors duration-300 ${done ? "pop-in bg-[color:var(--ok)] text-white" : "bg-primary/10 text-primary"}`}>{done ? <Check className="size-4" /> : n}</span>
       <div>
         <div className="font-medium">{title}</div>
         {hint && <div className="text-sm text-muted-foreground">{hint}</div>}
@@ -223,10 +231,40 @@ export function ReportForm({
     </div>
   );
 
+  if (created) return <ReportSuccess c={created} lang={lang} d={t.report.done} share={t.share} onAnother={() => window.location.assign("/report/new")} />;
+
+  // готовность: фото, место, описание — полоса сверху заполняется по мере ввода
+  const readiness = [
+    { ok: photos.length > 0, l: t.report.progress.photo },
+    { ok: !!point, l: t.report.progress.place },
+    { ok: title.trim().length >= 3, l: t.report.progress.text },
+  ];
+  const readyN = readiness.filter((x) => x.ok).length;
+
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-2">
+      <div className="flex flex-col gap-4 lg:col-span-2">
+        <h1 className="form-step text-2xl font-semibold tracking-tight md:text-3xl">{t.report.newTitle}</h1>
+        <div className="form-step rounded-2xl border bg-card p-3 sm:p-4" style={{ "--d": "80ms" } as React.CSSProperties}>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className={`font-medium transition-colors ${readyN === 3 ? "text-[color:var(--ok)]" : ""}`}>
+              {readyN === 3 ? t.report.progress.ready : fmt(t.report.progress.left, { n: readiness.filter((x) => !x.ok).map((x) => x.l.toLowerCase()).join(", ") })}
+            </span>
+            <span className="text-muted-foreground tabular-nums">{readyN}/3</span>
+          </div>
+          <div className="mt-2.5 grid grid-cols-3 gap-2">
+            {readiness.map((x) => (
+              <div key={x.l}>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className={`h-full origin-left rounded-full bg-[color:var(--ok)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${x.ok ? "scale-x-100" : "scale-x-0"}`} />
+                </div>
+                <div className={`mt-1 text-[11px] transition-colors ${x.ok ? "font-medium text-[color:var(--ok)]" : "text-muted-foreground"}`}>{x.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t.report.newTitle}</h1>
 
         {operator && (
           <div className="grid gap-3 rounded-lg border bg-muted/30 p-3">
@@ -246,7 +284,7 @@ export function ReportForm({
         )}
 
         {/* 1. Фото */}
-        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+        <section style={{ "--d": "240ms" } as React.CSSProperties} className="form-step flex flex-col gap-3 rounded-2xl border p-4">
           {stepHead(1, t.report.stepPhoto, t.report.stepPhotoHint, photos.length > 0)}
           <div className="grid gap-2">
           <div className="flex flex-wrap gap-2">
@@ -322,7 +360,7 @@ export function ReportForm({
         </section>
 
         {/* 2. Место */}
-        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+        <section style={{ "--d": "320ms" } as React.CSSProperties} className="form-step flex flex-col gap-3 rounded-2xl border p-4">
           <div className="flex items-start justify-between gap-2">
             {stepHead(2, t.report.stepPlace, t.report.stepPlaceHint, !!point)}
             <Button type="button" variant="outline" size="sm" onClick={() => locate()} disabled={locating}>
@@ -342,9 +380,9 @@ export function ReportForm({
         </section>
       </div>
 
-      <div className="flex flex-col gap-4 lg:pt-12">
+      <div className="flex flex-col gap-4">
         {/* 3. Что случилось */}
-        <section className="flex flex-col gap-3 rounded-2xl border p-4">
+        <section style={{ "--d": "400ms" } as React.CSSProperties} className="form-step flex flex-col gap-3 rounded-2xl border p-4">
           {stepHead(3, t.report.stepText, undefined, title.trim().length >= 3)}
           <VoiceButton l={t.report.voice} onResult={onVoice} />
           <div className="grid gap-2">
