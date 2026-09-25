@@ -11,10 +11,6 @@ export function ScrollWords({ text, className = "" }: { text: string; className?
     const el = ref.current;
     if (!el) return;
     const spans = [...el.querySelectorAll<HTMLSpanElement>("span")];
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      spans.forEach((s) => (s.style.opacity = "1"));
-      return;
-    }
     let raf = 0;
     const update = () => {
       const r = el.getBoundingClientRect();

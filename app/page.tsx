@@ -154,7 +154,7 @@ export default async function Home() {
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-lt-green uppercase">
                       <span className="relative flex size-2">
-                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-lt-green opacity-60 motion-reduce:animate-none" />
+                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-lt-green opacity-60" />
                         <span className="relative inline-flex size-2 rounded-full bg-lt-green" />
                       </span>
                       {h.honestExample}

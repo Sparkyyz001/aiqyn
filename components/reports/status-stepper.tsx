@@ -36,7 +36,7 @@ export function StatusStepper({ status, reopenCount = 0, dates, l }: { status: s
               )}
             >
               {done ? <Check className="size-4" /> : now && rejected ? <X className="size-4" /> : now && status === "reopened" ? <RotateCcw className="size-4" /> : i + 1}
-              {now && !rejected && <span className="absolute inset-0 animate-ping rounded-full border-2 border-[color:var(--warn)] opacity-40 motion-reduce:animate-none" aria-hidden />}
+              {now && !rejected && <span className="absolute inset-0 animate-ping rounded-full border-2 border-[color:var(--warn)] opacity-40" aria-hidden />}
             </span>
             <span className={cn("mt-1.5 text-[11px] leading-tight text-balance sm:text-xs", now ? "font-semibold text-foreground" : done ? "text-foreground/80" : "text-muted-foreground")}>
               {now && rejected ? l.rejected : label}

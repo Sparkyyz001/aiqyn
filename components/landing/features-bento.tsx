@@ -405,5 +405,4 @@ const styles = `
 @keyframes fbPing { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes fbStamp { 0%, 60%, 100% { transform: scale(1) rotate(0); } 70% { transform: scale(1.18) rotate(-8deg); } 80% { transform: scale(1) rotate(0); } }
 .reveal:not(.in) .fb-sev, .reveal:not(.in) .fb-grow, .reveal:not(.in) .fb-stamp { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .fb-scan, .fb-bar, .fb-ping, .fb-stamp, .fb-sev, .fb-grow { animation: none !important; } .fb-bar { height: 50%; } }
 `;

@@ -18,7 +18,7 @@ export function LandscapeHero({ f }: { f: Props }) {
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el) return;
     let raf = 0;
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
@@ -368,9 +368,4 @@ const styles = `
   .vf-title { font-size: 34px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .vf-page *, .vf-page *::before, .vf-page *::after { animation: none !important; transition: none !important; }
-  .vf-leaf { opacity: 0.85; }
-  .vf-landscape, .vf-hill, .vf-headline { transform: none !important; }
-}
 `;

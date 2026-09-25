@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Блок плавно появляется, когда доходит до экрана (уважает prefers-reduced-motion через CSS).
+/** Блок плавно появляется, когда доходит до экрана .
  *  from: откуда выходит — снизу (по умолчанию), слева, справа или с увеличением */
 export function Reveal({ children, className = "", delay = 0, from = "up" }: { children: React.ReactNode; className?: string; delay?: number; from?: "up" | "left" | "right" | "scale" }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +30,6 @@ export function CountUp({ value, decimals = 0, delay = 0, duration = 2000 }: { v
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return void setShown(value);
     let raf = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const io = new IntersectionObserver(

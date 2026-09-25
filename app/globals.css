@@ -185,36 +185,24 @@
     opacity: 0;
   }
 }
+/* плавное появление при прокрутке — кривая и длительность как у референса (motion, ease [0.16, 1, 0.3, 1]) */
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
-  filter: blur(6px);
-  transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(36px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
-/* блоки, выезжающие сбоку, до появления стоят за краем экрана — не даём им растянуть страницу */
+/* Анимации лендинга работают всегда, как у референса: системная настройка «без анимаций» их не отключает.
+   Блоки, выезжающие сбоку, до появления стоят за краем экрана — не даём им растянуть страницу */
 html, body { overflow-x: clip; }
-.reveal-left { transform: translateX(-56px); }
-.reveal-right { transform: translateX(56px); }
-.reveal-scale { transform: scale(0.94) translateY(18px); }
+.reveal-left { transform: translateX(-72px); }
+.reveal-right { transform: translateX(72px); }
+.reveal-scale { transform: scale(0.92) translateY(24px); }
 .reveal.in {
   opacity: 1;
   transform: none;
   filter: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-draw,
-  .hero-ring {
-    animation: none;
-    stroke-dashoffset: 0;
-  }
-  .reveal {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-  }
-}
-
 /* Тема «лагуна» — палитра первого экрана для всего лендинга (шапка, секции, подвал на главной) */
 .theme-lagoon {
   --background: #053e42;
@@ -364,17 +352,6 @@ html, body { overflow-x: clip; }
     transform: scaleX(1);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .w, .kicker-line, .step-line, .step-icon {
-    transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .reveal:not(.in) .kicker-line { width: 2rem; }
-  .marquee-track, .page-in { animation: none; }
-  .scroll-progress, .btn-shine::after { display: none; }
-}
-
 /* Боковое меню приложения — всегда в палитре «лагуны», в светлой и тёмной теме */
 :root,
 .dark {
