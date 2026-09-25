@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PushToggle } from "@/components/notifications/push-toggle";
+import { ExportButton } from "@/components/akimat/export-button";
 import { AlarmClock, CheckCheck, Inbox, RotateCcw, ShieldAlert, Timer, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
@@ -74,6 +75,9 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
         <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">{s.title}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{nm(svc, lang)}</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">{s.sub}</p>
+        <div className="mt-3">
+          <ExportButton l={t.export} lang={lang} />
+        </div>
       </div>
 
       {!fixed && (

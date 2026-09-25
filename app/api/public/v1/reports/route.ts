@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
 
 // Открытый API: реальные обращения без персональных данных (ни автора, ни фото заявителя).
-// GET /api/public/v1/reports?status=open&category=road_pit&district=mkr-3&since=2026-09-01&limit=100&format=geojson
+// GET /api/public/v1/reports?status=open&category=road_pit&district=mkr-3&since=2026-09-01&limit=100&format=geojson|csv
 
 const OPEN = ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"];
 
@@ -51,6 +51,16 @@ export async function GET(req: Request) {
     priority: r.priority_score,
     source: r.source,
   }));
+  if (url.searchParams.get("format") === "csv") {
+    const cols = Object.keys(items[0] ?? { id: "" });
+    const esc = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = "\uFEFF" + [cols.join(";"), ...items.map((it) => cols.map((c) => esc((it as Record<string, unknown>)[c])).join(";"))].join("\r\n");
+    return new Response(csv, { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="aiqyn-open-data.csv"', "Access-Control-Allow-Origin": "*" } });
+  }
+
 
   const headers = { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" };
   if (url.searchParams.get("format") === "geojson") {

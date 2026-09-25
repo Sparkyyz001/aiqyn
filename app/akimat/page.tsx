@@ -14,6 +14,7 @@ import { ReportsTable, type TableRow } from "@/components/akimat/reports-table";
 import { BarList } from "@/components/akimat/bar-list";
 import { PainRanking } from "@/components/akimat/pain-parts";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/akimat/export-button";
 import { painData } from "@/lib/pain-data";
 
 export async function generateMetadata() {
@@ -79,6 +80,7 @@ export default async function AkimatPage() {
               <ShieldAlert /> {o.toRisk} · {atRisk}
             </Link>
           </Button>
+          <ExportButton l={t.export} lang={lang} />
           <Button asChild variant="outline" size="sm">
             <Link href="/akimat/digest">
               <FileText /> {t.digest.nav}
