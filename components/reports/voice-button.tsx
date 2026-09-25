@@ -20,7 +20,7 @@ export type VoiceResult = {
   district: { code: string; name_ru: string; name_kz: string; lat: number; lng: number } | null;
 };
 
-type L = { cta: string; hint: string; rec: string; stop: string; cancel: string; busy: string; heard: string; denied: string; fail: string; off: string; short: string };
+type L = { cta: string; hint: string; rec: string; stop: string; cancel: string; busy: string; heard: string; denied: string; fail: string; off: string; short: string; limit: string };
 
 const MAX_SEC = 60;
 const RATE = 16000;
@@ -104,6 +104,7 @@ export function VoiceButton({ l, onResult }: { l: L; onResult: (v: VoiceResult) 
       const res = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": "audio/wav" }, body: toWav(chunks, rate) });
       const j = await res.json().catch(() => ({}));
       if (res.status === 503) return void toast.error(l.off);
+      if (res.status === 429) return void toast.error(l.limit);
       if (!res.ok || !j.voice) return void toast.error(j.error && res.status === 401 ? j.error : l.fail);
       setHeard(j.voice.transcript);
       onResult(j.voice as VoiceResult);

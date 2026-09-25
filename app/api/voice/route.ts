@@ -2,6 +2,7 @@ import { getProfile } from "@/lib/auth";
 import { msg } from "@/lib/i18n/server";
 import { geminiEnabled } from "@/lib/gemini";
 import { analyzeVoice } from "@/lib/ai-voice";
+import { allowAi } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
   if (buf.length < 2000) return Response.json({ error: "empty" }, { status: 400 });
   if (buf.length > MAX_BYTES) return Response.json({ error: "too_long" }, { status: 413 });
   if (buf.subarray(0, 4).toString("ascii") !== "RIFF") return Response.json({ error: "format" }, { status: 400 });
+  if (!(await allowAi(me.id, "voice"))) return Response.json({ error: "limit" }, { status: 429 });
   const voice = await analyzeVoice(buf);
   if (!voice) return Response.json({ error: "ai" }, { status: 502 });
   return Response.json({ voice });

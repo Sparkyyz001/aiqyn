@@ -19,6 +19,7 @@ import { textChecks, photoChecks, worst, type PhotoStats } from "@/lib/report-qu
 import { analyzePhotoUrl, aiEnabled, type Vision } from "@/lib/ai-vision";
 import { compareBeforeAfter, blocks, type AiCheck } from "@/lib/ai-compare";
 import { DELAY_REASONS, type DelayReason } from "@/lib/delay";
+import { allowAi } from "@/lib/rate-limit";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -490,6 +491,8 @@ export async function analyzePhoto(input: { path: string; text?: string; lat?: n
   if (!me) return fail(await msg("login"));
   if (!aiEnabled()) return { ok: true, data: { enabled: false, vision: null } };
   if (!ownsPath(me, input.path)) return fail(await msg("forbidden"));
+  // сверх лимита форма просто работает без подсказки ИИ (собственные проверки остаются)
+  if (!(await allowAi(me.id, "photo_ai"))) return { ok: true, data: { enabled: true, vision: null } };
   const ref = await getReference();
   const district = input.lat != null && input.lng != null ? districtAt({ lat: input.lat, lng: input.lng }, ref.districts) : null;
   const vision = await analyzePhotoUrl(publicPhotoUrl(input.path), { text: input.text, district: district?.name_ru ?? null, takenAt: input.taken_at ?? null });
