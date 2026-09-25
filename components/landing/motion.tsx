@@ -11,7 +11,10 @@ export function Reveal({ children, className = "", delay = 0, from = "up" }: { c
     const el = ref.current;
     if (!el) return;
     // Нет IntersectionObserver — показываем сразу, чтобы контент никогда не остался невидимым
-    if (typeof IntersectionObserver === "undefined") return void setInView(true);
+    if (typeof IntersectionObserver === "undefined") {
+      const id = requestAnimationFrame(() => setInView(true));
+      return () => cancelAnimationFrame(id);
+    }
     const io = new IntersectionObserver(([e]) => e.isIntersecting && (setInView(true), io.disconnect()), { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
     io.observe(el);
     return () => io.disconnect();

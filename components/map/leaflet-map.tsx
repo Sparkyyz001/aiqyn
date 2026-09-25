@@ -151,7 +151,7 @@ function PointPopup({ p, statusLabels, lang, popupLabels, openLabel }: { p: MapP
 
 export default function LeafletMap({
   points = [], mode = "pins", circles = [], polygons = [], choropleth = [], center = AKTAU_CENTER, zoom = 13, className,
-  statusLabels = {}, lang = "ru", popupLabels, demoLabel = "демо", openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false, focus = null,
+  statusLabels = {}, lang = "ru", popupLabels, openLabel = "Открыть", picked, onPick, flyTo, fullTouch = false, focus = null,
 }: LeafletMapProps) {
   const touchLock = !fullTouch && L.Browser.mobile;
   const { resolvedTheme } = useTheme();

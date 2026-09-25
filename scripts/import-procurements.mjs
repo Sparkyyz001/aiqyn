@@ -29,10 +29,14 @@ function parseLine(line) {
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
     if (c === '"') {
-      if (q && line[i + 1] === '"') (cur += '"'), i++;
-      else q = !q;
-    } else if (c === sep && !q) out.push(cur.trim()), (cur = "");
-    else cur += c;
+      if (q && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else q = !q;
+    } else if (c === sep && !q) {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += c;
   }
   out.push(cur.trim());
   return out;

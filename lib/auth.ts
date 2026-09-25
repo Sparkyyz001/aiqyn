@@ -36,5 +36,9 @@ export async function requireRole(...roles: Role[]): Promise<Profile> {
 }
 
 // Куда вести пользователя после входа
+/** Куда вести после входа: только путь внутри сайта. «//x» и «/\x» браузер понимает как чужой домен */
+export const safeNext = (next: string | null | undefined) =>
+  next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : null;
+
 export const homeFor = (role: Role) =>
   ({ citizen: "/me", service: "/service", akimat: "/akimat", operator: "/operator" })[role];

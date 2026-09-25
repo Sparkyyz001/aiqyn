@@ -5,11 +5,10 @@ import { DICTS } from "@/lib/i18n/dict";
 import { flow, titleOf } from "@/lib/data";
 import { getReference } from "@/lib/reference";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
-import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, isOpen } from "@/lib/meta";
 
 export const runtime = "nodejs";
 
-const OPEN = ["new", "routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
 
 // Выгрузка обращений для акимата и служб: Excel (.xlsx) с фильтрами и подсветкой просрочек или CSV.
 // ?format=xlsx|csv  ?scope=open|breached|risk|all  ?lang=kz
@@ -33,7 +32,7 @@ export async function GET(req: Request) {
   const rows = all
     .filter((r) => (!svcCode || r.service === svcCode) && r.status !== "rejected")
     .map((r) => {
-      const open = OPEN.includes(r.status);
+      const open = isOpen(r.status);
       const f = open && !r.sla_breached ? honestForecast(r, hctx, now) : null;
       return { r, open, risk: r.sla_breached && open ? 1 : f && f.ok ? f.pBreach ?? null : null, forecast: f && f.ok ? f.date : null };
     })

@@ -4,7 +4,7 @@ import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
 import { flow, titleOf } from "@/lib/data";
 import { honestContext, honestForecast, honestMetrics } from "@/lib/honest-deadline";
-import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, isInWork } from "@/lib/meta";
 import { Kpi } from "@/components/kpi";
 import { LiveRefresh } from "@/components/live-refresh";
 import { BarList } from "@/components/akimat/bar-list";
@@ -16,7 +16,6 @@ export async function generateMetadata() {
 }
 
 const DAY = 86_400_000;
-const OPEN = ["routed", "accepted", "in_progress", "reopened"];
 
 // «Заявки под угрозой срыва» — раннее предупреждение для диспетчера акимата:
 // та же модель «Честного срока», но с другой стороны — какие открытые заявки не успеют
@@ -27,7 +26,7 @@ export default async function RiskPage() {
   const now = new Date();
   const ctx = honestContext(all);
 
-  const open = all.filter((x) => OPEN.includes(x.status) && x.sla_due_at);
+  const open = all.filter((x) => isInWork(x.status) && x.sla_due_at);
   const already = open.filter((x) => new Date(x.sla_due_at!).getTime() < now.getTime());
   const ahead = open
     .filter((x) => new Date(x.sla_due_at!).getTime() >= now.getTime())

@@ -1,10 +1,9 @@
 import { getDict } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dict";
-import { painData } from "@/lib/pain-data";
+import { painData, painChoropleth } from "@/lib/pain-data";
 import { DISTRICT, nm } from "@/lib/meta";
 import { CityMap } from "@/components/map/map";
 import { PainLegend, PainRanking } from "@/components/akimat/pain-parts";
-import type { GeoPolygon } from "@/lib/geo";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -12,8 +11,7 @@ export async function generateMetadata() {
 }
 
 export default async function PainPage() {
-  const [{ lang, t }, { rows, delta, ref }] = await Promise.all([getDict(), painData()]);
-  const polyBy = new Map(ref.districts.map((d) => [d.code, d.polygon as GeoPolygon | null]));
+  const [{ lang, t }, { rows, delta, polygons }] = await Promise.all([getDict(), painData()]);
   const insufficient = rows.filter((r) => r.insufficient).length;
 
   return (
@@ -31,14 +29,7 @@ export default async function PainPage() {
           </div>
           <CityMap
             className="h-[420px] w-full lg:h-[600px]"
-            choropleth={rows
-              .filter((r) => polyBy.get(r.district))
-              .map((r) => ({
-                geojson: polyBy.get(r.district) as unknown as GeoJSON.GeoJsonObject,
-                index: r.index,
-                label: `${nm(DISTRICT[r.district], lang)} · ${r.index ?? t.pain.insufficient}`,
-                href: `/district/${r.district}`,
-              }))}
+            choropleth={painChoropleth(rows, polygons, (r) => `${nm(DISTRICT[r.district], lang)} · ${r.index ?? t.pain.insufficient}`)}
           />
         </section>
         <section className="flex flex-col gap-2">

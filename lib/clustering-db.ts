@@ -6,7 +6,7 @@ import { districtAt, getReference } from "@/lib/reference";
 
 // Пересчёт системных узлов категории в БД. Объём — сотни обращений, поэтому
 // пересчитываем категорию целиком: удалить узлы → DBSCAN → вставить → проставить cluster_id.
-export async function recomputeClusters(categoryId: number) {
+async function recomputeClusters(categoryId: number) {
   const db = createAdminClient();
   const ref = await getReference();
   const since = new Date(Date.now() - 365 * 86400_000).toISOString();

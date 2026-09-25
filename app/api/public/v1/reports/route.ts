@@ -1,10 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference } from "@/lib/reference";
+import { OPEN_STATUSES } from "@/lib/meta";
 
 // Открытый API: реальные обращения без персональных данных (ни автора, ни фото заявителя).
 // GET /api/public/v1/reports?status=open&category=road_pit&district=mkr-3&since=2026-09-01&limit=100&format=geojson|csv
 
-const OPEN = ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"];
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     .limit(limit);
 
   const status = url.searchParams.get("status");
-  if (status === "open") q = q.in("status", OPEN);
+  if (status === "open") q = q.in("status", OPEN_STATUSES);
   else if (status) q = q.eq("status", status);
   const cat = url.searchParams.get("category");
   if (cat) q = q.eq("category_id", ref.categoryByCode.get(cat)?.id ?? -1);

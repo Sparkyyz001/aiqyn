@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CATEGORIES, CATEGORY, DISTRICTS, nm, OPEN_STATUSES, pointColor } from "@/lib/meta";
+import { CATEGORIES, CATEGORY, DISTRICTS, nm, pointColor, isOpen } from "@/lib/meta";
 import type { MapPoint } from "@/lib/data";
 import type { MapChoropleth } from "@/components/map/leaflet-map";
 import { PainLegend, PainSwatch } from "@/components/akimat/pain-parts";
@@ -37,18 +37,19 @@ export function MapExplorer({
   const [period, setPeriod] = useState("90");
   const [openOnly, setOpenOnly] = useState(true);
   const [breachedOnly, setBreachedOnly] = useState(false);
+  const [now] = useState(() => Date.now()); // точка отсчёта периода — момент открытия карты
 
   const filtered = useMemo(() => {
-    const since = Date.now() - Number(period) * 86400_000;
+    const since = now - Number(period) * 86400_000;
     return points.filter(
       (p) =>
         (cat === ALL || p.c === cat) &&
         (district === ALL || p.d === district) &&
         new Date(p.at).getTime() >= since &&
-        (!openOnly || (OPEN_STATUSES as string[]).includes(p.s)) &&
+        (!openOnly || isOpen(p.s)) &&
         (!breachedOnly || p.b)
     );
-  }, [points, cat, district, period, openOnly, breachedOnly]);
+  }, [points, cat, district, period, openOnly, breachedOnly, now]);
 
   const legend = [
     { label: t.map.legendOpen, color: pointColor("in_progress", false) },

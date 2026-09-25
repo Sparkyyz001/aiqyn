@@ -26,6 +26,8 @@ export function EscalateClient({ reportId, defaultName, previewText, previous, t
       const res = await createEscalation(reportId, { full_name: name, contact });
       if (!res.ok) return void toast.error(res.error);
       toast.success(t.created);
+      // скачивание PDF — это файл, а не страница приложения, поэтому обычный переход
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = `/api/documents/escalation/${res.data.id}`;
       router.refresh();
     });

@@ -12,6 +12,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { DistrictPicker } from "./district-picker";
 import { Contribution, type RepEvent } from "@/components/me/contribution";
 import { TodayAktau } from "@/components/me/today-aktau";
+import { OPEN_STATUSES } from "@/lib/meta";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -32,7 +33,7 @@ export default async function MePage() {
     listReports({ authorId: me.id }),
     listReports({ ids: (conf ?? []).map((c) => c.report_id) }),
     me.district_id
-      ? listReports({ districtId: me.district_id, statuses: ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"], limit: 30, withSynthetic: true })
+      ? listReports({ districtId: me.district_id, statuses: OPEN_STATUSES, limit: 30, withSynthetic: true })
       : Promise.resolve([]),
   ]);
   const needVote = [...mine, ...confirmed].filter((r) => r.status === "awaiting_confirmation");

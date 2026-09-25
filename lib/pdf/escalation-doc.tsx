@@ -34,13 +34,14 @@ const s = StyleSheet.create({
 const d = (x: string | null) =>
   x ? new Date(x).toLocaleString("ru-RU", { timeZone: "Asia/Aqtau", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
 
+const Row = ({ k, v }: { k: string; v: string }) => (
+  <View style={s.row}>
+    <Text style={s.key}>{k}</Text>
+    <Text style={s.val}>{v}</Text>
+  </View>
+);
+
 export function EscalationDoc({ p }: { p: EscalationPayload }) {
-  const Row = ({ k, v }: { k: string; v: string }) => (
-    <View style={s.row}>
-      <Text style={s.key}>{k}</Text>
-      <Text style={s.val}>{v}</Text>
-    </View>
-  );
   return (
     <Document title={`Эскалация ${p.report_no}`} author={p.applicant.full_name} subject="Пакет для eOtinish">
       <Page size="A4" style={s.page}>

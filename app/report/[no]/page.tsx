@@ -5,7 +5,7 @@ import { getDict } from "@/lib/i18n/server";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReference, nearestSocial } from "@/lib/reference";
-import { settleVerification } from "@/lib/actions/reports";
+import { settleVerification } from "@/lib/verification-settle";
 import { computePriority, PRIORITY_LABELS } from "@/lib/priority";
 import { boilerplateScore, BOILERPLATE_THRESHOLD } from "@/lib/boilerplate";
 import { nm } from "@/lib/meta";
@@ -99,7 +99,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   const prio = computePriority({
     severityBase: cat.severity_base,
     confirmationWeights: (conf ?? []).reduce((s, c) => s + Number(c.weight), 0),
-    daysInQueue: (Date.now() - new Date(r.created_at).getTime()) / 86400_000,
+    daysInQueue: (new Date().getTime() - new Date(r.created_at).getTime()) / 86400_000,
     slaDays: cat.sla_days,
     nearSocial: !!social,
     slaBreached: !!r.sla_breached_at,

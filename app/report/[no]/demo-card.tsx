@@ -35,7 +35,7 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
   ];
   if (r.accepted_at) events.push({ at: r.accepted_at, text: o.tlAccepted, type: "accepted" });
   if (r.reopen_count > 0 && r.accepted_at) {
-    const mid = new Date((new Date(r.accepted_at).getTime() + new Date(r.resolved_at ?? Date.now()).getTime()) / 2).toISOString();
+    const mid = new Date((new Date(r.accepted_at).getTime() + (r.resolved_at ? new Date(r.resolved_at) : new Date()).getTime()) / 2).toISOString();
     events.push({ at: mid, text: o.tlDone, type: "awaiting_confirmation" }, { at: plus(mid, 60 * 20), text: o.tlReopened, tone: "danger", type: "reopened" });
   }
   if (r.status === "awaiting_confirmation" && r.accepted_at) events.push({ at: plus(r.accepted_at, 60 * 24 * 3), text: o.tlDone, type: "awaiting_confirmation" });

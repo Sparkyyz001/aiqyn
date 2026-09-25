@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python-сервис модели: сторонние файлы из виртуального окружения
+    "ml/**",
   ]),
 ]);
 

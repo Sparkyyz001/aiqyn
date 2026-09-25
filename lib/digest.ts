@@ -5,13 +5,12 @@ import { flowClusters } from "@/lib/flow-clusters";
 import { getReference } from "@/lib/reference";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
-import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, isOpen } from "@/lib/meta";
 
 // Дайджест для акима (ADDON_4): выжимка за период — только агрегаты из потока обращений и базы.
 // Формулировки нейтральные: «сроки нарушены по N обращениям», а не «служба провалила работу».
 
 const DAY = 86_400_000;
-const OPEN = ["routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
 
 export type Digest = Awaited<ReturnType<typeof buildDigest>>;
 
@@ -26,7 +25,7 @@ export async function buildDigest(from: Date, to: Date, lang: "ru" | "kz") {
   const resolved = all.filter((r) => r.status === "resolved" && inP(r.resolved_at));
   // просрочено в периоде: законный срок истёк в периоде, а к сроку обращение не было решено
   const breached = all.filter((r) => r.sla_due_at && inP(r.sla_due_at) && r.status !== "rejected" && (!r.resolved_at || new Date(r.resolved_at) > new Date(r.sla_due_at)));
-  const reopened = all.filter((r) => r.reopen_count > 0 && (inP(r.created_at) || inP(r.resolved_at) || OPEN.includes(r.status)) && r.status === "reopened");
+  const reopened = all.filter((r) => r.reopen_count > 0 && (inP(r.created_at) || inP(r.resolved_at) || isOpen(r.status)) && r.status === "reopened");
   const avgDays = resolved.length ? resolved.reduce((s, r) => s + (new Date(r.resolved_at!).getTime() - new Date(r.created_at).getTime()) / DAY, 0) / resolved.length : null;
 
   // службы с просрочками: сколько и насколько в среднем превышен срок
@@ -56,7 +55,7 @@ export async function buildDigest(from: Date, to: Date, lang: "ru" | "kz") {
   // раннее предупреждение: открытые, которые по прогнозу не уложатся в срок в ближайшие 7 дней
   const hctx = honestContext(all);
   const atRisk = all
-    .filter((r) => OPEN.includes(r.status) && !r.sla_breached && r.sla_due_at && new Date(r.sla_due_at).getTime() - to.getTime() < 7 * DAY && new Date(r.sla_due_at) > to)
+    .filter((r) => isOpen(r.status) && !r.sla_breached && r.sla_due_at && new Date(r.sla_due_at).getTime() - to.getTime() < 7 * DAY && new Date(r.sla_due_at) > to)
     .map((r) => ({ r, f: honestForecast(r, hctx, to) }))
     .filter((v) => v.f.ok && (v.f.pBreach ?? 0) >= 0.5)
     .sort((a, b) => (b.f.ok ? b.f.pBreach ?? 0 : 0) - (a.f.ok ? a.f.pBreach ?? 0 : 0));
@@ -108,7 +107,7 @@ export async function buildDigest(from: Date, to: Date, lang: "ru" | "kz") {
     .slice(0, 3);
 
   const breachedList = breached
-    .filter((r) => OPEN.includes(r.status))
+    .filter((r) => isOpen(r.status))
     .map((r) => ({
       no: r.public_no,
       title: titleOf(r, lang),

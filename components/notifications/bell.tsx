@@ -34,12 +34,12 @@ const TONE = {
   danger: "bg-[color:var(--danger)]",
 };
 
-export const noteText = (n: Note, lang: "ru" | "kz") => ({
+const noteText = (n: Note, lang: "ru" | "kz") => ({
   title: lang === "kz" && n.title_kz ? n.title_kz : n.title,
   body: lang === "kz" && n.body_kz ? n.body_kz : n.body,
 });
 
-export function timeAgo(iso: string, lang: "ru" | "kz") {
+function timeAgo(iso: string, lang: "ru" | "kz") {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   const rtf = new Intl.RelativeTimeFormat(lang === "kz" ? "kk" : "ru", {
     numeric: "auto",

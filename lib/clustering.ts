@@ -34,7 +34,7 @@ export type Cluster<T extends ClusterPoint> = {
 
 export function dbscan<T extends ClusterPoint>(points: T[], eps = CLUSTER_EPS_M, minPts = CLUSTER_MIN_PTS): Cluster<T>[] {
   const n = points.length;
-  const neighbors: number[][] = points.map((p, i) => {
+  const neighbors: number[][] = points.map((p) => {
     const out: number[] = [];
     for (let j = 0; j < n; j++) if (haversine(p, points[j]) <= eps) out.push(j);
     return out; // включает саму точку
@@ -62,7 +62,7 @@ export function dbscan<T extends ClusterPoint>(points: T[], eps = CLUSTER_EPS_M,
   return groups.map(summarize);
 }
 
-export function chronicScore(n: number, spanDays: number, reopens: number, breachedShare: number): number {
+function chronicScore(n: number, spanDays: number, reopens: number, breachedShare: number): number {
   const x = 0.15 * Math.max(0, n - 2) + 0.004 * spanDays + 0.25 * reopens + 0.5 * breachedShare;
   return Math.round((1 - Math.exp(-x)) * 100) / 100;
 }

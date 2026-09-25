@@ -9,6 +9,7 @@ import { pointInPolygon, type GeoPolygon } from "@/lib/geo";
 import { logEvent, recomputeReport } from "@/lib/report-engine";
 import { VOTING_WINDOW_H } from "@/lib/verification";
 import { INCIDENT_CATEGORIES } from "@/lib/incidents";
+import { IN_WORK_STATUSES } from "@/lib/meta";
 
 // ФИШКА 5: режим аварии. Зона = объединение полигонов выбранных микрорайонов (OSM).
 // Обращения подходящей категории внутри зоны автоматически привязываются к аварии —
@@ -62,7 +63,7 @@ export async function createIncident(input: Input) {
     .from("reports")
     .select("id, lat, lng")
     .in("category_id", catIds)
-    .in("status", ["new", "routed", "accepted", "in_progress", "reopened"])
+    .in("status", IN_WORK_STATUSES)
     .is("incident_id", null)
     .eq("is_synthetic", false);
   const inside = (open ?? []).filter((r) => pointInPolygon(r, polygon));
@@ -87,7 +88,7 @@ export async function resolveIncident(id: number) {
     .from("reports")
     .select("id, status")
     .eq("incident_id", id)
-    .in("status", ["new", "routed", "accepted", "in_progress", "reopened"]);
+    .in("status", IN_WORK_STATUSES);
   const due = new Date(now.getTime() + VOTING_WINDOW_H * 3600_000).toISOString();
   for (const r of linked ?? []) {
     await db.from("reports").update({ status: "awaiting_confirmation", verification_due_at: due }).eq("id", r.id);

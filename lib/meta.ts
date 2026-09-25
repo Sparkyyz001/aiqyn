@@ -18,7 +18,13 @@ export const nm = (x: { name_ru: string; name_kz: string } | undefined, lang: La
 
 export const STATUSES = ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "resolved", "rejected", "reopened"] as const;
 export type Status = (typeof STATUSES)[number];
+// Открыто — всё, что не закрыто (решено или отклонено)
 export const OPEN_STATUSES: Status[] = ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"];
+// В работе у службы — открыто и работа ещё не сдана (без «ждёт подтверждения жителей»):
+// только такие обращения могут сорвать срок по вине службы
+export const IN_WORK_STATUSES: Status[] = ["new", "routed", "accepted", "in_progress", "reopened"];
+export const isOpen = (s: string) => (OPEN_STATUSES as string[]).includes(s);
+export const isInWork = (s: string) => (IN_WORK_STATUSES as string[]).includes(s);
 
 // Цвет точки на карте: просрочено важнее статуса
 export function pointColor(status: string, breached: boolean): string {

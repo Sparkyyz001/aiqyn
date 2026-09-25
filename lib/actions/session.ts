@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { headers } from "next/headers";
-import { homeFor, type Role } from "@/lib/auth";
+import { homeFor, safeNext, type Role } from "@/lib/auth";
 
 // to — куда перейти после входа; переход делает браузер (полная загрузка, чтобы шапка
 // и кабинеты гарантированно отрисовались уже с новой сессией)
@@ -19,8 +19,8 @@ export async function signIn(_: AuthState, form: FormData): Promise<AuthState> {
   });
   if (error || !data.user) return { error: "invalid" };
 
-  const next = String(form.get("next") ?? "");
-  if (next.startsWith("/") && !next.startsWith("//")) return { to: next };
+  const next = safeNext(String(form.get("next") ?? ""));
+  if (next) return { to: next };
 
   const { data: p } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
   return { to: homeFor((p?.role ?? "citizen") as Role) };
@@ -39,8 +39,7 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const supabase = await createClient();
   const { error: e2 } = await supabase.auth.signInWithPassword({ email, password });
   if (e2) return { error: e2.message };
-  const next = String(form.get("next") ?? "");
-  return { to: next.startsWith("/") && !next.startsWith("//") ? next : "/me" };
+  return { to: safeNext(String(form.get("next") ?? "")) ?? "/me" };
 }
 
 /** Вход через Google (OAuth Supabase). Провайдер включается в Supabase → Authentication → Providers. */

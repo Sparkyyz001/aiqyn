@@ -29,7 +29,7 @@ export default async function PainDistrictPage({ params }: PageProps<"/district/
     .from("pain_index_history")
     .select("computed_at, breakdown")
     .eq("district_id", district.id)
-    .gte("computed_at", new Date(Date.now() - 90 * 86400_000).toISOString().slice(0, 10))
+    .gte("computed_at", new Date(new Date().getTime() - 90 * 86400_000).toISOString().slice(0, 10))
     .order("computed_at");
   // Единая шкала для всей истории: 100 = худший район города сегодня (см. комментарий в painHistory)
   const maxRaw = Math.max(1, ...rows.map((x) => x.raw ?? 0));
@@ -123,7 +123,7 @@ export default async function PainDistrictPage({ params }: PageProps<"/district/
             className="h-[320px] w-full"
             center={{ lat: district.center_lat, lng: district.center_lng }}
             zoom={15}
-            choropleth={district.polygon ? [{ geojson: district.polygon as unknown as GeoJSON.GeoJsonObject, index: row.index, label: nm(DISTRICT[code], lang) }] : []}
+            choropleth={district.polygon ? [{ geojson: district.polygon, index: row.index, label: nm(DISTRICT[code], lang) }] : []}
             circles={points.map((c) => ({ lat: c.lat, lng: c.lng, radius: Math.max(50, c.radius_m), color: "#1b2330", label: `${addressLabel(c.label, lang) ?? ""} · ${nm(CATEGORY[c.category], lang)} · ${c.count}` }))}
           />
         </section>

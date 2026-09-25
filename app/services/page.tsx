@@ -7,7 +7,7 @@ import { getReference } from "@/lib/reference";
 import { StarRating } from "@/components/star-rating";
 import { flow } from "@/lib/data";
 import { serviceQuality } from "@/lib/stats";
-import { CATEGORIES, SERVICES, nm } from "@/lib/meta";
+import { CATEGORIES, SERVICES, nm, isOpen } from "@/lib/meta";
 import { Button } from "@/components/ui/button";
 import { LiveRefresh } from "@/components/live-refresh";
 import { cn } from "@/lib/utils";
@@ -17,13 +17,17 @@ export async function generateMetadata() {
   return { title: t.services.title };
 }
 
-const OPEN = ["routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
 
 // «Службы города» — справочник для жителя: кто за что отвечает, где находится, куда звонить
 // в экстренном случае и как служба работает на самом деле (по потоку обращений).
 export default async function ServicesPage() {
-  const [{ lang, t }, { all }, me, ref] = await Promise.all([getDict(), flow(), getProfile(), getReference()]);
-  const { data: ratings } = await createAdminClient().from("service_ratings").select("service_id, user_id, stars");
+  const [{ lang, t }, { all }, me, ref, { data: ratings }] = await Promise.all([
+    getDict(),
+    flow(),
+    getProfile(),
+    getReference(),
+    createAdminClient().from("service_ratings").select("service_id, user_id, stars"),
+  ]);
   const rate = new Map<number, { sum: number; n: number; mine: number | null }>();
   for (const r of ratings ?? []) {
     const a = rate.get(r.service_id) ?? { sum: 0, n: 0, mine: null };
@@ -35,7 +39,7 @@ export default async function ServicesPage() {
   const s = t.services;
   const q = new Map(serviceQuality(all).map((r) => [r.service, r]));
   const openBy = new Map<string, number>();
-  for (const r of all) if (OPEN.includes(r.status)) openBy.set(r.service, (openBy.get(r.service) ?? 0) + 1);
+  for (const r of all) if (isOpen(r.status)) openBy.set(r.service, (openBy.get(r.service) ?? 0) + 1);
   const n = new Intl.NumberFormat("ru-RU");
 
   const emergency: [string, string][] = [

@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Текст — на языке пользователя; просроченные подписки (410/404) удаляем.
 const PUB = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const PRIV = process.env.VAPID_PRIVATE_KEY;
-export const pushEnabled = () => !!PUB && !!PRIV;
+const pushEnabled = () => !!PUB && !!PRIV;
 if (PUB && PRIV) webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:support@aiqyn.kz", PUB, PRIV);
 
 export type PushMsg = { user_id: string; title: string; title_kz: string; body: string | null; body_kz: string | null; link: string; tone?: string };

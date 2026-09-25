@@ -12,7 +12,7 @@ import { recomputeReport } from "@/lib/report-engine";
 import { flow, titleOf, type FlowReport } from "@/lib/data";
 import { serviceQuality } from "@/lib/stats";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
-import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, nm, OPEN_STATUSES } from "@/lib/meta";
 import { LiveRefresh } from "@/components/live-refresh";
 import { Kpi } from "@/components/kpi";
 import { SlaTimer } from "@/components/reports/sla-timer";
@@ -42,7 +42,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
   const fixed = me.role === "service" && me.service_id != null;
   let svc = fixed ? ref.serviceById.get(me.service_id!) : sp.s ? ref.serviceByCode.get(String(sp.s)) : undefined;
   if (!svc) {
-    const latest = (await listReports({ statuses: ["new", "routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"], limit: 1 }))[0];
+    const latest = (await listReports({ statuses: OPEN_STATUSES, limit: 1 }))[0];
     const { data: row } = latest ? await createAdminClient().from("reports").select("service_id").eq("public_no", latest.public_no).single() : { data: null };
     svc = (row?.service_id ? ref.serviceById.get(row.service_id) : undefined) ?? ref.serviceByCode.get("kzhsa");
   }

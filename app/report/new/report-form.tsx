@@ -14,7 +14,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { VoiceButton, type VoiceResult } from "@/components/reports/voice-button";
 import { previewReport, createReport, confirmReport, analyzePhoto, type Preview, type Created } from "@/lib/actions/reports";
 import { ReportSuccess } from "@/components/reports/report-success";
-import { textChecks, photoChecks, worst, type Check as QCheck } from "@/lib/report-quality";
+import { textChecks, photoChecks, type Check as QCheck } from "@/lib/report-quality";
 import type { Vision } from "@/lib/ai-vision";
 import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
 import { AKTAU_CENTER, inAktau } from "@/lib/geo";
@@ -231,6 +231,8 @@ export function ReportForm({
     </div>
   );
 
+  // «Сообщить ещё» — полная перезагрузка формы: проще и надёжнее, чем сбрасывать два десятка состояний
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   if (created) return <ReportSuccess c={created} lang={lang} d={t.report.done} share={t.share} onAnother={() => window.location.assign("/report/new")} />;
 
   // готовность: фото, место, описание — полоса сверху заполняется по мере ввода

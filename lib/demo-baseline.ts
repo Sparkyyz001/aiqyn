@@ -18,7 +18,7 @@ import { slaDueAt, TZ_OFFSET_H } from "./sla";
 import { computePriority } from "./priority";
 
 // Номера модельных обращений — в общем формате AQ-<год>-9xxxx (реальная нумерация до 9xxxx не дойдёт)
-export const demoNo = (idx: number) => `AQ-2026-9${String(idx).padStart(4, "0")}`;
+const demoNo = (idx: number) => `AQ-2026-9${String(idx).padStart(4, "0")}`;
 export const isDemoNo = (no: string) => /^AQ-\d{4}-9\d{4}$/.test(no);
 /** старые ссылки вида DEMO-0706 → AQ-2026-90706 */
 export const legacyDemoNo = (no: string) => (/^DEMO-\d{4}$/.test(no) ? demoNo(Number(no.slice(5))) : null);

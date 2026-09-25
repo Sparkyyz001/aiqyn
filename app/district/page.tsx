@@ -2,13 +2,12 @@ import Link from "next/link";
 import { AlarmClock, ArrowRight, Inbox, Users } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dict";
-import { painData } from "@/lib/pain-data";
+import { painData, painChoropleth } from "@/lib/pain-data";
 import { painColor } from "@/lib/pain-index";
 import { DISTRICT, nm } from "@/lib/meta";
 import { CityMap } from "@/components/map/map";
 import { PainLegend } from "@/components/akimat/pain-parts";
 import { LiveRefresh } from "@/components/live-refresh";
-import type { GeoPolygon } from "@/lib/geo";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -18,8 +17,7 @@ export async function generateMetadata() {
 // Районы Актау: карта города, раскрашенная по индексу боли, и карточки микрорайонов —
 // житель находит свой район и сразу видит, насколько там тяжело и что тянет индекс вверх.
 export default async function DistrictsPage() {
-  const [{ lang, t }, { rows, delta, ref }] = await Promise.all([getDict(), painData()]);
-  const polyBy = new Map(ref.districts.map((d) => [d.code, d.polygon as GeoPolygon | null]));
+  const [{ lang, t }, { rows, delta, polygons }] = await Promise.all([getDict(), painData()]);
   const ranked = rows.filter((r) => !r.insufficient && DISTRICT[r.district]);
   const n = new Intl.NumberFormat("ru-RU");
 
@@ -34,14 +32,7 @@ export default async function DistrictsPage() {
       <section className="overflow-hidden rounded-2xl border bg-card">
         <CityMap
           className="h-[380px] w-full md:h-[480px]"
-          choropleth={rows
-            .filter((r) => polyBy.get(r.district))
-            .map((r) => ({
-              geojson: polyBy.get(r.district) as unknown as GeoJSON.GeoJsonObject,
-              index: r.index,
-              label: `${nm(DISTRICT[r.district], lang)} · ${r.index ?? t.pain.insufficient}`,
-              href: `/district/${r.district}`,
-            }))}
+          choropleth={painChoropleth(rows, polygons, (r) => `${nm(DISTRICT[r.district], lang)} · ${r.index ?? t.pain.insufficient}`)}
         />
         <div className="border-t px-4 py-2.5">
           <PainLegend t={t.pain} />

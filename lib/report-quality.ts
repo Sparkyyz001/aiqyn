@@ -29,7 +29,7 @@ const PROFANE = /(^|[^a-zа-яё])(ху[йеёияю]|пизд|еба[нлт]|ё
 const KEYBOARD = ["йцукен", "фывап", "ячсмит", "qwert", "asdfg", "zxcvb", "олдж", "ролд"];
 
 /** Похоже ли слово/текст на набор случайных букв */
-export function isGibberish(text: string) {
+function isGibberish(text: string) {
   const t = text.toLowerCase().replace(/ё/g, "е");
   const letters = t.match(LETTERS)?.length ?? 0;
   if (letters < 3) return true;

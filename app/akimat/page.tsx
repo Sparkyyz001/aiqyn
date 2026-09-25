@@ -5,7 +5,7 @@ import { getDict } from "@/lib/i18n/server";
 import { fmt as tf } from "@/lib/i18n/dict";
 import { flow, toMapPoint, titleOf } from "@/lib/data";
 import { kpis, daily, byKey } from "@/lib/stats";
-import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, isOpen } from "@/lib/meta";
 import { Kpi } from "@/components/kpi";
 import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -23,7 +23,6 @@ export async function generateMetadata() {
 }
 
 const DAY = 86_400_000;
-const OPEN = ["routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
 
 // Обзор акимата: плитки с трендом, динамика с переключателем периода, индекс боли и тепловая
 // карта, разрезы по категориям и районам, таблица всех открытых обращений с риском срыва.
@@ -45,7 +44,7 @@ export default async function AkimatPage() {
 
   // честный прогноз для всех открытых — риск срыва в таблице и число «под угрозой»
   const hctx = honestContext(all);
-  const open = all.filter((r) => OPEN.includes(r.status));
+  const open = all.filter((r) => isOpen(r.status));
   const rows: TableRow[] = open.map((r) => {
     const f = r.sla_breached ? null : honestForecast(r, hctx, now);
     return {

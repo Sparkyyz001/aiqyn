@@ -5,13 +5,12 @@ import { getReference } from "@/lib/reference";
 import { flow, titleOf } from "@/lib/data";
 import { today } from "@/lib/today";
 import { AKTAU_CENTER, pointInPolygon, type GeoPolygon } from "@/lib/geo";
-import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, nm, isOpen } from "@/lib/meta";
 import { fmt, type Dict, type Lang } from "@/lib/i18n/dict";
 import type { RowReport } from "@/components/reports/report-row";
 import { cn } from "@/lib/utils";
 
 const DAY = 86_400_000;
-const OPEN = ["new", "routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"];
 
 // «Сегодня в Актау» — утренняя сводка жителя по его микрорайону: аварии и отключения рядом,
 // прогноз запаха по ветру на 12 часов, что город решил за сутки и сколько дней осталось по его обращениям.
@@ -38,7 +37,7 @@ export async function TodayAktau({ districtId, mine, lang, t }: { districtId: nu
   const resolved = all.filter((r) => r.status === "resolved" && r.resolved_at).sort((a, b) => +new Date(b.resolved_at!) - +new Date(a.resolved_at!));
   const day = resolved.filter((r) => now - +new Date(r.resolved_at!) < DAY);
   const shown = (day.length ? day : resolved).slice(0, 3);
-  const inMine = d ? all.filter((r) => r.district === d.code && OPEN.includes(r.status)).length : null;
+  const inMine = d ? all.filter((r) => r.district === d.code && isOpen(r.status)).length : null;
   const { data: after } = shown.length
     ? await db.from("report_photos").select("report_id, url").eq("kind", "after").in("report_id", shown.map((r) => r.id))
     : { data: [] as { report_id: number; url: string }[] };
@@ -46,7 +45,7 @@ export async function TodayAktau({ districtId, mine, lang, t }: { districtId: nu
 
   // мои сроки: сколько дней до срока по закону
   const deadlines = mine
-    .filter((r) => OPEN.includes(r.status) && r.sla_due_at)
+    .filter((r) => isOpen(r.status) && r.sla_due_at)
     .map((r) => ({ r, days: Math.ceil((+new Date(r.sla_due_at!) - now) / DAY) }))
     .sort((a, b) => a.days - b.days)
     .slice(0, 4);

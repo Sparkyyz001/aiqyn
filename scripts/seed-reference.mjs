@@ -65,7 +65,7 @@ await upsert(
 // Районы
 const districts = (await json("data/districts.normalized.json")).items;
 // population не трогаем: его заполняет scripts/estimate-population.mjs (оценка по жилой площади OSM)
-await upsert("districts", districts.map(({ population, ...d }) => d), "code", 50);
+await upsert("districts", districts.map((d) => { const rest = { ...d }; delete rest.population; return rest; }), "code", 50);
 
 // Погода (почасовая, 90 дней)
 const weather = (await json("data/weather_history.json")).items;

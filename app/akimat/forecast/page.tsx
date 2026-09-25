@@ -24,15 +24,21 @@ function lastWinterFreezeThaw() {
 }
 
 export default async function ForecastPage() {
-  const [{ lang, t }, { all }, ref, me] = await Promise.all([getDict(), flow(), getReference(), getProfile()]);
-  // значимые сегменты (именованные + primary…tertiary) залиты seed-скриптом из OSM
-  const { data } = await createAdminClient().from("road_segments").select("osm_id, name, highway_class, geometry").limit(2000);
+  const db = createAdminClient();
+  // значимые сегменты (именованные + primary…tertiary) залиты seed-скриптом из OSM;
+  // отзывы о состоянии с места — входят в риск и показываются в карточке участка
+  const [{ lang, t }, { all }, ref, me, { data }, { data: fbRows }] = await Promise.all([
+    getDict(),
+    flow(),
+    getReference(),
+    getProfile(),
+    db.from("road_segments").select("osm_id, name, highway_class, geometry").limit(2000),
+    db.from("road_feedback").select("osm_id, user_id, verdict"),
+  ]);
   const segs: Seg[] = (data ?? []).map((r) => ({ osm_id: r.osm_id, name: r.name, highway: r.highway_class, geometry: r.geometry }));
   const now = new Date().getTime();
   const complaints = all.filter((r) => ["road_pit", "excavation"].includes(r.category) && now - new Date(r.created_at).getTime() < 90 * 86400_000);
   const ft = lastWinterFreezeThaw();
-  // отзывы о состоянии с места — входят в риск и показываются в карточке участка
-  const { data: fbRows } = await createAdminClient().from("road_feedback").select("osm_id, user_id, verdict");
   const votes = new Map<string, RoadVotes>();
   const mine = new Map<string, keyof RoadVotes>();
   for (const f of fbRows ?? []) {

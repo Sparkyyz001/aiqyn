@@ -3,7 +3,7 @@ import { flow } from "@/lib/data";
 import { flowClusters } from "@/lib/flow-clusters";
 import { getReference } from "@/lib/reference";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DISTRICT, nm } from "@/lib/meta";
+import { DISTRICT, nm, isInWork } from "@/lib/meta";
 import { MONEY_REASONS } from "@/lib/delay";
 
 // «Народный заказ к бюджету»: жалобы жителей, сведённые по направлениям местного бюджета.
@@ -107,8 +107,7 @@ export async function buildDemand(lang: "ru" | "kz", now = new Date()) {
   const paid = rows.filter((r) => r.mln > mM && r.n > mN).sort((a, b) => b.re + b.br - (a.re + a.br)).slice(0, 6);
 
   // застряло из-за денег: открытые обращения, где служба указала «нет финансирования» или «ждём закупку»
-  const OPEN = ["routed", "accepted", "in_progress", "reopened"];
-  const stuck = reports.filter((r) => OPEN.includes(r.status) && r.delay_reason && MONEY_REASONS.includes(r.delay_reason));
+  const stuck = reports.filter((r) => isInWork(r.status) && r.delay_reason && MONEY_REASONS.includes(r.delay_reason));
   const stuckByDir = DIRECTIONS.map((d) => {
     const rs = stuck.filter((r) => (d.cats as readonly string[]).includes(r.category));
     const byD = new Map<string, number>();

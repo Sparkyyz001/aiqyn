@@ -74,10 +74,6 @@ function isWorkingLocal(local: Date): boolean {
   return !holidaysOf(local.getUTCFullYear()).has(ymd(local));
 }
 
-export function isWorkingDay(date: Date): boolean {
-  return isWorkingLocal(toLocal(date));
-}
-
 /**
  * Дедлайн: N рабочих дней, считая со СЛЕДУЮЩЕГО дня после поступления
  * (день поступления не засчитывается), срок истекает в 18:00 по Актау.

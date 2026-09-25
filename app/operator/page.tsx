@@ -7,7 +7,7 @@ import { getReference } from "@/lib/reference";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { flow, titleOf } from "@/lib/data";
 import { haversine } from "@/lib/geo";
-import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
+import { CATEGORY, DISTRICT, SERVICE, nm, isInWork } from "@/lib/meta";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Kpi } from "@/components/kpi";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -22,16 +22,18 @@ export async function generateMetadata() {
 }
 
 const DAY = 86_400_000;
-const OPEN = ["routed", "accepted", "in_progress", "reopened"];
 
 // Пульт оператора 109: входящий поток всех каналов, звонок/пост за минуту (без фото),
 // подозрения на дубли и аварии — то, что по ТЗ делает оператор-модератор.
 export default async function OperatorPage() {
   await requireRole("operator", "akimat");
-  const [{ lang, t }, ref, { all }] = await Promise.all([getDict(), getReference(), flow()]);
+  const [{ lang, t }, ref, { all }, { data: incidents }] = await Promise.all([
+    getDict(),
+    getReference(),
+    flow(),
+    createAdminClient().from("incidents").select("id, title, type, eta_at, started_at").eq("status", "active").order("started_at", { ascending: false }),
+  ]);
   const o = t.operator;
-  const db = createAdminClient();
-  const { data: incidents } = await db.from("incidents").select("id, title, type, eta_at, started_at").eq("status", "active").order("started_at", { ascending: false });
 
   const now = new Date().getTime();
   const day = all.filter((r) => now - new Date(r.created_at).getTime() < DAY);
@@ -51,7 +53,7 @@ export default async function OperatorPage() {
     }));
 
   // дубли: открытые обращения одной категории ближе 120 м, поданные в пределах 30 дней
-  const open = all.filter((r) => OPEN.includes(r.status));
+  const open = all.filter((r) => isInWork(r.status));
   const dups: { a: (typeof open)[number]; b: (typeof open)[number]; d: number }[] = [];
   for (let i = 0; i < open.length; i++)
     for (let j = i + 1; j < open.length; j++) {

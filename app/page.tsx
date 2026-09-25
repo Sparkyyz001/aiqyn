@@ -350,8 +350,8 @@ export default async function Home() {
                     href={href}
                     className="spot group relative isolate flex h-full min-h-[380px] flex-col justify-end overflow-hidden rounded-3xl border p-7"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <div className="absolute inset-0 -z-10 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={ROLE_PHOTO[i]}
                         alt=""

@@ -67,7 +67,7 @@ export default async function AirPage() {
   const peak = core.reduce<(typeof core)[number] | null>((m, c) => (!m || c.votes > m.votes ? c : m), null);
   const zone =
     ring.length >= 3
-      ? [{ geojson: { type: "Polygon", coordinates: [[...ring, ring[0]]] } as unknown as GeoJSON.GeoJsonObject, color: "#c2410c", fill: "#f97316", fillOpacity: 0.18, weight: 2.5, tooltip: `${a.zone}\n${a.zoneTip}` }]
+      ? [{ geojson: { type: "Polygon", coordinates: [[...ring, ring[0]]] } satisfies GeoJSON.Polygon, color: "#c2410c", fill: "#f97316", fillOpacity: 0.18, weight: 2.5, tooltip: `${a.zone}\n${a.zoneTip}` }]
       : [];
 
   // SVG-роза: 8 лепестков, длина — доля жалоб

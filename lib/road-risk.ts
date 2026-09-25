@@ -33,7 +33,7 @@ export function distToLine(p: LatLng, coords: [number, number][]): number {
   return best;
 }
 
-export function lengthKm(coords: [number, number][]) {
+function lengthKm(coords: [number, number][]) {
   let s = 0;
   for (let i = 0; i < coords.length - 1; i++) s += haversine({ lat: coords[i][1], lng: coords[i][0] }, { lat: coords[i + 1][1], lng: coords[i + 1][0] });
   return s / 1000;
