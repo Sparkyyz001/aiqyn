@@ -159,7 +159,8 @@ export function MapExplorer({
             </li>
           ))}
           <li className="col-span-2 flex items-center gap-2 lg:col-span-1">
-            <span className="size-3 rounded-full border-2 border-foreground bg-[#2f6fa3]" />
+            {/* та же булавка, что на карте */}
+            <span className="grid size-4 place-items-center rounded-[50%_50%_50%_3px] border-2 border-white bg-[#2f6fa3] shadow-sm [transform:rotate(-45deg)]" />
             {t.map.real}
           </li>
         </ul>
