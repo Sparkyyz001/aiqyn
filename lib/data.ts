@@ -19,14 +19,14 @@ const fetchRows = unstable_cache(
     const { data, error } = await createAdminClient()
       .from("reports")
       .select(
-        "id, public_no, is_synthetic, synthetic, category_id, service_id, district_id, title, title_kz, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
+        "id, public_no, is_synthetic, synthetic, category_id, service_id, district_id, title, title_kz, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source, delay_reason, report_photos(kind, geo_verified), service_replies(boilerplate_score)"
       )
       .order("created_at", { ascending: false })
       .limit(5000);
     if (error) throw new Error(error.message); // ошибку не кешируем
     return data ?? [];
   },
-  ["reports-flow-v1"],
+  ["reports-flow-v2"],
   { revalidate: 30, tags: [REPORTS_TAG] }
 );
 
@@ -62,6 +62,7 @@ export const realReports = cache(async (): Promise<FlowReport[]> => {
       after_geo_verified: syn ? syn.after_geo_verified ?? null : after.length ? after.some((p: { geo_verified: boolean }) => p.geo_verified) : null,
       reply_boilerplate: syn ? syn.reply_boilerplate ?? null : replies.length ? Math.max(...replies.map((x) => x.boilerplate_score ?? 0)) : null,
       source: r.source,
+      delay_reason: r.delay_reason ?? null,
     };
   });
 });

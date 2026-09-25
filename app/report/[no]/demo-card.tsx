@@ -1,4 +1,6 @@
-import { MapPin, Users, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Users, RotateCcw, Clock } from "lucide-react";
+import { MONEY_REASONS } from "@/lib/delay";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
 import { BudgetButton } from "@/components/reports/budget-button";
@@ -64,6 +66,21 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
           <p className="text-pretty">{description}</p>
 
           {!closed && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
+          {!closed && r.delay_reason && (
+            <div className="flex items-start gap-3 rounded-xl border border-[color:var(--warn)]/45 bg-[color:var(--warn)]/[0.07] p-3 text-sm">
+              <Clock className="mt-0.5 size-4 shrink-0 text-[color:var(--warn)]" />
+              <div className="min-w-0">
+                <div className="font-medium">
+                  {t.card.delayTitle}: {t.card.delayReasons[r.delay_reason as keyof Dict["card"]["delayReasons"]] ?? r.delay_reason}
+                </div>
+                {MONEY_REASONS.includes(r.delay_reason) && (
+                  <Link href="/budget" className="mt-1 inline-block text-xs text-primary hover:underline">
+                    {t.card.delayBudget} →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
           <div className="flex flex-wrap items-start gap-2">
             <ShareButton no={r.public_no} lang={lang} t={t.share} />
             {!closed && budget && <BudgetButton no={r.public_no} existing={budget.existing} loggedIn={budget.loggedIn} t={t.initiatives} />}

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, MapPin, Siren, ShieldCheck, ShieldAlert, Users, RotateCcw, Info, Sparkles } from "lucide-react";
+import { ExternalLink, MapPin, Siren, ShieldCheck, ShieldAlert, Users, RotateCcw, Info, Sparkles, Clock } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -23,6 +23,7 @@ import { PainContribution } from "@/components/reports/pain-contribution";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
 import { BudgetButton } from "@/components/reports/budget-button";
+import { MONEY_REASONS } from "@/lib/delay";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { flow } from "@/lib/data";
 
@@ -129,7 +130,8 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   type Ev = { type: string; comment: string | null; meta: Record<string, unknown> | null };
   const eventText = (e: Ev): string | null => {
     const m = e.meta ?? {};
-    if (typeof m.msg === "string" && m.msg in t.events) return tf(t.events[m.msg as keyof Dict["events"]], m as Record<string, string>);
+    if (m.msg === "delay_set") return tf(t.events.delay_set, { reasonLabel: t.card.delayReasons[m.reason as keyof Dict["card"]["delayReasons"]] ?? String(m.reason) }) + (e.comment ? ` — ${e.comment}` : "");
+    if (typeof m.msg === "string" && m.msg in t.events) return tf(t.events[m.msg as keyof Dict["events"]] as string, m as Record<string, string>);
     if (e.type === "routed" && m.service) {
       const short = ref.serviceByCode.get(String(m.service))?.short_name ?? "";
       const reason = m.rule ? t.routing[m.rule as keyof Dict["routing"]] : t.routing.default;
@@ -181,6 +183,24 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
       {honest && (
         <div className="mt-4">
           <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />
+        </div>
+      )}
+
+      {!closed && r.delay_reason && (
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-[color:var(--warn)]/45 bg-[color:var(--warn)]/[0.07] p-3 text-sm">
+          <Clock className="mt-0.5 size-4 shrink-0 text-[color:var(--warn)]" />
+          <div className="min-w-0">
+            <div className="font-medium">
+              {t.card.delayTitle}: {t.card.delayReasons[r.delay_reason as keyof Dict["card"]["delayReasons"]] ?? r.delay_reason}
+              {r.delay_at && <span className="font-normal text-muted-foreground"> · {tf(t.card.delaySince, { d: fmt(r.delay_at) })}</span>}
+            </div>
+            {r.delay_note && <p className="mt-0.5 text-muted-foreground text-pretty">{r.delay_note}</p>}
+            {MONEY_REASONS.includes(r.delay_reason) && (
+              <Link href="/budget" className="mt-1 inline-block text-xs text-primary hover:underline">
+                {t.card.delayBudget} →
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
@@ -263,7 +283,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
           )}
 
           <ReportActions
-            report={{ id: r.id, status: r.status, public_no: r.public_no, verification_due_at: r.verification_due_at }}
+            report={{ id: r.id, status: r.status, public_no: r.public_no, verification_due_at: r.verification_due_at, delay_reason: r.delay_reason ?? null }}
             viewer={me ? { id: me.id, role: me.role } : null}
             isAuthor={isAuthor}
             isConfirmer={isConfirmer}
@@ -314,7 +334,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
                       </>
                     ) : (
                       <span className="font-medium">
-                        {({ confirmed: t.events.confirmed, reply: t.events.reply, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.events.escalated, incident_linked: t.events.incident_linked, ai_analysis: t.events.aiPhoto, ai_after_check: t.events.aiCheck } as Record<string, string>)[e.type] ?? e.type}
+                        {({ confirmed: t.events.confirmed, reply: t.events.reply, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.events.escalated, incident_linked: t.events.incident_linked, ai_analysis: t.events.aiPhoto, ai_after_check: t.events.aiCheck, delay_reason: t.events.delayReason } as Record<string, string>)[e.type] ?? e.type}
                       </span>
                     )}
                   </div>

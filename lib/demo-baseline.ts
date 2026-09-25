@@ -46,6 +46,8 @@ export type BaseReport = {
   after_geo_verified: boolean | null;
   reply_boilerplate: number | null;
   source: string;
+  /** причина задержки, о которой сообщила служба (только из базы) */
+  delay_reason?: string | null;
 };
 
 // mulberry32 — маленький детерминированный ГПСЧ

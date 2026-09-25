@@ -183,6 +183,20 @@ export function DemandDoc({
           ))}
         </View>
 
+        <View wrap={false}>
+          <Text style={s.h2}>{fmt(t.stuckTitle, { n: d.stuck.total }).toUpperCase()}</Text>
+          <Text style={s.note}>{t.stuckSub}</Text>
+          <View style={[s.box, { border: `1pt solid ${RED}` }]}>
+            {d.stuck.byDir.length === 0 && <Text style={s.note}>{t.stuckNone}</Text>}
+            {d.stuck.byDir.map((x) => (
+              <Text key={x.code} style={s.item}>
+                <Text style={{ fontWeight: "bold" }}>{`${x.name}: ${x.n}`}</Text>
+                <Text style={{ color: MUTED }}>{` · ${fmt(t.stuckRow, { a: x.noFunding, b: x.procurement })} · ${x.top.map((p) => `${p.name} (${p.n})`).join(", ")}`}</Text>
+              </Text>
+            ))}
+          </View>
+        </View>
+
         <Text style={s.h2}>{t.dirTitle.toUpperCase()}</Text>
         <View style={s.th}>
           <Text style={s.cDir}>{t.colDir}</Text>

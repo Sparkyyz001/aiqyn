@@ -18,7 +18,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     ["/services", t.services.title],
     ["/initiatives", t.initiatives.title],
     ["/report/new", t.shell.report],
-    ["/report", t.nav.map],
+    ["/report", t.shell.reportCard],
     ["/district", t.pain.districtsTitle],
     ["/me", t.nav.me],
     ["/notifications", t.notify.title],

@@ -4,15 +4,17 @@ import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, Check, FileWarning, Loader2, Play, ThumbsDown, ThumbsUp, X, Eye, Send } from "lucide-react";
+import { Camera, Check, Clock, FileWarning, Loader2, Play, ThumbsDown, ThumbsUp, X, Eye, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { confirmReport, castVerification, staffTransition, submitCompletion, addReply } from "@/lib/actions/reports";
+import { confirmReport, castVerification, staffTransition, submitCompletion, addReply, setDelayReason } from "@/lib/actions/reports";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DELAY_REASONS, type DelayReason } from "@/lib/delay";
 import { uploadPhoto, type UploadedPhoto } from "@/lib/photo";
 import { fmt, type Dict } from "@/lib/i18n/dict";
 
 type Props = {
-  report: { id: number; status: string; public_no: string; verification_due_at: string | null };
+  report: { id: number; status: string; public_no: string; verification_due_at: string | null; delay_reason: string | null };
   viewer: { id: string; role: string } | null;
   isAuthor: boolean;
   isConfirmer: boolean;
@@ -29,6 +31,8 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
   const [afterPhoto, setAfterPhoto] = useState<UploadedPhoto | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [delay, setDelay] = useState<string>(report.delay_reason ?? "");
+  const [delayNote, setDelayNote] = useState("");
   const s = report.status;
   const open = !["resolved", "rejected"].includes(s);
 
@@ -122,6 +126,45 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
             </Button>
           )}
         </div>
+        {["routed", "accepted", "in_progress", "reopened"].includes(s) && (
+          <div className="flex flex-col gap-2 border-t pt-3">
+            <div className="flex items-center gap-1.5 text-sm">
+              <Clock className="size-4 text-[color:var(--warn)]" /> {t.actions.delayTitle}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[16rem_1fr]">
+              <Select value={delay} onValueChange={setDelay}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t.actions.delayPick} />
+                </SelectTrigger>
+                <SelectContent className="z-[1300]">
+                  {DELAY_REASONS.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {t.card.delayReasons[k]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Textarea rows={1} className="min-h-9" placeholder={t.actions.delayNotePh} value={delayNote} onChange={(e) => setDelayNote(e.target.value)} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" disabled={pending || !delay} onClick={() => run(() => setDelayReason(report.id, delay as DelayReason, delayNote), t.actions.delaySaved)}>
+                <Clock /> {t.actions.delaySave}
+              </Button>
+              {report.delay_reason && (
+                <Button
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => {
+                    setDelay("");
+                    run(() => setDelayReason(report.id, null));
+                  }}
+                >
+                  <X /> {t.actions.delayClear}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
         {["accepted", "in_progress", "reopened"].includes(s) && (
           <div className="flex flex-col gap-2 border-t pt-3">
             <div className="text-sm">{t.actions.afterHint}</div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlarmClock, ArrowUpRight, Download, Landmark, MapPin, Users } from "lucide-react";
+import { AlarmClock, ArrowUpRight, CircleDollarSign, Download, Landmark, MapPin, Users } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dict";
 import { buildDemand } from "@/lib/budget-demand";
@@ -52,6 +52,35 @@ export default async function BudgetPage() {
         <Kpi label={b.kpiBreached} value={`${d.kpi.breachedPct}%`} hint={n.format(d.kpi.breached)} tone="danger" icon={<AlarmClock />} />
         <Kpi label={b.kpiChronic} value={n.format(d.kpi.chronic)} tone="warn" icon={<MapPin />} />
       </div>
+
+      <section className="rounded-xl border-2 border-[color:var(--danger)]/35 bg-[linear-gradient(120deg,rgb(220_80_60/0.08),rgb(220_80_60/0)_65%)] p-4">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[color:var(--danger)]/12 text-[color:var(--danger)]">
+            <CircleDollarSign className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-semibold">{fmt(b.stuckTitle, { n: d.stuck.total })}</h2>
+            <p className="text-xs text-muted-foreground text-pretty">{b.stuckSub}</p>
+          </div>
+        </div>
+        {d.stuck.byDir.length ? (
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {d.stuck.byDir.map((x) => (
+              <li key={x.code} className="rounded-lg border bg-card px-3 py-2 text-sm">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-medium">{x.name}</span>
+                  <span className="font-semibold tabular-nums text-[color:var(--danger)]">{x.n}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {fmt(b.stuckRow, { a: x.noFunding, b: x.procurement })} · {x.top.map((p) => `${p.name} (${p.n})`).join(", ")}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">{b.stuckNone}</p>
+        )}
+      </section>
 
       <section className="rounded-xl border bg-card">
         <div className="border-b px-4 py-3">

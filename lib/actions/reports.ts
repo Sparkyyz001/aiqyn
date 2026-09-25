@@ -18,6 +18,7 @@ import { incidentTypeFor } from "@/lib/incidents";
 import { textChecks, photoChecks, worst, type PhotoStats } from "@/lib/report-quality";
 import { analyzePhotoUrl, aiEnabled, type Vision } from "@/lib/ai-vision";
 import { compareBeforeAfter, blocks, type AiCheck } from "@/lib/ai-compare";
+import { DELAY_REASONS, type DelayReason } from "@/lib/delay";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -285,6 +286,28 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
   revalidatePath("/service");
+  return { ok: true, data: null };
+}
+
+/** Служба публично объясняет, почему обращение стоит (null — снять отметку) */
+export async function setDelayReason(reportId: number, reason: DelayReason | null, note?: string): Promise<Result> {
+  const ctx = await loadForStaff(reportId);
+  if ("error" in ctx) return fail(ctx.error!);
+  const { me, r, db } = ctx;
+  if (!["routed", "accepted", "in_progress", "reopened"].includes(r.status)) return fail(await msg("badTransition", { s: r.status }));
+  if (reason && !DELAY_REASONS.includes(reason)) return fail(await msg("forbidden"));
+  if (reason === "other" && !note?.trim()) return fail(await msg("delayNote"));
+  await db
+    .from("reports")
+    .update({ delay_reason: reason, delay_note: reason ? note?.trim() || null : null, delay_at: reason ? new Date().toISOString() : null })
+    .eq("id", r.id);
+  await logEvent({
+    report_id: r.id, actor_id: me.id, type: "delay_reason", comment: note?.trim() || null,
+    meta: { msg: reason ? "delay_set" : "delay_cleared", reason: reason ?? "" },
+  });
+  revalidatePath(`/report/${r.public_no}`);
+  revalidatePath("/service");
+  revalidatePath("/budget");
   return { ok: true, data: null };
 }
 

@@ -4,6 +4,7 @@ import { flowClusters } from "@/lib/flow-clusters";
 import { getReference } from "@/lib/reference";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DISTRICT, nm } from "@/lib/meta";
+import { MONEY_REASONS } from "@/lib/delay";
 
 // «Народный заказ к бюджету»: жалобы жителей, сведённые по направлениям местного бюджета.
 // Службы работают на деньги, которые выделяет акимат, а бюджет утверждает маслихат, —
@@ -105,6 +106,25 @@ export async function buildDemand(lang: "ru" | "kz", now = new Date()) {
   // «Контракты есть — жалобы остались»: и денег, и жалоб больше медианы, есть переоткрытия
   const paid = rows.filter((r) => r.mln > mM && r.n > mN).sort((a, b) => b.re + b.br - (a.re + a.br)).slice(0, 6);
 
+  // застряло из-за денег: открытые обращения, где служба указала «нет финансирования» или «ждём закупку»
+  const OPEN = ["routed", "accepted", "in_progress", "reopened"];
+  const stuck = reports.filter((r) => OPEN.includes(r.status) && r.delay_reason && MONEY_REASONS.includes(r.delay_reason));
+  const stuckByDir = DIRECTIONS.map((d) => {
+    const rs = stuck.filter((r) => (d.cats as readonly string[]).includes(r.category));
+    const byD = new Map<string, number>();
+    for (const r of rs) if (r.district) byD.set(r.district, (byD.get(r.district) ?? 0) + 1);
+    return {
+      code: d.code,
+      name: lang === "kz" ? d.kz : d.ru,
+      n: rs.length,
+      noFunding: rs.filter((r) => r.delay_reason === "no_funding").length,
+      procurement: rs.filter((r) => r.delay_reason === "procurement").length,
+      top: [...byD].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([code, n]) => ({ name: dName(code), n })),
+    };
+  })
+    .filter((x) => x.n > 0)
+    .sort((a, b) => b.n - a.n);
+
   const initiatives = (inits ?? []).map((i) => ({
     id: i.id,
     title: lang === "kz" && i.title_kz ? i.title_kz : i.title,
@@ -128,6 +148,7 @@ export async function buildDemand(lang: "ru" | "kz", now = new Date()) {
       mln: list.reduce((s, c) => s + Number(c.amount_kzt ?? 0), 0) / 1e6,
     },
     directions,
+    stuck: { total: stuck.length, byDir: stuckByDir },
     need,
     paid,
     initiatives,
