@@ -41,3 +41,7 @@
   приложение «Smart Aktau», мессенджеры
   ([lada.kz](https://www.lada.kz/society/society/93427-v-aktau-zarabotal-edinyy-kontakt-centr-109-po-voprosam-zhizneobespecheniya-naseleniya.html)).
   AIQYN их не заменяет, а добавляет к ним публичность, SLA и подтверждение выполнения жителями.
+
+## Иллюстрации лендинга
+
+- `public/landing/pothole*.webp` — фото ямы, Miguel Tremblay, Wikimedia Commons, **общественное достояние (Public domain)**: https://commons.wikimedia.org/wiki/File:Pothole.jpg

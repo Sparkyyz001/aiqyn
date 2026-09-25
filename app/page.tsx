@@ -5,6 +5,8 @@ import { CityMap } from "@/components/map/map";
 import { LiveRefresh } from "@/components/live-refresh";
 import { StatusBadge } from "@/components/status-badge";
 import { LandscapeHero } from "@/components/landing/landscape-hero";
+import { FeaturesBento } from "@/components/landing/features-bento";
+import { buildDemand } from "@/lib/budget-demand";
 import { ScrollWords } from "@/components/landing/scroll-words";
 import { Accent } from "@/components/landing/accent";
 import { SpotlightTracker } from "@/components/landing/spotlight";
@@ -32,7 +34,8 @@ function Kicker({ children }: { children: React.ReactNode }) {
 }
 
 export default async function Home() {
-  const [{ lang, t }, { all, real }] = await Promise.all([getDict(), flow()]);
+  const lang0 = (await getDict()).lang;
+  const [{ lang, t }, { all, real }, demand] = await Promise.all([getDict(), flow(), buildDemand(lang0)]);
   const k = kpis(all);
   const h = t.home;
   const recent = real.slice(0, 5);
@@ -123,6 +126,19 @@ export default async function Home() {
             )}
           </div>
         </section>
+
+        {/* 2в. Что умеет AIQYN — светлая секция с мини-макетами функций на реальных данных */}
+        <FeaturesBento
+          f={h.features}
+          d={{
+            lots: demand.kpi.lots,
+            bn: (demand.kpi.mln / 1000).toFixed(1).replace(".", ","),
+            stuck: demand.stuck.total,
+            need: demand.need[0] ? { d: demand.need[0].name, n: demand.need[0].n, m: String(Math.round(demand.need[0].mln)) } : null,
+            directions: demand.directions.slice(0, 4).map((x) => ({ name: x.name, n: x.n })),
+            initiative: demand.initiatives[0] ? { title: demand.initiatives[0].title, votes: demand.initiatives[0].votes } : null,
+          }}
+        />
 
         {/* 3. Живые цифры */}
         <section className="border-y bg-foreground/[0.03]">

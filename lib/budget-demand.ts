@@ -146,6 +146,8 @@ export async function buildDemand(lang: "ru" | "kz", now = new Date()) {
       people: reports.reduce((s, r) => s + 1 + (r.confirmations ?? 0), 0),
       chronic: chronic.length,
       mln: list.reduce((s, c) => s + Number(c.amount_kzt ?? 0), 0) / 1e6,
+      // лот, поделённый между микрорайонами, — это несколько строк; считаем уникальные лоты
+      lots: new Set(list.map((c) => (c.raw as { lot_no?: string } | null)?.lot_no ?? c.title)).size,
     },
     directions,
     stuck: { total: stuck.length, byDir: stuckByDir },
