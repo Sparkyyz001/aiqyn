@@ -110,14 +110,14 @@ export default async function MoneyPage() {
 
       <h2 className="-mb-3 font-semibold">{m.allTitle}</h2>
       <section className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full text-sm sm:min-w-[640px]">
           <thead className="bg-muted/40 text-left text-xs text-muted-foreground">
             <tr>
-              <th className="px-4 py-2 font-medium">{m.district}</th>
+              <th className="px-3 py-2 font-medium sm:px-4">{m.district}</th>
               <th className="px-2 py-2 text-right font-medium">{m.contracts}</th>
               <th className="px-2 py-2 text-right font-medium">{m.reports}</th>
               <th className="px-2 py-2 text-right font-medium">{m.breached}</th>
-              <th className="px-4 py-2 text-right font-medium">{m.perMln}</th>
+              <th className="hidden px-4 py-2 text-right font-medium sm:table-cell">{m.perMln}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -125,11 +125,14 @@ export default async function MoneyPage() {
               const hot = r.money && r.money.sum / 1e6 > mx && r.total > my;
               return (
                 <tr key={r.key} className={cn("transition-colors hover:bg-accent/40", hot && "bg-[color:var(--warn)]/[0.06]")}>
-                  <td className="px-4 py-2 font-medium">{nm(DISTRICT[r.key], lang)}</td>
-                  <td className="px-2 py-2 text-right tabular-nums">{r.money ? `${mln(r.money.sum)} (${r.money.n})` : "—"}</td>
+                  <td className="px-3 py-2 font-medium sm:px-4">{nm(DISTRICT[r.key], lang)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums">
+                    {r.money ? mln(r.money.sum) : "—"}
+                    {r.money && <span className="hidden text-muted-foreground sm:inline"> ({r.money.n})</span>}
+                  </td>
                   <td className="px-2 py-2 text-right tabular-nums">{r.total}</td>
                   <td className="px-2 py-2 text-right tabular-nums text-[color:var(--danger)]">{r.breached}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{r.money && r.money.sum > 0 ? (r.total / (r.money.sum / 1e6)).toFixed(2) : "—"}</td>
+                  <td className="hidden px-4 py-2 text-right tabular-nums sm:table-cell">{r.money && r.money.sum > 0 ? (r.total / (r.money.sum / 1e6)).toFixed(2) : "—"}</td>
                 </tr>
               );
             })}

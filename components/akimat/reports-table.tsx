@@ -69,7 +69,39 @@ export function ReportsTable({ rows, l, lang }: { rows: TableRow[]; l: L; lang: 
         </label>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* телефон: карточки вместо широкой таблицы — видно статус, срок и риск без прокрутки вбок */}
+      <ul className="divide-y md:hidden">
+        {view.length === 0 && <li className="px-3 py-8 text-center text-sm text-muted-foreground">{l.empty}</li>}
+        {view.map((r) => (
+          <li key={r.no}>
+            <Link href={`/report/${r.no}`} className="block px-3 py-3 active:bg-accent">
+              <div className="flex items-start justify-between gap-3">
+                <span className="line-clamp-2 text-[15px] leading-snug font-medium">{r.title}</span>
+                <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold tabular-nums" title={l.cols.priority}>
+                  {Math.round(r.priority)}
+                </span>
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                <span className="font-mono">{r.no}</span> · {r.cat} · {r.district}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                <StatusBadge status={r.status} label={r.statusLabel} />
+                <span className="text-muted-foreground">{r.service}</span>
+                <span className={cn("tabular-nums", r.breached ? "font-semibold text-[color:var(--danger)]" : "text-muted-foreground")}>
+                  {l.cols.due}: {r.due ? d(r.due) : "—"}
+                </span>
+                {r.risk != null && (
+                  <span className={cn("ml-auto tabular-nums", r.risk >= 0.5 ? "font-semibold text-[color:var(--danger)]" : r.risk >= 0.3 ? "text-[color:var(--warn)]" : "text-muted-foreground")}>
+                    {l.cols.risk} {Math.round(r.risk * 100)}%
+                  </span>
+                )}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-muted/40 text-xs text-muted-foreground">
             <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:text-left [&>th]:font-medium">

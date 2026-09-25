@@ -90,13 +90,22 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
         <Kpi label={s.kpiMedian} value={q?.medianDays ?? "—"} tone="ok" icon={<Timer />} />
       </div>
 
-      {/* Доска: колонки по этапам, внутри — по приоритету */}
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 lg:mx-0 lg:px-0">
-        <div className="grid min-w-[980px] grid-cols-4 gap-3">
+      {/* Доска: колонки по этапам, внутри — по приоритету.
+          Телефон: колонка почти на всю ширину, листаются свайпом с «прилипанием»; сверху — переход к колонке */}
+      <nav className="-mx-4 flex gap-1.5 overflow-x-auto px-4 lg:hidden">
+        {COLUMNS.map((c) => (
+          <a key={c.key} href={`#col-${c.key}`} className="flex shrink-0 items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-sm font-medium active:bg-accent">
+            {s.board[c.key]}
+            <span className="rounded-full bg-muted px-1.5 text-xs tabular-nums">{open.filter((r) => (c.statuses as readonly string[]).includes(r.status)).length}</span>
+          </a>
+        ))}
+      </nav>
+      <div className="-mx-4 snap-x snap-mandatory overflow-x-auto scroll-smooth px-4 pb-2 [scrollbar-width:none] lg:mx-0 lg:overflow-visible lg:px-0">
+        <div className="flex gap-3 lg:grid lg:grid-cols-4">
           {COLUMNS.map((c) => {
             const list = open.filter((r) => (c.statuses as readonly string[]).includes(r.status)).sort((a, b) => b.priority - a.priority);
             return (
-              <section key={c.key} className={cn("flex flex-col rounded-xl border border-t-4 bg-muted/30", c.tone)}>
+              <section key={c.key} id={`col-${c.key}`} className={cn("flex w-[86vw] max-w-sm shrink-0 snap-start scroll-ml-4 flex-col rounded-xl border border-t-4 bg-muted/30 lg:w-auto lg:max-w-none", c.tone)}>
                 <h2 className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold">
                   {s.board[c.key]}
                   <span className="rounded-full bg-background px-2 text-xs tabular-nums">{list.length}</span>

@@ -11,11 +11,10 @@ import { CATEGORY, DISTRICT, SERVICE, nm } from "@/lib/meta";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Kpi } from "@/components/kpi";
 import { LiveRefresh } from "@/components/live-refresh";
-import { StatusBadge } from "@/components/status-badge";
 import { IncidentForm } from "./incident-form";
 import { ActiveIncidents } from "./active-incidents";
 import { CallForm } from "./call-form";
-import { cn } from "@/lib/utils";
+import { OperatorFeed, type FeedItem } from "./feed";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -24,12 +23,6 @@ export async function generateMetadata() {
 
 const DAY = 86_400_000;
 const OPEN = ["routed", "accepted", "in_progress", "reopened"];
-const CH_TONE: Record<string, string> = {
-  app: "bg-primary/12 text-primary",
-  call109: "bg-[color:var(--warn)]/15 text-[color:var(--warn)]",
-  instagram: "bg-[#c13584]/12 text-[#c13584]",
-  operator: "bg-muted text-muted-foreground",
-};
 
 // Пульт оператора 109: входящий поток всех каналов, звонок/пост за минуту (без фото),
 // подозрения на дубли и аварии — то, что по ТЗ делает оператор-модератор.
@@ -42,7 +35,20 @@ export default async function OperatorPage() {
 
   const now = new Date().getTime();
   const day = all.filter((r) => now - new Date(r.created_at).getTime() < DAY);
-  const feed = [...all].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)).slice(0, 18);
+  const feed: FeedItem[] = [...all]
+    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+    .slice(0, 200)
+    .map((r) => ({
+      no: r.public_no,
+      title: titleOf(r, lang),
+      meta: [nm(CATEGORY[r.category], lang), r.district && DISTRICT[r.district] ? nm(DISTRICT[r.district], lang) : null, SERVICE[r.service]?.short].filter(Boolean).join(" · "),
+      source: r.source,
+      status: r.status,
+      statusLabel: t.status[r.status as keyof typeof t.status] ?? r.status,
+      created: r.created_at,
+      breached: r.sla_breached && !["resolved", "rejected"].includes(r.status),
+      due: r.sla_due_at,
+    }));
 
   // дубли: открытые обращения одной категории ближе 120 м, поданные в пределах 30 дней
   const open = all.filter((r) => OPEN.includes(r.status));
@@ -58,11 +64,6 @@ export default async function OperatorPage() {
     }
   dups.sort((x, y) => x.d - y.d);
 
-  const ago = (iso: string) => {
-    const m = Math.round((now - new Date(iso).getTime()) / 60000);
-    const rtf = new Intl.RelativeTimeFormat(lang === "kz" ? "kk" : "ru", { numeric: "auto" });
-    return m < 60 ? rtf.format(-m, "minute") : m < 1440 ? rtf.format(-Math.round(m / 60), "hour") : rtf.format(-Math.round(m / 1440), "day");
-  };
   const n = new Intl.NumberFormat("ru-RU");
 
   return (
@@ -81,43 +82,37 @@ export default async function OperatorPage() {
         <Kpi label={o.kpiIncidents} value={n.format(incidents?.length ?? 0)} tone={incidents?.length ? "danger" : undefined} icon={<Siren />} />
       </div>
 
+      {/* на телефоне — переходы между частями пульта, чтобы не теряться в длинной странице */}
+      <nav className="sticky top-14 z-20 -mx-4 flex gap-1.5 overflow-x-auto border-b bg-background/95 px-4 py-2 backdrop-blur md:hidden">
+        {[["#feed", o.ff.jump[0]], ["#call", o.ff.jump[1]], ["#dups", o.ff.jump[2]]].map(([href, label]) => (
+          <a key={href} href={href} className="shrink-0 rounded-full border bg-card px-3.5 py-1.5 text-sm font-medium active:bg-accent">
+            {label}
+          </a>
+        ))}
+      </nav>
+
       <div className="grid gap-5 xl:grid-cols-[1fr_440px]">
         {/* Входящий поток */}
-        <section className="overflow-hidden rounded-xl border bg-card">
+        <section id="feed" className="scroll-mt-28 overflow-hidden rounded-xl border bg-card">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div>
               <h2 className="font-semibold">{o.feed}</h2>
               <p className="text-xs text-muted-foreground">{o.feedSub}</p>
             </div>
             <span className="relative flex size-2.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-[color:var(--ok)] opacity-60 motion-reduce:animate-none" />
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-[color:var(--ok)] opacity-60" />
               <span className="relative inline-flex size-2.5 rounded-full bg-[color:var(--ok)]" />
             </span>
           </div>
-          <ul className="divide-y">
-            {feed.map((r) => (
-              <li key={r.id}>
-                <Link href={`/report/${r.public_no}`} className="flex items-start gap-3 px-4 py-2.5 transition-colors hover:bg-accent/50">
-                  <span className={cn("mt-0.5 shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold", CH_TONE[r.source] ?? CH_TONE.app)}>{o.ch[r.source as keyof typeof o.ch] ?? r.source}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="line-clamp-1 text-sm font-medium">{titleOf(r, lang)}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {nm(CATEGORY[r.category], lang)}
-                      {r.district && DISTRICT[r.district] ? ` · ${nm(DISTRICT[r.district], lang)}` : ""} · {SERVICE[r.service]?.short}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 flex-col items-end gap-1">
-                    <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status] ?? r.status} />
-                    <span className="text-[11px] text-muted-foreground">{ago(r.created_at)}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <OperatorFeed
+            items={feed}
+            lang={lang}
+            l={{ ch: o.ch as Record<string, string>, all: o.ff.all, fNew: o.ff.fNew, fWork: o.ff.fWork, fLate: o.ff.fLate, today: o.ff.today, yesterday: o.ff.yesterday, earlier: o.ff.earlier, more: o.ff.more, empty: o.ff.empty, late: o.ff.late, due: o.ff.due }}
+          />
         </section>
 
         {/* Звонок / пост / авария */}
-        <section className="rounded-xl border bg-card p-4">
+        <section id="call" className="scroll-mt-28 rounded-xl border bg-card p-4 xl:sticky xl:top-20 xl:self-start">
           <Tabs defaultValue="call">
             <TabsList className="mb-4">
               <TabsTrigger value="call">
@@ -139,7 +134,7 @@ export default async function OperatorPage() {
       </div>
 
       {/* Подозрения на дубли */}
-      <section className="overflow-hidden rounded-xl border bg-card">
+      <section id="dups" className="scroll-mt-28 overflow-hidden rounded-xl border bg-card">
         <div className="border-b px-4 py-3">
           <h2 className="font-semibold">{o.dups}</h2>
           <p className="text-xs text-muted-foreground">{o.dupsSub}</p>
