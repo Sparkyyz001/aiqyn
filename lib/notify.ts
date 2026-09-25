@@ -117,5 +117,14 @@ export async function notifyEvent(e: Ev) {
     push(await staff(), "escalated", "danger", [fmt(RU.escalatedTitle, { no }), RU.escalatedBody], [fmt(KZ.escalatedTitle, { no }), KZ.escalatedBody]);
   }
 
-  if (rows.length) await db.from("notifications").insert(rows);
+  if (rows.length) {
+    await db.from("notifications").insert(rows);
+    // тот же текст — push на телефон (если пользователь включил уведомления)
+    try {
+      const { sendPush } = await import("@/lib/push");
+      await sendPush(rows);
+    } catch (err) {
+      console.error("push", err);
+    }
+  }
 }

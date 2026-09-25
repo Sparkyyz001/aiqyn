@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { AlarmClock, CheckCheck, Inbox, RotateCcw, ShieldAlert, Timer, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
@@ -68,6 +69,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
   return (
     <div className="flex w-full flex-col gap-5 px-4 py-6 lg:px-6">
       <LiveRefresh filter={`service_id=eq.${svc.id}`} toastText={s.updated} />
+      <PushToggle l={t.notify.push} variant="banner" />
       <div>
         <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">{s.title}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">{nm(svc, lang)}</h1>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { requireRole } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -33,6 +34,9 @@ export default async function NotificationsPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">{t.notify.title}</h1>
         {unread.length > 0 && <MarkAllRead ids={unread} label={t.notify.markAll} />}
+      </div>
+      <div className="mt-4">
+        <PushToggle l={t.notify.push} />
       </div>
       <ul className="mt-5 overflow-hidden rounded-xl border">
         {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{t.notify.empty}</li>}

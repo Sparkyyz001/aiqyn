@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { Plus } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
@@ -64,6 +65,9 @@ export default async function MePage() {
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
       {/* Уведомление автору мгновенно, когда служба меняет статус (Realtime) */}
       <LiveRefresh filter={`author_id=eq.${me.id}`} toastText={t.card.statusChanged} />
+      <div className="mb-4">
+        <PushToggle l={t.notify.push} variant="banner" />
+      </div>
       {/* Приветствие и мои цифры */}
       <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#053e42,#075458_55%,#0b6b63)] p-5 text-[#f6f1dd] shadow-[0_24px_50px_-30px_rgb(5_62_66/0.8)] md:p-7">
         <div className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-[#76cf6a]/15 blur-2xl" aria-hidden />
