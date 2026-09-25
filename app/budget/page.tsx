@@ -198,7 +198,7 @@ export default async function BudgetPage() {
         </div>
       </section>
 
-      <p className="text-xs text-muted-foreground">{b.modelNote}</p>
+      <p className="text-xs text-muted-foreground text-pretty">{d.modelMoney ? b.modelNote : b.realNote}</p>
     </div>
   );
 }

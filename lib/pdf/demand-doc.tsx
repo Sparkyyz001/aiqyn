@@ -287,9 +287,7 @@ export function DemandDoc({
           </Text>
         ))}
         <Text style={[s.note, { marginTop: 4 }]}>{t.docHow}</Text>
-        {d.modelMoney && (
-          <Text style={[s.note, { marginTop: 4 }]}>{t.modelNote}</Text>
-        )}
+        <Text style={[s.note, { marginTop: 4 }]}>{d.modelMoney ? t.modelNote : t.realNote}</Text>
         {foot}
       </Page>
     </Document>

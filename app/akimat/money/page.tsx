@@ -63,7 +63,7 @@ export default async function MoneyPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{m.title}</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">{m.intro}</p>
-        {modelled && <p className="mt-2 max-w-3xl text-xs text-muted-foreground">{m.modelNote}</p>}
+        <p className="mt-2 max-w-3xl text-xs text-muted-foreground text-pretty">{modelled ? m.modelNote : m.realNote}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

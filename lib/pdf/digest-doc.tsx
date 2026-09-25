@@ -191,7 +191,7 @@ export function DigestDoc({ d, t, lang }: { d: Digest; t: Dict["digest"]; lang: 
             )}
           </View>
         ))}
-        {d.modelMoney && <Text style={[s.note, { marginTop: 2 }]}>{t.moneyModel}</Text>}
+        <Text style={[s.note, { marginTop: 2 }]}>{d.modelMoney ? t.moneyModel : t.moneyReal}</Text>
 
         <Text style={s.h2}>{t.secList}</Text>
         {d.breachedList.length === 0 && <Text style={s.note}>{t.none}</Text>}
