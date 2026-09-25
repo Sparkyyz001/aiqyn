@@ -117,6 +117,10 @@ export type CreateInput = {
 export type Created = { public_no: string; sla_due_at: string; service: { name_ru: string; name_kz: string }; district: { name_ru: string; name_kz: string } | null; incident: string | null };
 
 export async function createReport(input: CreateInput): Promise<Result<Created>> {
+  {
+    const who = await getProfile();
+    if (who && !["citizen", "operator"].includes(who.role)) return fail(await msg("forbidden"));
+  }
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
   const title = input.title?.trim();

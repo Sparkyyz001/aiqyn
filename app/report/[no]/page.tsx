@@ -55,7 +55,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
     const demo = all.find((x) => x.public_no === no);
     if (!demo) notFound();
     const honest = honestForecast(demo, honestContext(all));
-    return <DemoCard r={demo} lang={lang} t={t} honest={honest} budget={{ existing: init?.id ?? null, loggedIn: !!me }} />;
+    return <DemoCard r={demo} lang={lang} t={t} honest={honest} budget={!me || me.role === "citizen" ? { existing: init?.id ?? null, loggedIn: !!me } : undefined} />;
   }
   const db = createAdminClient();
   const { data: head } = await db.from("reports").select("id, status").eq("public_no", no).maybeSingle();
@@ -211,7 +211,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
       )}
 
       <div className="mt-4">
-        <ShareButton no={no} lang={lang} t={t.share} extra={!closed ? <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} /> : null} />
+        <ShareButton no={no} lang={lang} t={t.share} extra={!closed && (!me || me.role === "citizen") ? <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} /> : null} />
       </div>
 
       {/* Телефон: главное — сколько осталось по закону и сколько людей видят проблему — сразу под заголовком */}

@@ -36,6 +36,7 @@ async function akimatUsers() {
 export async function proposeInitiative(input: { title: string; description?: string; district: string | null; kind: string }): Promise<Result<{ id: number }>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
+  if (me.role !== "citizen") return fail(await msg("forbidden"));
   const title = input.title?.trim();
   if (!title || title.length < 5) return fail(await msg("shortTitle"));
   const q = textChecks(title, input.description ?? "");
@@ -61,6 +62,8 @@ export async function proposeInitiative(input: { title: string; description?: st
 export async function voteInitiative(id: number): Promise<Result<{ votes: number; status: string }>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
+  // голос — только у жителей: сотрудники решают, а не поддерживают
+  if (me.role !== "citizen") return fail(await msg("forbidden"));
   const db = createAdminClient();
   const { data: it } = await db.from("initiatives").select("id, title, status, author_id").eq("id", id).single();
   if (!it) return fail(await msg("notFound"));
@@ -113,6 +116,7 @@ const KIND_BY_CAT: Record<string, (typeof KINDS)[number]> = { yard: "yard", ligh
 export async function initiativeFromReport(no: string): Promise<Result<{ id: number; created: boolean }>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
+  if (me.role !== "citizen") return fail(await msg("forbidden"));
   const db = createAdminClient();
   const { data: exists } = await db.from("initiatives").select("id").eq("report_no", no).maybeSingle();
   if (exists) return { ok: true, data: { id: exists.id, created: false } };

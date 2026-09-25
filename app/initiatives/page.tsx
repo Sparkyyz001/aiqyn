@@ -53,15 +53,20 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
           <p className="mt-1 text-sm text-muted-foreground text-pretty">{tt.sub}</p>
           <p className="mt-2 text-xs font-medium text-primary">{fmt(tt.threshold, { n: INITIATIVE_THRESHOLD })}</p>
           <p className="mt-1 text-xs text-muted-foreground text-pretty">
-            {tt.bnuNote}{" "}
-            <Link href="/budget" className="text-primary hover:underline">
-              {t.budget.title} →
-            </Link>
+            {tt.bnuNote}
+            {staff && (
+              <>
+                {" "}
+                <Link href="/budget" className="text-primary hover:underline">
+                  {t.budget.title} →
+                </Link>
+              </>
+            )}
           </p>
         </div>
-        {me ? (
+        {me?.role === "citizen" ? (
           <ProposeForm t={tt} districts={districts} />
-        ) : (
+        ) : me ? null : (
           <Link href="/login?next=/initiatives" className="text-sm text-primary hover:underline">
             {tt.loginToVote}
           </Link>
@@ -100,7 +105,7 @@ export default async function InitiativesPage({ searchParams }: PageProps<"/init
               {(i.description || i.description_kz) && <p className="mt-1 text-sm text-muted-foreground text-pretty">{lang === "kz" && i.description_kz ? i.description_kz : i.description}</p>}
 
               <div className="mt-4">
-                <VoteBlock id={i.id} votes={i.votes_count} voted={voted.has(i.id)} canVote={i.status === "voting" || i.status === "review"} loggedIn={!!me} threshold={INITIATIVE_THRESHOLD} t={tt} />
+                <VoteBlock id={i.id} votes={i.votes_count} voted={voted.has(i.id)} canVote={i.status === "voting" || i.status === "review"} readOnly={staff} loggedIn={!!me} threshold={INITIATIVE_THRESHOLD} t={tt} />
               </div>
 
               {(i.akimat_reply || i.budget_kzt) && (

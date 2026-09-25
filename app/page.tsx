@@ -39,8 +39,9 @@ import { CATEGORY, DISTRICT, nm } from "@/lib/meta";
 
 const STEP_ICONS = [Camera, Scale, ShieldCheck, Users];
 const ROLE_ICONS = [UserRound, Wrench, Landmark];
-// Каждой роли — свой фрагмент пейзажа первого экрана
-const ROLE_ART = ["8% 88%", "48% 30%", "96% 62%"];
+// Настоящие фото для ролей (Wikimedia Commons, авторы и лицензии — в data/SOURCES.md и под секцией):
+// жилой дом в микрорайоне Актау, дорожная бригада, панорама города
+const ROLE_PHOTO = ["/landing/role-citizens.webp", "/landing/role-services.webp", "/landing/role-akimat.webp"];
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
@@ -352,17 +353,13 @@ export default async function Home() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <div className="absolute inset-0 -z-10 overflow-hidden">
                       <img
-                        src="/hero/landscape.webp"
+                        src={ROLE_PHOTO[i]}
                         alt=""
                         loading="lazy"
-                        className="size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] [filter:hue-rotate(318deg)_saturate(0.72)_brightness(1.1)_contrast(0.9)] scale-[1.6] group-hover:scale-[1.68]"
-                        style={{
-                          objectPosition: ROLE_ART[i],
-                          transformOrigin: ROLE_ART[i],
-                        }}
+                        className="size-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
                       />
                     </div>
-                    <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#053e42] via-[#053e42]/80 to-[#053e42]/10" />
+                    <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#053e42] via-[#053e42]/55 to-[#053e42]/0" />
                     <span className="absolute top-5 right-5 grid size-10 place-items-center rounded-full bg-lt-cream/90 text-lt-teal transition-transform duration-500 group-hover:rotate-45">
                       <ArrowUpRight className="size-4" />
                     </span>
@@ -380,6 +377,9 @@ export default async function Home() {
               );
             })}
           </div>
+          <p className="mt-4 text-[11px] text-muted-foreground">
+            Фото: IvarT (CC0), Grand Canyon National Park (CC BY 2.0), Vita86 (CC BY-SA 3.0) — Wikimedia Commons
+          </p>
         </section>
 
         {/* 7. Живая карта и новые обращения */}

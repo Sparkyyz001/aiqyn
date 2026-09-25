@@ -91,7 +91,7 @@ export function DigestViewer({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="hidden md:inline-flex">
             <a href={`${src}&view=1`} target="_blank" rel="noopener noreferrer">
               <ExternalLink /> {t.open}
             </a>
@@ -107,9 +107,8 @@ export function DigestViewer({
       {/* «лист бумаги» с документом */}
       {/* на телефоне PDF во фрейме не показывается — даём открыть документ целиком */}
       <a
-        href={`${src}&view=1`}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={src}
+        download
         className="flex items-center gap-4 rounded-2xl border bg-card p-5 md:hidden"
       >
         <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">

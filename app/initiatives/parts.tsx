@@ -15,7 +15,8 @@ import type { Dict } from "@/lib/i18n/dict";
 
 type T = Dict["initiatives"];
 
-export function VoteBlock({ id, votes, voted, canVote, loggedIn, threshold, t }: { id: number; votes: number; voted: boolean; canVote: boolean; loggedIn: boolean; threshold: number; t: T }) {
+// readOnly: сотрудники видят счётчик и прогресс, но не голосуют (голос — только у жителей)
+export function VoteBlock({ id, votes, voted, canVote, readOnly = false, loggedIn, threshold, t }: { id: number; votes: number; voted: boolean; canVote: boolean; readOnly?: boolean; loggedIn: boolean; threshold: number; t: T }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [done, setDone] = useState(voted);
@@ -50,6 +51,7 @@ export function VoteBlock({ id, votes, voted, canVote, loggedIn, threshold, t }:
         )}
       </div>
       {canVote &&
+        !readOnly &&
         (loggedIn ? (
           <Button variant={done ? "outline" : "default"} disabled={done || pending} onClick={vote} className="transition-transform duration-300 active:scale-95">
             {pending ? <Loader2 className="animate-spin" /> : done ? <Check /> : <ThumbsUp />} {done ? t.voted : t.vote}

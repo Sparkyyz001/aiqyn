@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,5 +26,9 @@ export default async function NewReportPage() {
       </div>
     );
   }
+  // обращения подают жители; оператор 109 заводит звонки в своём пульте, акимат и службы — работают с ними
+  if (me.role === "operator") redirect("/operator");
+  if (me.role === "akimat") redirect("/akimat");
+  if (me.role === "service") redirect("/service");
   return <ReportForm userId={me.id} lang={lang} t={{ report: t.report, common: t.common, card: t.card, status: t.status, operator: t.operator, routing: t.routing, quality: t.quality, share: t.share }} />;
 }

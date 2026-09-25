@@ -33,7 +33,7 @@ export default async function BudgetPage() {
           <p className="mt-2 text-sm text-muted-foreground text-pretty">{b.sub}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="hidden md:inline-flex">
             <a href={`/api/documents/budget-demand?lang=${lang}&view=1`} target="_blank" rel="noopener noreferrer">
               <ArrowUpRight /> PDF
             </a>

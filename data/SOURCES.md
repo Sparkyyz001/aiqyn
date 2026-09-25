@@ -45,3 +45,7 @@
 ## Иллюстрации лендинга
 
 - `public/landing/pothole*.webp` — фото ямы, Miguel Tremblay, Wikimedia Commons, **общественное достояние (Public domain)**: https://commons.wikimedia.org/wiki/File:Pothole.jpg
+
+- `public/landing/role-citizens.webp` — «Residential apartment block in Aktau, Kazakhstan, illustrating the city’s unique address system.jpg», автор: IvarT, лицензия **CC0**, Wikimedia Commons: https://commons.wikimedia.org/wiki/File%3AResidential_apartment_block_in_Aktau%2C_Kazakhstan%2C_illustrating_the_city%E2%80%99s_unique_address_system.jpg
+- `public/landing/role-services.webp` — «Tusayan Greenway Paving Aug 10 - Sept 10, 2016 0558 (28389055513).jpg», автор: Grand Canyon National Park, лицензия **CC BY 2.0**, Wikimedia Commons: https://commons.wikimedia.org/wiki/File%3ATusayan_Greenway_Paving_Aug_10_-_Sept_10%2C_2016_0558_%2828389055513%29.jpg
+- `public/landing/role-akimat.webp` — «Aktau panorama at day.jpg», автор: Vita86, лицензия **CC BY-SA 3.0**, Wikimedia Commons: https://commons.wikimedia.org/wiki/File%3AAktau_panorama_at_day.jpg

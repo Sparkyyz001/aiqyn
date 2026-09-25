@@ -7,10 +7,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AppSidebar } from "./app-sidebar";
 import { ShellSwitch } from "./shell-switch";
 import { NotificationBell } from "@/components/notifications/bell";
+import { BottomNav } from "./bottom-nav";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const [{ lang, t }, profile] = await Promise.all([getDict(), getProfile()]);
   const a = t.akimat.nav;
+  const unread = profile
+    ? (await createAdminClient().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", profile.id).is("read_at", null)).count ?? 0
+    : 0;
 
   const titles: [string, string][] = [
     ["/map", t.nav.map],
@@ -41,6 +46,26 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       header={<SiteHeader />}
       footer={<SiteFooter />}
       titles={titles}
+      bottom={
+        <BottomNav
+          role={profile?.role ?? null}
+          unread={unread}
+          l={{
+            map: t.nav.map,
+            me: t.shell.tabs.me,
+            report: t.shell.tabs.report,
+            notifications: t.shell.tabs.notifications,
+            menu: t.nav.menu,
+            login: t.nav.login,
+            initiatives: t.initiatives.nav,
+            service: t.shell.tabs.service,
+            operator: t.shell.tabs.operator,
+            overview: t.shell.tabs.overview,
+            risk: t.shell.tabs.risk,
+            digest: t.shell.tabs.digest,
+          }}
+        />
+      }
       tools={
         <>
           {profile && <NotificationBell userId={profile.id} lang={lang} t={t.notify} />}

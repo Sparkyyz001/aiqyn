@@ -76,7 +76,6 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
     { title: l.nav.map, url: "/map", icon: MapIcon },
     { title: l.nav.incidents, url: "/incidents", icon: Siren },
     { title: l.initiatives, url: "/initiatives", icon: Lightbulb },
-    { title: l.budget, url: "/budget", icon: Landmark },
     { title: l.districts, url: "/district", icon: MapPinned },
     { title: l.services, url: "/services", icon: BookUser },
   ];
@@ -99,6 +98,7 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
           { title: l.akimatNav.overview, url: "/akimat", icon: LayoutDashboard },
           { title: l.akimatNav.risk, url: "/akimat/risk", icon: ShieldAlert },
           { title: l.digest, url: "/akimat/digest", icon: FileText },
+          { title: l.budget, url: "/budget", icon: Landmark },
           { title: l.akimatNav.pain, url: "/akimat/pain", icon: Flame },
           { title: l.akimatNav.clusters, url: "/akimat/clusters", icon: Building2 },
           { title: l.akimatNav.quality, url: "/akimat/quality", icon: BarChart3 },
@@ -107,6 +107,8 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
           { title: l.akimatNav.air, url: "/akimat/air", icon: Wind },
         ]
       : [];
+
+  const primary: Item = { title: l.report, url: "/report/new", icon: Plus };
 
   const isActive = (url: string) => (url === "/akimat" ? pathname === "/akimat" : pathname === url || pathname.startsWith(url + "/"));
 
@@ -153,25 +155,28 @@ export function AppSidebar({ user, l }: { user: { name: string; role: Role } | n
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Главное действие — всегда первым */}
+        {/* Главное действие — «Сообщить о проблеме», только у жителя (и гостя): сотрудники не подают
+            обращения, их разделы — ниже в меню */}
+        {(!user || user.role === "citizen") && (
         <SidebarGroup className="pb-0">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={l.report}
+                  tooltip={primary.title}
                   className="btn-shine h-10 bg-sidebar-primary font-semibold text-sidebar-primary-foreground transition-transform duration-300 hover:-translate-y-0.5 hover:bg-sidebar-primary hover:text-sidebar-primary-foreground active:bg-sidebar-primary active:text-sidebar-primary-foreground"
                 >
-                  <Link href="/report/new" onClick={() => setOpenMobile(false)}>
-                    <Plus />
-                    <span>{l.report}</span>
+                  <Link href={primary.url} onClick={() => setOpenMobile(false)}>
+                    <primary.icon />
+                    <span>{primary.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        )}
 
         <SidebarGroup className="py-1">
           <SidebarGroupLabel>{l.city}</SidebarGroupLabel>

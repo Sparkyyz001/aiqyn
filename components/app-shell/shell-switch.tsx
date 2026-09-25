@@ -14,6 +14,7 @@ export function ShellSwitch({
   sidebar,
   tools,
   titles,
+  bottom,
   children,
 }: {
   header: React.ReactNode;
@@ -21,6 +22,7 @@ export function ShellSwitch({
   sidebar: React.ReactNode;
   tools: React.ReactNode;
   titles: [string, string][];
+  bottom?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const path = usePathname();
@@ -48,8 +50,10 @@ export function ShellSwitch({
           <h1 className="truncate text-sm font-medium md:text-base">{title}</h1>
           <div className="ml-auto flex items-center gap-1">{tools}</div>
         </header>
-        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        {/* снизу место под панель вкладок на телефоне */}
+        <main className="flex min-w-0 flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </SidebarInset>
+      {bottom}
     </SidebarProvider>
   );
 }
