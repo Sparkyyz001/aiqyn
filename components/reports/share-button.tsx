@@ -8,7 +8,7 @@ import type { Dict } from "@/lib/i18n/dict";
 
 // Поделиться обращением: на телефоне — системное меню с картинкой-постером (Instagram, WhatsApp,
 // Telegram), где это не поддерживается — скачать картинку и скопировать ссылку.
-export function ShareButton({ no, lang, t }: { no: string; lang: "ru" | "kz"; t: Dict["share"] }) {
+export function ShareButton({no, lang, t, extra }: {no: string; lang: "ru" | "kz"; t: Dict["share"]; extra?: React.ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [fallback, setFallback] = useState(false);
   const img = `/api/og/report/${no}?lang=${lang}`;
@@ -61,6 +61,7 @@ export function ShareButton({ no, lang, t }: { no: string; lang: "ru" | "kz"; t:
             </Button>
           </>
         )}
+        {extra}
       </div>
       <p className="text-xs text-muted-foreground">{t.hint}</p>
     </div>

@@ -23,6 +23,8 @@ import { PainContribution } from "@/components/reports/pain-contribution";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
 import { BudgetButton } from "@/components/reports/budget-button";
+import { StatusStepper } from "@/components/reports/status-stepper";
+import { EventIcon } from "@/components/reports/event-icon";
 import { MONEY_REASONS } from "@/lib/delay";
 import { honestContext, honestForecast } from "@/lib/honest-deadline";
 import { flow } from "@/lib/data";
@@ -180,7 +182,11 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
       )}
 
-      {honest && (
+      <div className="mt-5 rounded-2xl border bg-card px-2 py-4 sm:px-4">
+        <StatusStepper status={r.status} reopenCount={r.reopen_count} dates={[r.created_at, r.created_at, r.accepted_at, null, r.resolved_at]} l={t.card.steps} />
+      </div>
+
+      {honest && r.status !== "awaiting_confirmation" && (
         <div className="mt-4">
           <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />
         </div>
@@ -204,9 +210,8 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-start gap-2">
-        <ShareButton no={no} lang={lang} t={t.share} />
-        {!closed && <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} />}
+      <div className="mt-4">
+        <ShareButton no={no} lang={lang} t={t.share} extra={!closed ? <BudgetButton no={no} existing={budgetInit?.id ?? null} loggedIn={!!me} t={t.initiatives} /> : null} />
       </div>
 
       {/* Телефон: главное — сколько осталось по закону и сколько людей видят проблему — сразу под заголовком */}
@@ -319,10 +324,10 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
 
           <section>
             <h2 className="mb-2 font-medium">{t.card.timeline}</h2>
-            <ol className="relative ml-2 border-l pl-5">
+            <ol className="relative ml-3.5 border-l pl-6">
               {(events ?? []).map((e) => (
-                <li key={e.id} className="mb-4 last:mb-0">
-                  <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-primary" />
+                <li key={e.id} className="relative mb-5 last:mb-0">
+                  <EventIcon type={e.type} to={e.to_status} />
                   <div className="text-xs text-muted-foreground tabular-nums">
                     {fmt(e.created_at)} · {actorName(e.actor_id)}
                   </div>

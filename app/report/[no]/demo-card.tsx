@@ -4,6 +4,8 @@ import { MONEY_REASONS } from "@/lib/delay";
 import { HonestDeadline } from "@/components/reports/honest-deadline";
 import { ShareButton } from "@/components/reports/share-button";
 import { BudgetButton } from "@/components/reports/budget-button";
+import { StatusStepper } from "@/components/reports/status-stepper";
+import { EventIcon } from "@/components/reports/event-icon";
 import type { HonestForecast } from "@/lib/honest-deadline";
 import { SlaTimer } from "@/components/reports/sla-timer";
 import { StatusBadge } from "@/components/status-badge";
@@ -27,18 +29,18 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
   const closed = r.status === "resolved" || r.status === "rejected";
 
   // Хронология восстанавливается из дат записи
-  const events: { at: string; text: string; tone?: "ok" | "danger" }[] = [
-    { at: r.created_at, text: o.tlCreated },
-    { at: plus(r.created_at, 2), text: fmt(o.tlRouted, { s: nm(svc, lang) }) },
+  const events: { at: string; text: string; type: string; tone?: "ok" | "danger" }[] = [
+    { at: r.created_at, text: o.tlCreated, type: "created" },
+    { at: plus(r.created_at, 2), text: fmt(o.tlRouted, { s: nm(svc, lang) }), type: "routed" },
   ];
-  if (r.accepted_at) events.push({ at: r.accepted_at, text: o.tlAccepted });
+  if (r.accepted_at) events.push({ at: r.accepted_at, text: o.tlAccepted, type: "accepted" });
   if (r.reopen_count > 0 && r.accepted_at) {
     const mid = new Date((new Date(r.accepted_at).getTime() + new Date(r.resolved_at ?? Date.now()).getTime()) / 2).toISOString();
-    events.push({ at: mid, text: o.tlDone }, { at: plus(mid, 60 * 20), text: o.tlReopened, tone: "danger" });
+    events.push({ at: mid, text: o.tlDone, type: "awaiting_confirmation" }, { at: plus(mid, 60 * 20), text: o.tlReopened, tone: "danger", type: "reopened" });
   }
-  if (r.status === "awaiting_confirmation" && r.accepted_at) events.push({ at: plus(r.accepted_at, 60 * 24 * 3), text: o.tlDone });
-  if (r.status === "resolved" && r.resolved_at) events.push({ at: plus(r.resolved_at, -60 * 30), text: o.tlDone }, { at: r.resolved_at, text: o.tlConfirmed, tone: "ok" });
-  if (r.status === "rejected") events.push({ at: plus(r.created_at, 60 * 24), text: o.tlRejected });
+  if (r.status === "awaiting_confirmation" && r.accepted_at) events.push({ at: plus(r.accepted_at, 60 * 24 * 3), text: o.tlDone, type: "awaiting_confirmation" });
+  if (r.status === "resolved" && r.resolved_at) events.push({ at: plus(r.resolved_at, -60 * 30), text: o.tlDone, type: "awaiting_confirmation" }, { at: r.resolved_at, text: o.tlConfirmed, tone: "ok", type: "resolved" });
+  if (r.status === "rejected") events.push({ at: plus(r.created_at, 60 * 24), text: o.tlRejected, type: "rejected", tone: "danger" });
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -65,7 +67,10 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
         <div className="flex min-w-0 flex-col gap-6">
           <p className="text-pretty">{description}</p>
 
-          {!closed && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
+          <div className="rounded-2xl border bg-card px-2 py-4 sm:px-4">
+            <StatusStepper status={r.status} reopenCount={r.reopen_count} dates={[r.created_at, r.created_at, r.accepted_at, null, r.resolved_at]} l={t.card.steps} />
+          </div>
+          {!closed && r.status !== "awaiting_confirmation" && <HonestDeadline f={honest} dueAt={r.sla_due_at} t={t.honest} lang={lang} />}
           {!closed && r.delay_reason && (
             <div className="flex items-start gap-3 rounded-xl border border-[color:var(--warn)]/45 bg-[color:var(--warn)]/[0.07] p-3 text-sm">
               <Clock className="mt-0.5 size-4 shrink-0 text-[color:var(--warn)]" />
@@ -81,19 +86,16 @@ export function DemoCard({ r, lang, t, honest, budget }: { r: BaseReport; lang: 
               </div>
             </div>
           )}
-          <div className="flex flex-wrap items-start gap-2">
-            <ShareButton no={r.public_no} lang={lang} t={t.share} />
-            {!closed && budget && <BudgetButton no={r.public_no} existing={budget.existing} loggedIn={budget.loggedIn} t={t.initiatives} />}
-          </div>
+          <ShareButton no={r.public_no} lang={lang} t={t.share} extra={!closed && budget ? <BudgetButton no={r.public_no} existing={budget.existing} loggedIn={budget.loggedIn} t={t.initiatives} /> : null} />
 
           <Outcome status={r.status} createdAt={r.created_at} resolvedAt={r.resolved_at} slaDueAt={r.sla_due_at} resolution={resolution} serviceName={nm(svc, lang)} t={o} />
 
           <section>
             <h2 className="mb-2 font-medium">{t.card.timeline}</h2>
-            <ol className="relative ml-2 border-l pl-5">
+            <ol className="relative ml-3.5 border-l pl-6">
               {events.map((e, i) => (
-                <li key={i} className="mb-4 last:mb-0">
-                  <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full border-2 border-background bg-primary" />
+                <li key={i} className="relative mb-5 last:mb-0">
+                  <EventIcon type={e.type} tone={e.tone} />
                   <div className="text-xs text-muted-foreground tabular-nums">{dt(e.at)}</div>
                   <div className={`text-sm ${e.tone === "ok" ? "text-[color:var(--ok)]" : e.tone === "danger" ? "text-[color:var(--danger)]" : ""}`}>{e.text}</div>
                 </li>

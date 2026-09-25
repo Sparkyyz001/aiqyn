@@ -14,7 +14,7 @@ export function BudgetButton({ no, existing, loggedIn, t }: { no: string; existi
   const [pending, start] = useTransition();
   if (existing)
     return (
-      <Button asChild variant="outline" size="sm">
+      <Button asChild variant="outline">
         <a href={`/initiatives#i-${existing}`}>
           <Landmark /> {t.toBudgetOpen}
         </a>
@@ -23,7 +23,6 @@ export function BudgetButton({ no, existing, loggedIn, t }: { no: string; existi
   return (
     <Button
       variant="outline"
-      size="sm"
       title={t.toBudgetHint}
       disabled={pending}
       onClick={() => {

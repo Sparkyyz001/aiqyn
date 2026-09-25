@@ -443,6 +443,7 @@ export const ru = {
     pointSet: "Точка выбрана",
   },
   card: {
+    steps: { filed: "Подано", routed: "Передано службе", work: "В работе", check: "Проверка жителями", resolved: "Решено", rejected: "Отклонено", reopened: "переоткрыто" },
     delayTitle: "Служба сообщает о задержке",
     delaySince: "с {d}",
     delayBudget: "Это вопрос бюджета — такие обращения собраны в «Народном заказе к бюджету»",
