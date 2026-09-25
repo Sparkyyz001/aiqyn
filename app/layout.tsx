@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/app-shell/app-shell";
+import { Pwa } from "@/components/pwa";
 import { getLang } from "@/lib/i18n/server";
 import { DICTS } from "@/lib/i18n/dict";
 import "./globals.css";
@@ -20,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://aiqyn-aktau.vercel.app"),
     title: { default: t.meta.title, template: "%s · AIQYN" },
     description: t.meta.description,
+    applicationName: "AIQYN",
+    appleWebApp: { capable: true, title: "AIQYN", statusBarStyle: "black-translucent" },
+    icons: { apple: "/icons/apple-touch-icon.png" },
   };
 }
 
@@ -41,6 +45,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <TooltipProvider>
             <AppShell>{children}</AppShell>
             <Toaster position="top-center" />
+            <Pwa />
           </TooltipProvider>
         </ThemeProvider>
       </body>
