@@ -20,6 +20,7 @@ import { analyzePhotoUrl, aiEnabled, type Vision } from "@/lib/ai-vision";
 import { compareBeforeAfter, blocks, type AiCheck } from "@/lib/ai-compare";
 import { DELAY_REASONS, type DelayReason } from "@/lib/delay";
 import { allowAi } from "@/lib/rate-limit";
+import { addReputation, voteWeight } from "@/lib/reputation";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -253,9 +254,11 @@ export async function confirmReport(reportId: number): Promise<Result<{ count: n
   if (r.author_id === me.id) return fail(await msg("ownReport"));
   if (["resolved", "rejected"].includes(r.status)) return fail(await msg("closed"));
 
-  const { error } = await db.from("report_confirmations").insert({ report_id: r.id, user_id: me.id });
+  const { data: meRow } = await db.from("profiles").select("created_at").eq("id", me.id).single();
+  const { error } = await db.from("report_confirmations").insert({ report_id: r.id, user_id: me.id, weight: voteWeight(Number(me.reputation ?? 1), meRow?.created_at) });
   if (error) return fail(error.code === "23505" ? await msg("alreadyConfirmed") : error.message);
   await logEvent({ report_id: r.id, actor_id: me.id, type: "confirmed" });
+  await addReputation(r.author_id, "confirmed", r.id, { no: r.public_no });
   await recomputeReport(r.id);
 
   const { data: after } = await db.from("reports").select("confirmations_count").eq("id", r.id).single();
@@ -298,6 +301,7 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
   if (action === "reject") patch.closed_at = new Date().toISOString();
   await db.from("reports").update(patch).eq("id", r.id);
   await logEvent({ report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: t.to, comment: comment?.trim() || null });
+  if (action === "reject") await addReputation(r.author_id, "rejected", r.id, { no: r.public_no });
   if (comment?.trim() && action !== "reject") await addReplyInternal(r.id, r.service_id, me.id, comment.trim());
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
@@ -438,8 +442,10 @@ export async function castVerification(reportId: number, verdict: "fixed" | "not
   const involved = r.author_id === me.id || (conf ?? []).some((c) => c.user_id === me.id);
   if (!involved) return fail(await msg("notVoter"));
 
+  const { data: meRow } = await db.from("profiles").select("created_at").eq("id", me.id).single();
   const { error } = await db.from("report_verifications").insert({
     report_id: r.id, user_id: me.id, verdict, comment: comment?.trim() || null, round: r.reopen_count,
+    weight: voteWeight(Number(me.reputation ?? 1), meRow?.created_at),
   });
   if (error) return fail(error.code === "23505" ? await msg("alreadyVoted") : error.message);
   await logEvent({ report_id: r.id, actor_id: me.id, type: "verification", comment: comment?.trim() || null, meta: { verdict } });
@@ -465,7 +471,7 @@ export async function settleVerification(reportId: number): Promise<string> {
     r.author_id ? db.from("profiles").select("id, reputation").eq("id", r.author_id) : Promise.resolve({ data: [] }),
   ]);
   const voters = [
-    ...(r.author_id ? [{ user_id: r.author_id, weight: Number(profs?.[0]?.reputation ?? 1), isAuthor: true }] : []),
+    ...(r.author_id ? [{ user_id: r.author_id, weight: voteWeight(Number(profs?.[0]?.reputation ?? 1)), isAuthor: true }] : []),
     ...(conf ?? []).map((c) => ({ user_id: c.user_id, weight: Number(c.weight), isAuthor: false })),
   ];
   const expired = !!r.verification_due_at && new Date(r.verification_due_at) < new Date();
@@ -480,6 +486,8 @@ export async function settleVerification(reportId: number): Promise<string> {
       comment: expired && d.fixed === 0 ? "Окно 72 ч истекло без возражений" : "Жители подтвердили выполнение",
       meta: { ...d, msg: expired && d.fixed === 0 ? "vote_expired" : "vote_fixed" },
     });
+    await addReputation(r.author_id, "resolved", r.id, { no: r.public_no });
+    for (const c of conf ?? []) await addReputation(c.user_id, "helped", r.id, { no: r.public_no });
   } else {
     const newDue = slaDueAfterReopen(new Date(r.sla_due_at ?? now), now);
     await db

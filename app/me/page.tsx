@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ReportRow } from "@/components/reports/report-row";
 import { LiveRefresh } from "@/components/live-refresh";
 import { DistrictPicker } from "./district-picker";
+import { Contribution, type RepEvent } from "@/components/me/contribution";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -19,7 +20,11 @@ export default async function MePage() {
   const me = await requireRole();
   const [{ lang, t }, ref] = await Promise.all([getDict(), getReference()]);
   const db = createAdminClient();
-  const { data: conf } = await db.from("report_confirmations").select("report_id").eq("user_id", me.id);
+  const [{ data: conf }, { data: repEvents }, { data: meRow }] = await Promise.all([
+    db.from("report_confirmations").select("report_id").eq("user_id", me.id),
+    db.from("reputation_events").select("id, delta, reason, created_at, meta").eq("user_id", me.id).order("created_at", { ascending: false }).limit(8),
+    db.from("profiles").select("created_at").eq("id", me.id).single(),
+  ]);
 
   const [mine, confirmed, yard] = await Promise.all([
     listReports({ authorId: me.id }),
@@ -85,6 +90,16 @@ export default async function MePage() {
           ))}
         </div>
       </div>
+
+      {me.role === "citizen" && (
+        <Contribution
+          rep={Number(me.reputation ?? 1)}
+          createdAt={meRow?.created_at ?? null}
+          events={(repEvents ?? []) as RepEvent[]}
+          impact={[mine.length, mine.filter((r) => r.status === "resolved").length, mine.reduce((n, r) => n + r.confirmations_count, 0)]}
+          t={t.me.rep}
+        />
+      )}
 
       {needVote.length > 0 && (
         <div className="mt-5 rounded-lg border-2 border-[color:var(--warn)] bg-warn/5 p-4">
