@@ -12,6 +12,7 @@ import type { Dict } from "@/lib/i18n/dict";
 // Демо-аккаунты для жюри: житель подаёт обращение, акимат видит всё (ТЗ, раздел 11)
 const DEMO = [
   { email: "citizen@aiqyn.kz", role: "citizen" },
+  { email: "service@aiqyn.kz", role: "service" },
   { email: "akimat@aiqyn.kz", role: "akimat" },
 ] as const;
 

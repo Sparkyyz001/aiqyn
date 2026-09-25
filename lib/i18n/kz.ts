@@ -193,6 +193,13 @@ export const kz: Dict = {
     few: "Кезеңде 5-тен аз өтініш түсті — қорытынды жасауға әлі ерте.",
   },
   notify: {
+    ak_accepted: "{service} {no} өтінішін жұмысқа алды",
+    ak_in_progress: "{service} {no} бойынша жұмысты бастады",
+    ak_awaiting_confirmation: "{service} {no} орындалғанын хабарлады",
+    ak_rejected: "{service} {no} өтінішін қабылдамады",
+    ak_resolved: "Шешілді және тұрғындар растады: {no}",
+    akBody: "{title} · {district}",
+    delayTitle: "{service}: {no} бойынша кешігу",
     title: "Хабарламалар",
     empty: "Әзірге хабарлама жоқ",
     markAll: "Барлығын оқу",
@@ -315,7 +322,7 @@ export const kz: Dict = {
     exists: "Бұл email тіркелген — кіріңіз",
     short: "Құпиясөз — кемінде 6 таңба",
     oauthError: "Google арқылы кіру мүмкін болмады, қайталап көріңіз",
-    demoToggle: "Қазылар алқасына арналған демо-аккаунттар: тұрғын және әкімдік",
+    demoToggle: "Қазылар алқасына арналған демо-аккаунттар: тұрғын, ТКШ қызметі және әкімдік",
   },
   status: {
     new: "Жаңа",

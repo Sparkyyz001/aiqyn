@@ -192,6 +192,13 @@ export const ru = {
     few: "За период поступило меньше 5 обращений — делать выводы по нему рано.",
   },
   notify: {
+    ak_accepted: "{service} взяла в работу {no}",
+    ak_in_progress: "{service} начала работы по {no}",
+    ak_awaiting_confirmation: "{service} сообщила о выполнении {no}",
+    ak_rejected: "{service} отклонила {no}",
+    ak_resolved: "Решено и подтверждено жителями: {no}",
+    akBody: "{title} · {district}",
+    delayTitle: "{service}: задержка по {no}",
     title: "Уведомления",
     empty: "Пока нет уведомлений",
     markAll: "Прочитать все",
@@ -314,7 +321,7 @@ export const ru = {
     exists: "Такой email уже зарегистрирован — войдите",
     short: "Пароль — минимум 6 символов",
     oauthError: "Не удалось войти через Google, попробуйте ещё раз",
-    demoToggle: "Демо-аккаунты для жюри: житель и акимат",
+    demoToggle: "Демо-аккаунты для жюри: житель, служба ЖКХ и акимат",
   },
   status: {
     new: "Новое",

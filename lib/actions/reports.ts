@@ -276,7 +276,8 @@ async function loadForStaff(reportId: number) {
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("*").eq("id", reportId).single();
   if (!r) return { error: await msg("notFound") } as const;
-  const allowed = ["akimat", "operator"].includes(me.role) || (me.role === "service" && me.service_id === r.service_id);
+  // служба — свои обращения; «диспетчер городских служб» (service без привязки) — обращения всех служб
+  const allowed = ["akimat", "operator"].includes(me.role) || (me.role === "service" && (me.service_id == null || me.service_id === r.service_id));
   if (!allowed) return { error: await msg("notInQueue") } as const;
   return { me, r, db } as const;
 }

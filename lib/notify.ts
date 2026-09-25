@@ -7,8 +7,11 @@ import { honestContext, honestForecast } from "@/lib/honest-deadline";
 
 // Уведомления по событиям обращения. Вызывается из logEvent — каждое событие в хронологии
 // само рассылается тем, кого касается:
-//   житель (автор и подтвердившие) — принято + честный прогноз, ответ службы, фото «после», итог;
-//   акимат, оператор 109 и ответственная служба — новое обращение и риск срыва срока.
+//   житель (автор и подтвердившие) — принято + честный прогноз, ответ службы, смена статуса, итог;
+//   служба — новые обращения, адресованные ей (и «диспетчер городских служб» — всех служб), риск срыва,
+//     переоткрытие, жалоба в eOtinish; оператор 109 — весь входящий поток;
+//   акимат — не каждое обращение, а движение: какая служба взялась, выполнила, отклонила, задержка,
+//     риск срыва, переоткрытие, eOtinish.
 // Тексты пишутся сразу на двух языках: интерфейс показывает нужный.
 
 type Ev = { report_id: number; actor_id: string | null; type: string; to_status?: string | null; comment?: string | null; meta?: Record<string, unknown> | null };
@@ -40,11 +43,12 @@ export async function notifyEvent(e: Ev) {
       rows.push({ user_id: u, report_id: r.id, kind, tone, title: ru[0], body: ru[1], title_kz: kz[0], body_kz: kz[1], link });
   };
 
-  // кому из персонала: акимат, оператор 109 и сотрудники ответственной службы
-  const staff = async () => {
-    const { data } = await db.from("profiles").select("id, role, service_id").in("role", ["akimat", "operator", "service"]);
-    return (data ?? []).filter((p) => p.role !== "service" || p.service_id === r.service_id).map((p) => p.id);
-  };
+  // адресаты среди сотрудников
+  const people = async () => (await db.from("profiles").select("id, role, service_id").in("role", ["akimat", "operator", "service"])).data ?? [];
+  const service = async () => (await people()).filter((p) => p.role === "service" && (p.service_id == null || p.service_id === r.service_id)).map((p) => p.id);
+  const operators = async () => (await people()).filter((p) => p.role === "operator").map((p) => p.id);
+  const akimat = async () => (await people()).filter((p) => p.role === "akimat").map((p) => p.id);
+  const staff = async () => [...(await service()), ...(await akimat())];
   // кого из жителей: автор и все, кто подтвердил проблему
   const citizens = async () => {
     const { data } = await db.from("report_confirmations").select("user_id").eq("report_id", r.id);
@@ -69,12 +73,11 @@ export async function notifyEvent(e: Ev) {
       (risky ? fmt(d.forecastRisk, { p: Math.round((f as { pBreach: number }).pBreach * 100) }) : "");
     push([r.author_id], "accepted", risky ? "warn" : "ok", [fmt(RU.acceptedTitle, { no }), citizenBody(RU, "ru")], [fmt(KZ.acceptedTitle, { no }), citizenBody(KZ, "kz")], true);
 
-    const staffIds = await staff();
     const newBody = (d: typeof RU, lang: "ru" | "kz") => fmt(d.newBody, { title: r.title, cat: catName(lang), district: distName(lang), service: svcName(lang) });
-    push(staffIds, "new", "info", [fmt(RU.newTitle, { no }), newBody(RU, "ru")], [fmt(KZ.newTitle, { no }), newBody(KZ, "kz")]);
+    push([...(await service()), ...(await operators())], "new", "info", [fmt(RU.newTitle, { no }), newBody(RU, "ru")], [fmt(KZ.newTitle, { no }), newBody(KZ, "kz")]);
     if (risky && f.ok) {
       const p = Math.round((f.pBreach ?? 0) * 100);
-      push(staffIds, "risk", "warn", [fmt(RU.riskTitle, { no }), fmt(RU.riskBody, { p, date: date(f.date, "ru") })], [fmt(KZ.riskTitle, { no }), fmt(KZ.riskBody, { p, date: date(f.date, "kz") })]);
+      push(await staff(), "risk", "warn", [fmt(RU.riskTitle, { no }), fmt(RU.riskBody, { p, date: date(f.date, "ru") })], [fmt(KZ.riskTitle, { no }), fmt(KZ.riskBody, { p, date: date(f.date, "kz") })]);
     }
   } else if (e.type === "incident_linked") {
     const eta = typeof e.meta?.eta_at === "string" ? (e.meta.eta_at as string) : null;
@@ -88,6 +91,13 @@ export async function notifyEvent(e: Ev) {
     const tone: Row["tone"] = e.to_status === "rejected" ? "danger" : e.to_status === "resolved" ? "ok" : e.to_status === "awaiting_confirmation" ? "warn" : "info";
     const body = (d: typeof RU) => (e.to_status === "awaiting_confirmation" ? d.awaitingBody : e.comment ?? null);
     push(await citizens(), e.to_status, tone, [fmt(RU[key] as string, { no }), body(RU)], [fmt(KZ[key] as string, { no }), body(KZ)]);
+    const akKey = `ak_${e.to_status}` as keyof typeof RU;
+    if (akKey in RU) {
+      const akBody = (d: typeof RU, lang: "ru" | "kz") => fmt(d.akBody, { title: r.title, district: distName(lang) });
+      push(await akimat(), `ak_${e.to_status}`, tone,
+        [fmt(RU[akKey] as string, { no, service: svc?.short_name ?? svcName("ru") }), akBody(RU, "ru")],
+        [fmt(KZ[akKey] as string, { no, service: svc?.short_name ?? svcName("kz") }), akBody(KZ, "kz")]);
+    }
   } else if (e.type === "reply") {
     const text = (e.comment ?? "").slice(0, 200);
     push(await citizens(), "reply", "info", [fmt(RU.replyTitle, { no }), text], [fmt(KZ.replyTitle, { no }), text]);
@@ -96,6 +106,13 @@ export async function notifyEvent(e: Ev) {
   } else if (e.type === "confirmed") {
     const n = r.confirmations_count;
     push([r.author_id], "confirmed", "info", [fmt(RU.confirmedTitle, { no }), fmt(RU.confirmedBody, { n })], [fmt(KZ.confirmedTitle, { no }), fmt(KZ.confirmedBody, { n })]);
+  } else if (e.type === "delay_reason" && e.meta?.msg === "delay_set") {
+    // служба объяснила задержку — жителю и акимату (денежные причины — вопрос бюджета)
+    const reason = String(e.meta?.reason ?? "");
+    const rl = (lang: "ru" | "kz") => (DICTS[lang].card.delayReasons as Record<string, string>)[reason] ?? reason;
+    push([...(await citizens()), ...(await akimat())], "delay", "warn",
+      [fmt(RU.delayTitle, { no, service: svc?.short_name ?? "" }), `${rl("ru")}${e.comment ? ` — ${e.comment}` : ""}`],
+      [fmt(KZ.delayTitle, { no, service: svc?.short_name ?? "" }), `${rl("kz")}${e.comment ? ` — ${e.comment}` : ""}`]);
   } else if (e.type === "escalated") {
     push(await staff(), "escalated", "danger", [fmt(RU.escalatedTitle, { no }), RU.escalatedBody], [fmt(KZ.escalatedTitle, { no }), KZ.escalatedBody]);
   }

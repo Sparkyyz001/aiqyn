@@ -112,7 +112,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
   const isAuthor = me?.id === r.author_id;
   const isConfirmer = !!me && (conf ?? []).some((c) => c.user_id === me.id);
   const myVote = me ? (votes ?? []).find((v) => v.user_id === me.id && v.round === r.reopen_count) : undefined;
-  const isStaff = !!me && (["akimat", "operator"].includes(me.role) || (me.role === "service" && me.service_id === r.service_id));
+  const isStaff = !!me && (["akimat", "operator"].includes(me.role) || (me.role === "service" && (me.service_id == null || me.service_id === r.service_id)));
   const canEscalate = !!r.sla_breached_at || r.reopen_count >= 2;
 
   // Имена участников хронологии

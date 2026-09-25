@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { getDict } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dict";
 import { getReference } from "@/lib/reference";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { listReports } from "@/lib/queries";
 import { recomputeReport } from "@/lib/report-engine";
 import { flow, titleOf, type FlowReport } from "@/lib/data";
@@ -34,8 +35,15 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
   const [{ lang, t }, ref, sp] = await Promise.all([getDict(), getReference(), searchParams]);
   const s = t.service;
 
-  // Акимат и оператор могут смотреть очередь любой службы (?s=kzhsa)
-  const svc = me.role === "service" ? ref.serviceById.get(me.service_id!) : ref.serviceByCode.get(String(sp.s ?? "kzhsa"));
+  // Служба видит свою очередь. Акимат, оператор и «диспетчер городских служб» (service без привязки)
+  // переключают службы (?s=kzhsa); по умолчанию — служба самого свежего открытого реального обращения.
+  const fixed = me.role === "service" && me.service_id != null;
+  let svc = fixed ? ref.serviceById.get(me.service_id!) : sp.s ? ref.serviceByCode.get(String(sp.s)) : undefined;
+  if (!svc) {
+    const latest = (await listReports({ statuses: ["new", "routed", "accepted", "in_progress", "reopened", "awaiting_confirmation"], limit: 1 }))[0];
+    const { data: row } = latest ? await createAdminClient().from("reports").select("service_id").eq("public_no", latest.public_no).single() : { data: null };
+    svc = (row?.service_id ? ref.serviceById.get(row.service_id) : undefined) ?? ref.serviceByCode.get("kzhsa");
+  }
   if (!svc) return <div className="p-6">{s.notFound}</div>;
 
   // Приоритет растёт со временем в очереди — пересчитываем реальные открытые при открытии очереди
@@ -66,7 +74,7 @@ export default async function ServicePage({ searchParams }: PageProps<"/service"
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground text-pretty">{s.sub}</p>
       </div>
 
-      {me.role !== "service" && (
+      {!fixed && (
         <nav className="flex gap-1.5 overflow-x-auto pb-1">
           {ref.services.map((x) => (
             <Link
