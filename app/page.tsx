@@ -132,7 +132,7 @@ export default async function Home() {
           f={h.features}
           d={{
             lots: demand.kpi.lots,
-            bn: (demand.kpi.mln / 1000).toFixed(1).replace(".", ","),
+            bn: demand.kpi.mln / 1000,
             stuck: demand.stuck.total,
             need: demand.need[0] ? { d: demand.need[0].name, n: demand.need[0].n, m: String(Math.round(demand.need[0].mln)) } : null,
             directions: demand.directions.slice(0, 4).map((x) => ({ name: x.name, n: x.n })),
