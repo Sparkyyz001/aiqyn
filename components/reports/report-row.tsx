@@ -20,7 +20,9 @@ export type RowReport = {
   photo_unverified?: boolean;
 };
 
-export function ReportRow({ r, lang, t, showPriority = true }: { r: RowReport; lang: Lang; t: Pick<Dict, "status" | "card">; showPriority?: boolean }) {
+const STEP: Record<string, number> = { new: 0, routed: 1, accepted: 2, in_progress: 2, reopened: 2, awaiting_confirmation: 3, resolved: 4, rejected: 1 };
+
+export function ReportRow({ r, lang, t, showPriority = true, progress = false }: { r: RowReport; lang: Lang; t: Pick<Dict, "status" | "card">; showPriority?: boolean; progress?: boolean }) {
   const closed = r.status === "resolved" || r.status === "rejected";
   return (
     <Link href={`/report/${r.public_no}`} className="flex flex-col gap-1.5 px-4 py-3 hover:bg-accent/50 sm:flex-row sm:items-center sm:gap-4">
@@ -43,6 +45,16 @@ export function ReportRow({ r, lang, t, showPriority = true }: { r: RowReport; l
           )}
           {r.photo_unverified && <ShieldAlert className="size-3 text-[color:var(--warn)]" />}
         </div>
+        {progress && (
+          // путь заявки: 5 этапов — подано, передано, в работе, проверка жителями, решено
+          <div className="mt-2 flex max-w-xs gap-1" aria-hidden>
+            {[0, 1, 2, 3, 4].map((i) => {
+              const cur = STEP[r.status] ?? 0;
+              const tone = r.status === "rejected" ? "bg-[color:var(--danger)]" : r.status === "resolved" ? "bg-[color:var(--ok)]" : "bg-primary";
+              return <span key={i} className={`h-1.5 flex-1 rounded-full ${i < cur || (i === cur && r.status === "resolved") ? tone : i === cur ? "bg-[color:var(--warn)]" : "bg-muted"}`} />;
+            })}
+          </div>
+        )}
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {showPriority && <span className="text-xs text-muted-foreground tabular-nums sm:hidden">P {Math.round(r.priority_score)}</span>}

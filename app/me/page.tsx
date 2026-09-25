@@ -25,10 +25,16 @@ export default async function MePage() {
     listReports({ authorId: me.id }),
     listReports({ ids: (conf ?? []).map((c) => c.report_id) }),
     me.district_id
-      ? listReports({ districtId: me.district_id, statuses: ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"], limit: 30 })
+      ? listReports({ districtId: me.district_id, statuses: ["new", "routed", "accepted", "in_progress", "awaiting_confirmation", "reopened"], limit: 30, withSynthetic: true })
       : Promise.resolve([]),
   ]);
   const needVote = [...mine, ...confirmed].filter((r) => r.status === "awaiting_confirmation");
+  const stats = [
+    { n: mine.length, l: t.me.statTotal },
+    { n: mine.filter((r) => !["resolved", "rejected"].includes(r.status)).length, l: t.me.statOpen },
+    { n: mine.filter((r) => r.status === "resolved").length, l: t.me.statDone },
+  ];
+  const initials = (me.full_name ?? t.roles[me.role]).split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const section = (title: string, list: typeof mine, empty?: React.ReactNode) => (
     <section className="mt-6">
@@ -36,10 +42,10 @@ export default async function MePage() {
         {title} <span className="text-muted-foreground tabular-nums">{list.length}</span>
       </h2>
       {list.length ? (
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y overflow-hidden rounded-xl border bg-card">
           {list.map((r) => (
             <li key={r.id}>
-              <ReportRow r={r} lang={lang} t={t} showPriority={false} />
+              <ReportRow r={r} lang={lang} t={t} showPriority={false} progress />
             </li>
           ))}
         </ul>
@@ -53,16 +59,31 @@ export default async function MePage() {
     <div className="mx-auto w-full max-w-4xl px-4 py-6">
       {/* Уведомление автору мгновенно, когда служба меняет статус (Realtime) */}
       <LiveRefresh filter={`author_id=eq.${me.id}`} toastText={t.card.statusChanged} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-sm text-muted-foreground">{t.roles[me.role]}</div>
-          <h1 className="text-xl font-semibold">{me.full_name ?? t.nav.me}</h1>
+      {/* Приветствие и мои цифры */}
+      <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#053e42,#075458_55%,#0b6b63)] p-5 text-[#f6f1dd] shadow-[0_24px_50px_-30px_rgb(5_62_66/0.8)] md:p-7">
+        <div className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-[#76cf6a]/15 blur-2xl" aria-hidden />
+        <div className="relative flex flex-wrap items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#ff907d] text-lg font-bold text-[#053e42]">{initials}</span>
+            <div>
+              <div className="text-sm text-[#f6f1dd]/70">{t.me.hello}</div>
+              <h1 className="text-2xl font-semibold tracking-tight">{me.full_name ?? t.nav.me}</h1>
+            </div>
+          </div>
+          <Button asChild className="h-11 rounded-full bg-[#ff907d] px-5 font-semibold text-[#053e42] hover:bg-[#ffa592]">
+            <Link href="/report/new">
+              <Plus /> {t.nav.report}
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link href="/report/new">
-            <Plus /> {t.nav.report}
-          </Link>
-        </Button>
+        <div className="relative mt-6 grid grid-cols-3 gap-3">
+          {stats.map((s) => (
+            <div key={s.l} className="rounded-2xl bg-white/[0.07] px-4 py-3 ring-1 ring-white/10">
+              <div className="font-serif text-3xl leading-none tabular-nums">{s.n}</div>
+              <div className="mt-1 text-xs text-[#f6f1dd]/70">{s.l}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {needVote.length > 0 && (
@@ -92,10 +113,10 @@ export default async function MePage() {
         </div>
         {me.district_id ? (
           yard.length ? (
-            <ul className="divide-y rounded-lg border">
+            <ul className="divide-y overflow-hidden rounded-xl border bg-card">
               {yard.map((r) => (
                 <li key={r.id}>
-                  <ReportRow r={r} lang={lang} t={t} showPriority={false} />
+                  <ReportRow r={r} lang={lang} t={t} showPriority={false} progress />
                 </li>
               ))}
             </ul>

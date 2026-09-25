@@ -518,6 +518,10 @@ export const kz: Dict = {
     empty: "Бос",
   },
   me: {
+    hello: "Сәлеметсіз бе,",
+    statTotal: "берілді",
+    statOpen: "жұмыста",
+    statDone: "шешілді",
     yard: "Менің аулам",
     yardEmpty: "Ауданда ашық өтініштер жоқ",
     yardPick: "Бақылау үшін өз шағын ауданыңызды таңдаңыз",

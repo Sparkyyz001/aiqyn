@@ -5,13 +5,16 @@ import type { RowReport } from "@/components/reports/report-row";
 
 const SELECT = "id, public_no, title, status, category_id, district_id, sla_due_at, confirmations_count, reopen_count, priority_score, created_at";
 
-type Filter = { serviceId?: number; authorId?: string; ids?: number[]; districtId?: number; statuses?: string[]; limit?: number; source?: string[] };
+type Filter = {
+  /** показывать и модельные обращения (только для обзорных списков, не для очередей служб) */
+  withSynthetic?: boolean; serviceId?: number; authorId?: string; ids?: number[]; districtId?: number; statuses?: string[]; limit?: number; source?: string[] };
 
 // Списки обращений для кабинетов (реальные обращения из БД, без демо-подложки)
 export async function listReports(f: Filter): Promise<RowReport[]> {
   const db = createAdminClient();
   const ref = await getReference();
-  let q = db.from("reports").select(SELECT).eq("is_synthetic", false);
+  let q = db.from("reports").select(SELECT);
+  if (!f.withSynthetic) q = q.eq("is_synthetic", false);
   if (f.serviceId) q = q.eq("service_id", f.serviceId);
   if (f.authorId) q = q.eq("author_id", f.authorId);
   if (f.ids) q = q.in("id", f.ids.length ? f.ids : [-1]);
