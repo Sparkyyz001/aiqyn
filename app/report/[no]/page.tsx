@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, MapPin, Siren, ShieldCheck, ShieldAlert, Users, RotateCcw, Info } from "lucide-react";
+import { ExternalLink, MapPin, Siren, ShieldCheck, ShieldAlert, Users, RotateCcw, Info, Sparkles } from "lucide-react";
 import { getDict } from "@/lib/i18n/server";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -236,6 +236,21 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
                             {p.geo_verified ? t.card.geoOk : t.card.geoBad}
                             {p.taken_at && <span className="ml-auto text-muted-foreground">{fmt(p.taken_at)}</span>}
                           </figcaption>
+                          {p.ai_check && (
+                            <div
+                              className={`flex items-start gap-1.5 border-t px-2 py-1.5 text-xs ${p.ai_check.verdict === "fixed" ? "bg-[color:var(--ok)]/[0.07] text-[color:var(--ok)]" : "bg-[color:var(--warn)]/[0.08] text-[color:var(--warn)]"}`}
+                              title={lang === "kz" ? p.ai_check.explanation_kz : p.ai_check.explanation_ru}
+                            >
+                              <Sparkles className="mt-px size-3.5 shrink-0" />
+                              <span>
+                                <span className="font-medium">
+                                  {({ fixed: t.card.aiFixed, not_fixed: t.card.aiNotFixed, different_place: t.card.aiOther } as Record<string, string>)[p.ai_check.verdict] ?? t.card.aiUnclear}
+                                  {` · ${Math.round(p.ai_check.confidence * 100)}%`}
+                                </span>
+                                <span className="block text-muted-foreground">{lang === "kz" ? p.ai_check.explanation_kz : p.ai_check.explanation_ru}</span>
+                              </span>
+                            </div>
+                          )}
                         </figure>
                       ))
                     ) : (
@@ -299,7 +314,7 @@ export default async function ReportPage({ params }: PageProps<"/report/[no]">) 
                       </>
                     ) : (
                       <span className="font-medium">
-                        {({ confirmed: t.events.confirmed, reply: t.events.reply, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.events.escalated, incident_linked: t.events.incident_linked } as Record<string, string>)[e.type] ?? e.type}
+                        {({ confirmed: t.events.confirmed, reply: t.events.reply, verification: e.meta?.verdict === "fixed" ? t.card.voteYes : t.card.voteNo, escalated: t.events.escalated, incident_linked: t.events.incident_linked, ai_analysis: t.events.aiPhoto, ai_after_check: t.events.aiCheck } as Record<string, string>)[e.type] ?? e.type}
                       </span>
                     )}
                   </div>

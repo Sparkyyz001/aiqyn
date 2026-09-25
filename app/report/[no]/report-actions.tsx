@@ -139,7 +139,9 @@ export function ReportActions({ report, viewer, isAuthor, isConfirmer, myVote, i
                 onClick={() =>
                   start(async () => {
                     const res = await submitCompletion(report.id, afterPhoto!, comment);
-                    if (!res.ok) return void toast.error(res.error);
+                    if (!res.ok) return void toast.error(res.error, { duration: 12000 });
+                    const ai = res.data.ai;
+                    if (ai?.verdict === "fixed") toast.success(fmt(t.actions.aiOk, { why: document.documentElement.lang.startsWith("k") ? ai.explanation_kz : ai.explanation_ru }), { duration: 10000 });
                     if (res.data.geo_verified) toast.success(t.actions.sentOk);
                     else
                       toast.warning(

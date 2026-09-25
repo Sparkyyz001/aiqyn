@@ -1,6 +1,6 @@
 "use server";
 
-import { msg } from "@/lib/i18n/server";
+import { getDict, msg } from "@/lib/i18n/server";
 import { revalidatePath } from "next/cache";
 import { getProfile, type Profile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -17,6 +17,7 @@ import { recomputeClustersAround } from "@/lib/clustering-db";
 import { incidentTypeFor } from "@/lib/incidents";
 import { textChecks, photoChecks, worst, type PhotoStats } from "@/lib/report-quality";
 import { analyzePhotoUrl, aiEnabled, type Vision } from "@/lib/ai-vision";
+import { compareBeforeAfter, blocks, type AiCheck } from "@/lib/ai-compare";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -292,7 +293,7 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
  * Сверяем EXIF: ≤100 м от точки обращения и снято позже, чем заявку приняли.
  * Если не сошлось — не блокируем, но geo_verified=false (бейдж + метрика качества службы).
  */
-export async function submitCompletion(reportId: number, photo: PhotoInput, comment?: string): Promise<Result<{ geo_verified: boolean; reasons: { code: string; d?: number; max?: number }[] }>> {
+export async function submitCompletion(reportId: number, photo: PhotoInput, comment?: string): Promise<Result<{ geo_verified: boolean; reasons: { code: string; d?: number; max?: number }[]; ai: AiCheck | null }>> {
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
   const { me, r, db } = ctx;
@@ -329,22 +330,40 @@ export async function submitCompletion(reportId: number, photo: PhotoInput, comm
   }
   const verified = geoOk && fresh;
 
+  // ИИ-сверка с фото жителя: очевидную отписку (другое место / проблема на месте) не закрыть
+  const { data: beforePhotos } = await db.from("report_photos").select("url").eq("report_id", r.id).eq("kind", "before").order("created_at");
+  const ref = await getReference();
+  const ai = await compareBeforeAfter({
+    before: (beforePhotos ?? []).map((p) => p.url),
+    after: publicPhotoUrl(photo.path),
+    title: r.title,
+    category: ref.categoryById.get(r.category_id)?.code ?? "other",
+  });
+  if (blocks(ai)) {
+    const { lang } = await getDict();
+    await logEvent({
+      report_id: r.id, actor_id: me.id, type: "ai_after_check", comment: ai!.explanation_ru,
+      meta: { msg: "ai_blocked", verdict: ai!.verdict, confidence: ai!.confidence, why_ru: ai!.explanation_ru, why_kz: ai!.explanation_kz },
+    });
+    return fail(await msg(ai!.verdict === "different_place" ? "aiDifferentPlace" : "aiNotFixed", { why: lang === "kz" ? ai!.explanation_kz : ai!.explanation_ru }));
+  }
+
   await db.from("report_photos").insert({
     report_id: r.id, url: publicPhotoUrl(photo.path), kind: "after",
-    lat: photo.lat, lng: photo.lng, taken_at: photo.taken_at, geo_verified: verified, uploaded_by: me.id,
+    lat: photo.lat, lng: photo.lng, taken_at: photo.taken_at, geo_verified: verified, uploaded_by: me.id, ai_check: ai,
   });
   const dueVote = new Date(Date.now() + VOTING_WINDOW_H * 3600_000).toISOString();
   await db.from("reports").update({ status: "awaiting_confirmation", verification_due_at: dueVote }).eq("id", r.id);
   await logEvent({
     report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: "awaiting_confirmation",
     comment: comment?.trim() || "Служба сообщает, что проблема решена",
-    meta: { msg: comment?.trim() ? undefined : "service_done", photo_geo_verified: verified, reasons, reason_codes: reasonCodes, voting_until: dueVote },
+    meta: { msg: comment?.trim() ? undefined : "service_done", photo_geo_verified: verified, reasons, reason_codes: reasonCodes, voting_until: dueVote, ai_verdict: ai?.verdict ?? null, ai_confidence: ai?.confidence ?? null },
   });
   if (comment?.trim()) await addReplyInternal(r.id, r.service_id, me.id, comment.trim());
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
   revalidatePath("/service");
-  return { ok: true, data: { geo_verified: verified, reasons: reasonCodes } };
+  return { ok: true, data: { geo_verified: verified, reasons: reasonCodes, ai } };
 }
 
 async function addReplyInternal(reportId: number, serviceId: number, authorId: string, text: string) {
