@@ -22,6 +22,8 @@ import { DELAY_REASONS, type DelayReason } from "@/lib/delay";
 import { allowAi } from "@/lib/rate-limit";
 import { addReputation, voteWeight } from "@/lib/reputation";
 import { settleVerification } from "@/lib/verification-settle";
+import { isInWork } from "@/lib/meta";
+import { clean, MAX_TITLE } from "@/lib/limits";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): Result<never> => ({ ok: false, error });
@@ -60,11 +62,12 @@ export type Preview = {
 export async function previewReport(input: { text: string; lat: number; lng: number; category?: CategoryCode | null }): Promise<Result<Preview>> {
   if (!inAktau(input)) return fail(await msg("outside"));
   const ref = await getReference();
-  const cls = classify(input.text);
+  const text = clean(input.text);
+  const cls = classify(text);
   const code = input.category ?? cls.category;
   const cat = ref.categoryByCode.get(code) ?? ref.categoryByCode.get("other")!;
   const defaultSvc = ref.serviceById.get(cat.default_service!)!;
-  const routing = route(cat.code as CategoryCode, input.text, defaultSvc.code);
+  const routing = route(cat.code as CategoryCode, text, defaultSvc.code);
   const svc = ref.serviceByCode.get(routing.service) ?? defaultSvc;
   const district = districtAt(input, ref.districts);
 
@@ -119,18 +122,17 @@ export type CreateInput = {
 export type Created = { public_no: string; sla_due_at: string; service: { name_ru: string; name_kz: string }; district: { name_ru: string; name_kz: string } | null; incident: string | null };
 
 export async function createReport(input: CreateInput): Promise<Result<Created>> {
-  {
-    const who = await getProfile();
-    if (who && !["citizen", "operator"].includes(who.role)) return fail(await msg("forbidden"));
-  }
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
-  const title = input.title?.trim();
-  if (!title || title.length < 3) return fail(await msg("shortTitle"));
+  // подают жители и оператор 109 (за звонящего); акимат и службы решают, а не жалуются
+  if (!["citizen", "operator"].includes(me.role)) return fail(await msg("forbidden"));
+  const title = clean(input.title, MAX_TITLE);
+  const description = clean(input.description);
+  if (title.length < 3) return fail(await msg("shortTitle"));
   if (!inAktau(input)) return fail(await msg("outside"));
 
   // Проверка качества — те же правила, что видит житель в форме (обойти из консоли нельзя)
-  const tq = textChecks(title, input.description ?? "");
+  const tq = textChecks(title, description);
   if (tq.some((c) => c.id === "text_gibberish")) return fail(await msg("textGibberish"));
   if (tq.some((c) => c.id === "text_profanity")) return fail(await msg("textProfanity"));
   if (input.photos.some((p) => worst(photoChecks({ stats: p.stats ?? null })) === "fail")) return fail(await msg("photoBad"));
@@ -144,15 +146,16 @@ export async function createReport(input: CreateInput): Promise<Result<Created>>
     if (same) return fail(await msg("repeatHere", { no: same.public_no }));
   }
 
-  // Источник «оператор/109/Instagram» — только для оператора и акимата
+  // Источник «оператор/109/Instagram» — только для оператора
   const source = input.source ?? "app";
-  if (source !== "app" && !["operator", "akimat"].includes(me.role)) return fail(await msg("forbidden"));
+  if (!["app", "operator", "call109", "instagram"].includes(source)) return fail(await msg("forbidden"));
+  if (source !== "app" && me.role !== "operator") return fail(await msg("forbidden"));
   if (source === "instagram" && !/^https:\/\/(www\.)?instagram\.com\//.test(input.source_url ?? ""))
     return fail(await msg("instagramUrl"));
 
   const ref = await getReference();
   const cat = ref.categoryByCode.get(input.category) ?? ref.categoryByCode.get("other")!;
-  const text = `${title} ${input.description ?? ""}`;
+  const text = `${title} ${description}`;
   const routing = route(cat.code as CategoryCode, text, ref.serviceById.get(cat.default_service!)!.code);
   const svc = ref.serviceByCode.get(routing.service)!;
   const district = districtAt(input, ref.districts);
@@ -172,15 +175,15 @@ export async function createReport(input: CreateInput): Promise<Result<Created>>
       district_id: district?.id ?? null,
       incident_id: incident?.id ?? null,
       title,
-      description: input.description?.trim() || null,
+      description: description || null,
       lat: input.lat,
       lng: input.lng,
-      address_text: input.address_text?.trim() || null,
+      address_text: clean(input.address_text, MAX_TITLE) || null,
       status: "routed",
       severity: cat.severity_base,
       sla_due_at: slaDueAt(now, cat.sla_days).toISOString(),
       source,
-      source_url: input.source_url?.trim() || null,
+      source_url: clean(input.source_url, 500) || null,
     })
     .select("id, public_no, sla_due_at")
     .single();
@@ -249,6 +252,7 @@ async function matchIncident(categoryCode: string, p: { lat: number; lng: number
 export async function confirmReport(reportId: number): Promise<Result<{ count: number }>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
+  if (me.role !== "citizen") return fail(await msg("forbidden")); // подтверждают соседи, не сотрудники
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("id, author_id, status, public_no").eq("id", reportId).single();
   if (!r) return fail(await msg("notFound"));
@@ -294,17 +298,22 @@ export async function staffTransition(reportId: number, action: keyof typeof TRA
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
   const { me, r, db } = ctx;
+  if (!Object.hasOwn(TRANSITIONS, action)) return fail(await msg("forbidden"));
   const t = TRANSITIONS[action];
   if (!(t.from as readonly string[]).includes(r.status)) return fail(await msg("badTransition", { s: r.status }));
-  if (action === "reject" && !comment?.trim()) return fail(await msg("rejectReason"));
+  const note = clean(comment);
+  if (action === "reject" && !note) return fail(await msg("rejectReason"));
 
   const patch: Record<string, unknown> = { status: t.to };
   if (action === "accept" && !r.accepted_at) patch.accepted_at = new Date().toISOString();
   if (action === "reject") patch.closed_at = new Date().toISOString();
-  await db.from("reports").update(patch).eq("id", r.id);
-  await logEvent({ report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: t.to, comment: comment?.trim() || null });
+  // .eq("status") — если двое из службы нажали одновременно, сработает только первый
+  const { data: moved, error } = await db.from("reports").update(patch).eq("id", r.id).eq("status", r.status).select("id");
+  if (error) return fail(error.message);
+  if (!moved?.length) return fail(await msg("badTransition", { s: r.status }));
+  await logEvent({ report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: t.to, comment: note || null });
   if (action === "reject") await addReputation(r.author_id, "rejected", r.id, { no: r.public_no });
-  if (comment?.trim() && action !== "reject") await addReplyInternal(r.id, r.service_id, me.id, comment.trim());
+  if (note && action !== "reject") await addReplyInternal(r.id, r.service_id, me.id, note);
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
   revalidatePath("/service");
@@ -316,15 +325,17 @@ export async function setDelayReason(reportId: number, reason: DelayReason | nul
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
   const { me, r, db } = ctx;
-  if (!["routed", "accepted", "in_progress", "reopened"].includes(r.status)) return fail(await msg("badTransition", { s: r.status }));
+  if (!isInWork(r.status)) return fail(await msg("badTransition", { s: r.status }));
   if (reason && !DELAY_REASONS.includes(reason)) return fail(await msg("forbidden"));
-  if (reason === "other" && !note?.trim()) return fail(await msg("delayNote"));
-  await db
+  const text = clean(note, 500);
+  if (reason === "other" && !text) return fail(await msg("delayNote"));
+  const { error } = await db
     .from("reports")
-    .update({ delay_reason: reason, delay_note: reason ? note?.trim() || null : null, delay_at: reason ? new Date().toISOString() : null })
+    .update({ delay_reason: reason, delay_note: reason ? text || null : null, delay_at: reason ? new Date().toISOString() : null })
     .eq("id", r.id);
+  if (error) return fail(error.message);
   await logEvent({
-    report_id: r.id, actor_id: me.id, type: "delay_reason", comment: note?.trim() || null,
+    report_id: r.id, actor_id: me.id, type: "delay_reason", comment: text || null,
     meta: { msg: reason ? "delay_set" : "delay_cleared", reason: reason ?? "" },
   });
   revalidatePath(`/report/${r.public_no}`);
@@ -393,18 +404,25 @@ export async function submitCompletion(reportId: number, photo: PhotoInput, comm
     return fail(await msg(ai!.verdict === "different_place" ? "aiDifferentPlace" : "aiNotFixed", { why: lang === "kz" ? ai!.explanation_kz : ai!.explanation_ru }));
   }
 
+  const dueVote = new Date(Date.now() + VOTING_WINDOW_H * 3600_000).toISOString();
+  const { data: moved, error } = await db
+    .from("reports")
+    .update({ status: "awaiting_confirmation", verification_due_at: dueVote })
+    .eq("id", r.id)
+    .eq("status", r.status)
+    .select("id");
+  if (error) return fail(error.message);
+  if (!moved?.length) return fail(await msg("badTransition", { s: r.status }));
   await db.from("report_photos").insert({
     report_id: r.id, url: publicPhotoUrl(photo.path), kind: "after",
     lat: photo.lat, lng: photo.lng, taken_at: photo.taken_at, geo_verified: verified, uploaded_by: me.id, ai_check: ai,
   });
-  const dueVote = new Date(Date.now() + VOTING_WINDOW_H * 3600_000).toISOString();
-  await db.from("reports").update({ status: "awaiting_confirmation", verification_due_at: dueVote }).eq("id", r.id);
   await logEvent({
     report_id: r.id, actor_id: me.id, type: "status_change", from_status: r.status, to_status: "awaiting_confirmation",
-    comment: comment?.trim() || "Служба сообщает, что проблема решена",
-    meta: { msg: comment?.trim() ? undefined : "service_done", photo_geo_verified: verified, reasons, reason_codes: reasonCodes, voting_until: dueVote, ai_verdict: ai?.verdict ?? null, ai_confidence: ai?.confidence ?? null },
+    comment: clean(comment) || "Служба сообщает, что проблема решена",
+    meta: { msg: clean(comment) ? undefined : "service_done", photo_geo_verified: verified, reasons, reason_codes: reasonCodes, voting_until: dueVote, ai_verdict: ai?.verdict ?? null, ai_confidence: ai?.confidence ?? null },
   });
-  if (comment?.trim()) await addReplyInternal(r.id, r.service_id, me.id, comment.trim());
+  if (clean(comment)) await addReplyInternal(r.id, r.service_id, me.id, clean(comment));
   await recomputeReport(r.id);
   revalidatePath(`/report/${r.public_no}`);
   revalidatePath("/service");
@@ -422,8 +440,9 @@ async function addReplyInternal(reportId: number, serviceId: number, authorId: s
 export async function addReply(reportId: number, text: string): Promise<Result> {
   const ctx = await loadForStaff(reportId);
   if ("error" in ctx) return fail(ctx.error!);
-  if (!text?.trim()) return fail(await msg("emptyReply"));
-  await addReplyInternal(ctx.r.id, ctx.r.service_id, ctx.me.id, text.trim());
+  const body = clean(text);
+  if (!body) return fail(await msg("emptyReply"));
+  await addReplyInternal(ctx.r.id, ctx.r.service_id, ctx.me.id, body);
   revalidatePath(`/report/${ctx.r.public_no}`);
   return { ok: true, data: null };
 }
@@ -435,6 +454,7 @@ export async function addReply(reportId: number, text: string): Promise<Result> 
 export async function castVerification(reportId: number, verdict: "fixed" | "not_fixed", comment?: string): Promise<Result<{ outcome: string }>> {
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
+  if (verdict !== "fixed" && verdict !== "not_fixed") return fail(await msg("forbidden"));
   const db = createAdminClient();
   const { data: r } = await db.from("reports").select("id, author_id, status, reopen_count, public_no").eq("id", reportId).single();
   if (!r) return fail(await msg("notFound"));
@@ -446,11 +466,11 @@ export async function castVerification(reportId: number, verdict: "fixed" | "not
 
   const { data: meRow } = await db.from("profiles").select("created_at").eq("id", me.id).single();
   const { error } = await db.from("report_verifications").insert({
-    report_id: r.id, user_id: me.id, verdict, comment: comment?.trim() || null, round: r.reopen_count,
+    report_id: r.id, user_id: me.id, verdict, comment: clean(comment, 500) || null, round: r.reopen_count,
     weight: voteWeight(Number(me.reputation ?? 1), meRow?.created_at),
   });
   if (error) return fail(error.code === "23505" ? await msg("alreadyVoted") : error.message);
-  await logEvent({ report_id: r.id, actor_id: me.id, type: "verification", comment: comment?.trim() || null, meta: { verdict } });
+  await logEvent({ report_id: r.id, actor_id: me.id, type: "verification", comment: clean(comment, 500) || null, meta: { verdict } });
 
   const outcome = await settleVerification(r.id);
   revalidatePath(`/report/${r.public_no}`);
@@ -470,6 +490,6 @@ export async function analyzePhoto(input: { path: string; text?: string; lat?: n
   if (!(await allowAi(me.id, "photo_ai"))) return { ok: true, data: { enabled: true, vision: null } };
   const ref = await getReference();
   const district = input.lat != null && input.lng != null ? districtAt({ lat: input.lat, lng: input.lng }, ref.districts) : null;
-  const vision = await analyzePhotoUrl(publicPhotoUrl(input.path), { text: input.text, district: district?.name_ru ?? null, takenAt: input.taken_at ?? null });
+  const vision = await analyzePhotoUrl(publicPhotoUrl(input.path), { text: clean(input.text), district: district?.name_ru ?? null, takenAt: input.taken_at ?? null });
   return { ok: true, data: { enabled: true, vision } };
 }

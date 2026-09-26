@@ -139,8 +139,8 @@ export default async function ServicesPage() {
                       avg={r ? r.sum / r.n : 0}
                       count={r?.n ?? 0}
                       mine={r?.mine ?? null}
-                      canRate={!!me}
-                      l={{ rate: s.rate, yours: s.yours, votes: s.votes, login: s.loginRate, thanks: s.thanks }}
+                      canRate={me?.role === "citizen"}
+                      l={{ rate: s.rate, yours: s.yours, votes: s.votes, login: me ? "" : s.loginRate, thanks: s.thanks }}
                     />
                   </div>
                 );

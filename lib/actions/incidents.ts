@@ -10,6 +10,7 @@ import { logEvent, recomputeReport } from "@/lib/report-engine";
 import { VOTING_WINDOW_H } from "@/lib/verification";
 import { INCIDENT_CATEGORIES } from "@/lib/incidents";
 import { IN_WORK_STATUSES } from "@/lib/meta";
+import { clean, MAX_TITLE } from "@/lib/limits";
 
 // ФИШКА 5: режим аварии. Зона = объединение полигонов выбранных микрорайонов (OSM).
 // Обращения подходящей категории внутри зоны автоматически привязываются к аварии —
@@ -32,25 +33,30 @@ function unionPolygon(polys: GeoPolygon[]): GeoPolygon {
 export async function createIncident(input: Input) {
   const me = await staff();
   if (!me) return { ok: false as const, error: await msg("forbidden") };
-  if (!INCIDENT_CATEGORIES[input.type]) return { ok: false as const, error: await msg("incidentType") };
-  if (!input.title?.trim() || !input.districtIds.length) return { ok: false as const, error: await msg("incidentFields") };
+  if (!Object.hasOwn(INCIDENT_CATEGORIES, input.type)) return { ok: false as const, error: await msg("incidentType") };
+  const title = clean(input.title, MAX_TITLE);
+  if (!title || !Array.isArray(input.districtIds) || !input.districtIds.length) return { ok: false as const, error: await msg("incidentFields") };
+  const eta = input.eta_at ? new Date(input.eta_at) : null;
+  if (eta && Number.isNaN(eta.getTime())) return { ok: false as const, error: await msg("incidentFields") };
 
   const ref = await getReference();
   const polys = input.districtIds.map((id) => ref.districtById.get(id)?.polygon).filter(Boolean) as GeoPolygon[];
   if (!polys.length) return { ok: false as const, error: await msg("noPolygon") };
   const polygon = unionPolygon(polys);
   const svc = ref.serviceByCode.get(input.serviceCode);
+  // служба объявляет аварию только от своего имени (диспетчер — от любой)
+  if (me.role === "service" && me.service_id != null && svc?.id !== me.service_id) return { ok: false as const, error: await msg("forbidden") };
 
   const db = createAdminClient();
   const { data: inc, error } = await db
     .from("incidents")
     .insert({
       type: input.type,
-      title: input.title.trim(),
-      description: input.description?.trim() || null,
+      title,
+      description: clean(input.description) || null,
       service_id: svc?.id ?? null,
       polygon,
-      eta_at: input.eta_at || null,
+      eta_at: eta?.toISOString() ?? null,
       created_by: me.id,
     })
     .select("id, title, eta_at")
@@ -82,8 +88,13 @@ export async function resolveIncident(id: number) {
   const me = await staff();
   if (!me) return { ok: false as const, error: await msg("forbidden") };
   const db = createAdminClient();
+  const { data: inc } = await db.from("incidents").select("id, service_id, status").eq("id", id).maybeSingle();
+  if (!inc) return { ok: false as const, error: await msg("notFound") };
+  if (me.role === "service" && me.service_id != null && inc.service_id !== me.service_id) return { ok: false as const, error: await msg("forbidden") };
   const now = new Date();
-  await db.from("incidents").update({ status: "resolved", resolved_at: now.toISOString() }).eq("id", id);
+  // закрыть можно только активную аварию — повторное нажатие ничего не делает
+  const { data: closed } = await db.from("incidents").update({ status: "resolved", resolved_at: now.toISOString() }).eq("id", id).eq("status", "active").select("id");
+  if (!closed?.length) return { ok: true as const, data: { closed: 0 } };
   const { data: linked } = await db
     .from("reports")
     .select("id, status")

@@ -8,6 +8,7 @@ import { msg } from "@/lib/i18n/server";
 import { DICTS, fmt } from "@/lib/i18n/dict";
 import { textChecks } from "@/lib/report-quality";
 import { INITIATIVE_THRESHOLD } from "@/lib/initiatives";
+import { clean, MAX_TITLE } from "@/lib/limits";
 
 // Инициативы жителей: предложить улучшение, поддержать голосом, решение акимата.
 // Порог голосов — идея автоматически уходит на рассмотрение акимата (и приходит уведомление).
@@ -37,9 +38,10 @@ export async function proposeInitiative(input: { title: string; description?: st
   const me = await getProfile();
   if (!me) return fail(await msg("login"));
   if (me.role !== "citizen") return fail(await msg("forbidden"));
-  const title = input.title?.trim();
-  if (!title || title.length < 5) return fail(await msg("shortTitle"));
-  const q = textChecks(title, input.description ?? "");
+  const title = clean(input.title, MAX_TITLE);
+  const description = clean(input.description);
+  if (title.length < 5) return fail(await msg("shortTitle"));
+  const q = textChecks(title, description);
   if (q.some((c) => c.id === "text_gibberish")) return fail(await msg("textGibberish"));
   if (q.some((c) => c.id === "text_profanity")) return fail(await msg("textProfanity"));
   const kind = (KINDS as readonly string[]).includes(input.kind) ? input.kind : "improvement";
@@ -49,7 +51,7 @@ export async function proposeInitiative(input: { title: string; description?: st
   const db = createAdminClient();
   const { data, error } = await db
     .from("initiatives")
-    .insert({ author_id: me.id, district_id: district?.id ?? null, kind, title, description: input.description?.trim() || null, votes_count: 1 })
+    .insert({ author_id: me.id, district_id: district?.id ?? null, kind, title, description: description || null, votes_count: 1 })
     .select("id")
     .single();
   if (error || !data) return fail(error?.message ?? "error");
@@ -71,7 +73,7 @@ export async function voteInitiative(id: number): Promise<Result<{ votes: number
   const { error } = await db.from("initiative_votes").insert({ initiative_id: id, user_id: me.id });
   if (error) return fail(error.code === "23505" ? await msg("alreadyVoted") : error.message);
   const { count } = await db.from("initiative_votes").select("*", { count: "exact", head: true }).eq("initiative_id", id);
-  const votes = (count ?? 0) + 0;
+  const votes = count ?? 0;
   // демо-инициативы уже имеют голоса «из подложки» — прибавляем к ним, а не перезаписываем
   const { data: cur } = await db.from("initiatives").select("votes_count").eq("id", id).single();
   const next = Math.max(votes, (cur?.votes_count ?? 0) + 1);
@@ -90,18 +92,21 @@ export async function decideInitiative(id: number, input: { status: string; repl
   const me = await getProfile();
   if (!me || !["akimat", "operator"].includes(me.role)) return fail(await msg("forbidden"));
   if (!(STATUSES as readonly string[]).includes(input.status)) return fail(await msg("forbidden"));
+  const reply = clean(input.reply);
+  const budget = input.budget == null ? null : Number(input.budget);
+  if (budget != null && !(Number.isFinite(budget) && budget >= 0)) return fail(await msg("forbidden"));
   const db = createAdminClient();
   const { data: it } = await db.from("initiatives").select("id, title, author_id").eq("id", id).single();
   if (!it) return fail(await msg("notFound"));
   await db
     .from("initiatives")
-    .update({ status: input.status, akimat_reply: input.reply.trim() || null, budget_kzt: input.budget ?? null, updated_at: new Date().toISOString() })
+    .update({ status: input.status, akimat_reply: reply || null, budget_kzt: budget, updated_at: new Date().toISOString() })
     .eq("id", id);
   const { data: voters } = await db.from("initiative_votes").select("user_id").eq("initiative_id", id);
   await notify(
     [it.author_id ?? "", ...(voters ?? []).map((v) => v.user_id)],
     [fmt(RU.nDecision, { title: it.title }), fmt(KZ.nDecision, { title: it.title })],
-    [input.reply.trim() || RU.status[input.status as keyof typeof RU.status], input.reply.trim() || KZ.status[input.status as keyof typeof KZ.status]],
+    [reply || RU.status[input.status as keyof typeof RU.status], reply || KZ.status[input.status as keyof typeof KZ.status]],
     id,
     input.status === "done" || input.status === "planned" ? "ok" : input.status === "declined" ? "warn" : "info"
   );

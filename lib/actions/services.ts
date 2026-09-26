@@ -12,8 +12,9 @@ type Result<T = null> = { ok: true; data: T } | { ok: false; error: string };
 export async function rateService(code: string, stars: number): Promise<Result<{ avg: number; count: number }>> {
   const me = await getProfile();
   if (!me) return { ok: false, error: await msg("login") };
-  const s = Math.round(stars);
-  if (s < 1 || s > 5) return { ok: false, error: await msg("forbidden") };
+  if (me.role !== "citizen") return { ok: false, error: await msg("forbidden") }; // службу оценивают жители
+  const s = Number(stars);
+  if (!Number.isInteger(s) || s < 1 || s > 5) return { ok: false, error: await msg("forbidden") };
   const ref = await getReference();
   const svc = ref.serviceByCode.get(code);
   if (!svc) return { ok: false, error: await msg("notFound") };

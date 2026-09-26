@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const ref = await getReference();
   const db = createAdminClient();
-  const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get("limit") ?? 200)));
+  const limit = Math.min(1000, Math.max(1, Math.floor(Number(url.searchParams.get("limit") ?? 200)) || 200));
   let q = db
     .from("reports")
     .select("public_no, category_id, service_id, district_id, title, lat, lng, status, created_at, accepted_at, resolved_at, sla_due_at, sla_breached_at, reopen_count, confirmations_count, priority_score, source")
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   const dist = url.searchParams.get("district");
   if (dist) q = q.eq("district_id", ref.districts.find((d) => d.code === dist)?.id ?? -1);
   const since = url.searchParams.get("since");
-  if (since) q = q.gte("created_at", since);
+  if (since && !Number.isNaN(Date.parse(since))) q = q.gte("created_at", new Date(since).toISOString());
 
   const { data, error } = await q;
   if (error) return Response.json({ error: error.message }, { status: 400 });
