@@ -2,6 +2,3 @@
 ml/.venv/
 ml/honest_deadline/raw/
 __pycache__/
-.claude/
-CLAUDE.md
-AGENTS.md
